@@ -16,22 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.config;
 
-import java.util.AbstractMap;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
 import groovy.transform.CompileStatic;
+import groovy.transform.stc.POJO;
 
 import grails.config.Config;
 import grails.util.GrailsStringUtils;
@@ -45,8 +34,11 @@ import org.grails.core.exceptions.GrailsConfigurationException;
  * @author Graeme Rocher
  * @since 3.0
  */
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
 @CompileStatic
-public class CompositeConfig implements Config {
+@POJO
+class CompositeConfig implements Config {
 
     protected Deque<Config> configs = new ArrayDeque<>();
 
@@ -55,7 +47,7 @@ public class CompositeConfig implements Config {
      *
      * @param config
      */
-    public void addFirst(Config config) {
+    void addFirst(Config config) {
         configs.addFirst(config);
     }
 
@@ -64,13 +56,13 @@ public class CompositeConfig implements Config {
      *
      * @param config
      */
-    public void addLast(Config config) {
+    void addLast(Config config) {
         configs.addLast(config);
     }
 
     @Override
     @Deprecated
-    public Map<String, Object> flatten() {
+    Map<String, Object> flatten() {
         Map<String, Object> flattened = new LinkedHashMap<>();
         Iterator<Config> lowestPrecedenceFirst = configs.descendingIterator();
         while (lowestPrecedenceFirst.hasNext()) {
@@ -80,7 +72,7 @@ public class CompositeConfig implements Config {
     }
 
     @Override
-    public Properties toProperties() {
+    Properties toProperties() {
         Properties properties = new Properties();
         Iterator<Config> lowestPrecedenceFirst = configs.descendingIterator();
         while (lowestPrecedenceFirst.hasNext()) {
@@ -90,21 +82,21 @@ public class CompositeConfig implements Config {
     }
 
     @Override
-    public Config merge(Map<String, Object> toMerge) {
-        throw new UnsupportedOperationException("Config cannot be modified");
+    Config merge(Map<String, Object> toMerge) {
+        throw new UnsupportedOperationException('Config cannot be modified');
     }
 
     @Override
-    public <T> T getProperty(String key, Class<T> targetType, T defaultValue, List<T> allowedValues) {
+    def <T> T getProperty(String key, Class<T> targetType, T defaultValue, List<T> allowedValues) {
         T v = getProperty(key, targetType, defaultValue);
         if (!allowedValues.contains(v)) {
-            throw new GrailsConfigurationException("Invalid configuration value [$value] for key [${key}]. Possible values $allowedValues");
+            throw new GrailsConfigurationException("Invalid configuration value [${v}] for key [${key}]. Possible values ${allowedValues}");
         }
         return v;
     }
 
     @Override
-    public Object getAt(Object key) {
+    Object getAt(Object key) {
         for (Config c : configs) {
             if (c.containsKey(key)) {
                 return c.getAt(key);
@@ -118,12 +110,12 @@ public class CompositeConfig implements Config {
     }
 
     @Override
-    public void setAt(Object key, Object value) {
-        throw new UnsupportedOperationException("Config cannot be modified");
+    void setAt(Object key, Object value) {
+        throw new UnsupportedOperationException('Config cannot be modified');
     }
 
     @Override
-    public Object navigate(String... path) {
+    Object navigate(String... path) {
         for (Config c : configs) {
             Object v = c.navigate(path);
             if (v != null) return v;
@@ -132,12 +124,12 @@ public class CompositeConfig implements Config {
     }
 
     @Override
-    public int size() {
+    int size() {
         return keySet().size();
     }
 
     @Override
-    public boolean isEmpty() {
+    boolean isEmpty() {
         for (Config config : configs) {
             if (!config.isEmpty()) {
                 return false;
@@ -147,7 +139,7 @@ public class CompositeConfig implements Config {
     }
 
     @Override
-    public boolean containsKey(Object key) {
+    boolean containsKey(Object key) {
         for (Config config : configs) {
             if (config.containsKey(key)) return true;
         }
@@ -155,7 +147,7 @@ public class CompositeConfig implements Config {
     }
 
     @Override
-    public boolean containsValue(Object value) {
+    boolean containsValue(Object value) {
         return values().contains(value);
     }
 
@@ -165,7 +157,7 @@ public class CompositeConfig implements Config {
      * config is returned only when none has it.
      */
     @Override
-    public Object get(Object key) {
+    Object get(Object key) {
         for (Config config : configs) {
             if (config.containsKey(key)) {
                 return config.get(key);
@@ -179,32 +171,32 @@ public class CompositeConfig implements Config {
     }
 
     @Override
-    public Object put(String key, Object value) {
-        throw new UnsupportedOperationException("Config cannot be modified");
+    Object put(String key, Object value) {
+        throw new UnsupportedOperationException('Config cannot be modified');
     }
 
     @Override
-    public Object remove(Object key) {
-        throw new UnsupportedOperationException("Config cannot be modified");
+    Object remove(Object key) {
+        throw new UnsupportedOperationException('Config cannot be modified');
     }
 
     @Override
-    public void putAll(Map<? extends String, ?> m) {
-        throw new UnsupportedOperationException("Config cannot be modified");
+    void putAll(Map<? extends String, ?> m) {
+        throw new UnsupportedOperationException('Config cannot be modified');
     }
 
     @Override
-    public void clear() {
-        throw new UnsupportedOperationException("Config cannot be modified");
+    void clear() {
+        throw new UnsupportedOperationException('Config cannot be modified');
     }
 
     @Override
-    public Iterator<Map.Entry<String, Object>> iterator() {
+    Iterator<Map.Entry<String, Object>> iterator() {
         return entrySet().iterator();
     }
 
     @Override
-    public Set<String> keySet() {
+    Set<String> keySet() {
         Set<String> keys = new LinkedHashSet<>();
         for (Config config : configs) {
             keys.addAll(config.keySet());
@@ -213,7 +205,7 @@ public class CompositeConfig implements Config {
     }
 
     @Override
-    public Collection<Object> values() {
+    Collection<Object> values() {
         Collection<Object> values = new ArrayList<>();
         for (String key : keySet()) {
             values.add(get(key));
@@ -222,7 +214,7 @@ public class CompositeConfig implements Config {
     }
 
     @Override
-    public Set<Map.Entry<String, Object>> entrySet() {
+    Set<Map.Entry<String, Object>> entrySet() {
         Set<Map.Entry<String, Object>> entries = new LinkedHashSet<>();
         for (String key : keySet()) {
             entries.add(new AbstractMap.SimpleImmutableEntry<>(key, get(key)));
@@ -231,18 +223,18 @@ public class CompositeConfig implements Config {
     }
 
     @Override
-    public boolean containsProperty(String key) {
+    boolean containsProperty(String key) {
         return containsKey(key);
     }
 
     @Override
-    public String getProperty(String key, String defaultValue) {
-        String v = getProperty(key, String.class);
+    String getProperty(String key, String defaultValue) {
+        String v = getProperty(key, String);
         return !GrailsStringUtils.isBlank(v) ? v : defaultValue;
     }
 
     @Override
-    public <T> T getProperty(String key, Class<T> targetType) {
+    def <T> T getProperty(String key, Class<T> targetType) {
         for (Config config : configs) {
             T v = config.getProperty(key, targetType);
             if (v != null) return v;
@@ -251,41 +243,42 @@ public class CompositeConfig implements Config {
     }
 
     @Override
-    public <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
+    def <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
         T v = getProperty(key, targetType);
         return v != null ? v : defaultValue;
     }
 
     @Override
-    public String getRequiredProperty(String key) throws IllegalStateException {
+    String getRequiredProperty(String key) throws IllegalStateException {
         String value = getProperty(key);
         if (GrailsStringUtils.isBlank(value)) {
-            throw new IllegalStateException("Value for key [$key] cannot be resolved");
+            throw new IllegalStateException("Value for key [${key}] cannot be resolved");
         }
         return value;
     }
 
     @Override
-    public <T> T getRequiredProperty(String key, Class<T> targetType) throws IllegalStateException {
+    def <T> T getRequiredProperty(String key, Class<T> targetType) throws IllegalStateException {
         T value = getProperty(key, targetType);
         if (value == null) {
-            throw new IllegalStateException("Value for key [$key] cannot be resolved");
+            throw new IllegalStateException("Value for key [${key}] cannot be resolved");
         }
         return value;
     }
 
     @Override
-    public String resolvePlaceholders(String text) {
-        throw new UnsupportedOperationException("Config cannot be used to resolve placeholders");
+    String resolvePlaceholders(String text) {
+        throw new UnsupportedOperationException('Config cannot be used to resolve placeholders');
     }
 
     @Override
-    public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
-        throw new UnsupportedOperationException("Config cannot be used to resolve placeholders");
+    String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
+        throw new UnsupportedOperationException('Config cannot be used to resolve placeholders');
     }
 
     @Override
-    public String getProperty(String key) {
-        return getProperty(key, String.class);
+    String getProperty(String key) {
+        return getProperty(key, String);
     }
+
 }

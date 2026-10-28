@@ -17,11 +17,10 @@
  *  under the License.
  */
 
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.transaction;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import groovy.transform.CompileStatic;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +38,12 @@ import org.springframework.transaction.interceptor.TransactionAttribute;
  * @author Graeme Rocher
  * @since 3.0
  */
-public class GrailsTransactionAttribute extends RuleBasedTransactionAttribute {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class GrailsTransactionAttribute extends RuleBasedTransactionAttribute {
 
-    private static final Logger log = LoggerFactory.getLogger(GrailsTransactionAttribute.class);
+    private static final Logger log = LoggerFactory.getLogger(GrailsTransactionAttribute);
 
     private static final long serialVersionUID = 1L;
     private boolean inheritRollbackOnly = true;
@@ -65,13 +67,13 @@ public class GrailsTransactionAttribute extends RuleBasedTransactionAttribute {
         setTimeout(other.getTimeout());
         setReadOnly(other.isReadOnly());
         setName(other.getName());
-        if (other instanceof TransactionAttribute attribute) {
-            copyAttributeState(attribute);
+        if (other instanceof TransactionAttribute) {
+            copyAttributeState((TransactionAttribute) other);
         }
-        if (other instanceof RuleBasedTransactionAttribute ruleBased) {
+        if (other instanceof RuleBasedTransactionAttribute) {
             // Spring's copy constructor snapshots the source's rule list from the field, unlike
             // getRollbackRules() which would lazily assign a new list into the source object
-            setRollbackRules(new RuleBasedTransactionAttribute(ruleBased).getRollbackRules());
+            setRollbackRules(new RuleBasedTransactionAttribute((RuleBasedTransactionAttribute) other).getRollbackRules());
         }
         copyGrailsState(other);
     }
@@ -92,7 +94,8 @@ public class GrailsTransactionAttribute extends RuleBasedTransactionAttribute {
      * only copies the {@link TransactionDefinition} fields.
      */
     private void copyAttributeState(TransactionAttribute other) {
-        if (other instanceof DefaultTransactionAttribute defaultAttribute) {
+        if (other instanceof DefaultTransactionAttribute) {
+            DefaultTransactionAttribute defaultAttribute = (DefaultTransactionAttribute) other;
             setDescriptor(defaultAttribute.getDescriptor());
             setTimeoutString(defaultAttribute.getTimeoutString());
         }
@@ -105,15 +108,15 @@ public class GrailsTransactionAttribute extends RuleBasedTransactionAttribute {
     }
 
     private void copyGrailsState(TransactionDefinition other) {
-        if (other instanceof GrailsTransactionAttribute grailsAttribute) {
-            this.inheritRollbackOnly = grailsAttribute.inheritRollbackOnly;
+        if (other instanceof GrailsTransactionAttribute) {
+            this.inheritRollbackOnly = ((GrailsTransactionAttribute) other).@inheritRollbackOnly;
         }
     }
 
     @Override
-    public boolean rollbackOn(Throwable ex) {
+    boolean rollbackOn(Throwable ex) {
         if (log.isTraceEnabled()) {
-            log.trace("Applying rules to determine whether transaction should rollback on " + ex);
+            log.trace('Applying rules to determine whether transaction should rollback on ' + ex);
         }
 
         RollbackRuleAttribute winner = null;
@@ -131,13 +134,13 @@ public class GrailsTransactionAttribute extends RuleBasedTransactionAttribute {
         }
 
         if (log.isTraceEnabled()) {
-            log.trace("Winning rollback rule is: " + winner);
+            log.trace('Winning rollback rule is: ' + winner);
         }
 
         // User superclass behavior (rollback on unchecked) if no rule matches.
         if (winner == null) {
             if (log.isTraceEnabled()) {
-                log.trace("No relevant rollback rule found: applying default rules");
+                log.trace('No relevant rollback rule found: applying default rules');
             }
 
             // always rollback regardless if it is a checked or unchecked exception since Groovy doesn't differentiate those
@@ -147,11 +150,12 @@ public class GrailsTransactionAttribute extends RuleBasedTransactionAttribute {
         return !(winner instanceof NoRollbackRuleAttribute);
     }
 
-    public boolean isInheritRollbackOnly() {
+    boolean isInheritRollbackOnly() {
         return inheritRollbackOnly;
     }
 
-    public void setInheritRollbackOnly(boolean inheritRollbackOnly) {
+    void setInheritRollbackOnly(boolean inheritRollbackOnly) {
         this.inheritRollbackOnly = inheritRollbackOnly;
     }
+
 }

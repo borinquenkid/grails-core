@@ -16,11 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.spring.aop.autoproxy;
+package org.grails.spring.aop.autoproxy
 
-import groovy.lang.GroovyObject;
+import groovy.transform.CompileStatic
 
-import org.springframework.aop.framework.autoproxy.InfrastructureAdvisorAutoProxyCreator;
+import org.springframework.aop.framework.autoproxy.InfrastructureAdvisorAutoProxyCreator
 
 /**
  * Tells Spring always to proxy Groovy classes.
@@ -28,12 +28,14 @@ import org.springframework.aop.framework.autoproxy.InfrastructureAdvisorAutoProx
  * @author Graeme Rocher
  * @since 1.2
  */
-public class GroovyAwareInfrastructureAdvisorAutoProxyCreator extends InfrastructureAdvisorAutoProxyCreator {
+@CompileStatic
+class GroovyAwareInfrastructureAdvisorAutoProxyCreator extends InfrastructureAdvisorAutoProxyCreator {
 
-    private static final long serialVersionUID = 5545896123964533688L;
+    private static final long serialVersionUID = 5545896123964533688L
 
     @Override
     protected boolean shouldProxyTargetClass(Class<?> beanClass, String beanName) {
-        return GroovyObject.class.isAssignableFrom(beanClass) || super.shouldProxyTargetClass(beanClass, beanName);
+        GroovyObject.isAssignableFrom(beanClass) || super.shouldProxyTargetClass(beanClass, beanName)
     }
+
 }

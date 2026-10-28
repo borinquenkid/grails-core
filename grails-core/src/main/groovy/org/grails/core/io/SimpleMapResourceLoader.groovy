@@ -16,13 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.io;
+package org.grails.core.io
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap
 
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
+import groovy.transform.CompileStatic
+import org.springframework.core.io.Resource
+import org.springframework.core.io.ResourceLoader
 
 /**
  * Simple implementation of the ResourceLoader interface that uses a Map to load resources.
@@ -30,19 +30,21 @@ import org.springframework.core.io.ResourceLoader;
  * @author Graeme Rocher
  * @since 2.0
  */
-public class SimpleMapResourceLoader implements ResourceLoader {
+@CompileStatic
+class SimpleMapResourceLoader implements ResourceLoader {
 
-    private Map<String, Resource> resources = new ConcurrentHashMap<>();
+    private Map<String, Resource> resources = new ConcurrentHashMap<>()
 
-    public Map<String, Resource> getResources() {
-        return resources;
+    Map<String, Resource> getResources() {
+        return resources
     }
 
-    public Resource getResource(String location) {
-        return resources.get(location);
+    Resource getResource(String location) {
+        return resources.get(location)
     }
 
-    public ClassLoader getClassLoader() {
-        return SimpleMapResourceLoader.class.getClassLoader();
+    ClassLoader getClassLoader() {
+        return SimpleMapResourceLoader.classLoader
     }
+
 }

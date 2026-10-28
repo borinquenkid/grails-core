@@ -16,14 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.persistence;
+package grails.persistence
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
-import org.codehaus.groovy.transform.GroovyASTTransformationClass;
+import org.codehaus.groovy.transform.GroovyASTTransformationClass
 
 /**
  * A class annotation used to make a class into a GORM domain class.
@@ -32,8 +32,10 @@ import org.codehaus.groovy.transform.GroovyASTTransformationClass;
  * @since 1.1
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-@GroovyASTTransformationClass("org.grails.compiler.injection.EntityASTTransformation")
-public @interface Entity {
+@Target([ElementType.TYPE])
+@GroovyASTTransformationClass('org.grails.compiler.injection.EntityASTTransformation')
+@interface Entity {
+
     // no attributes
+
 }

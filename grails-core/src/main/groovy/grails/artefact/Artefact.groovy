@@ -16,14 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.artefact;
+package grails.artefact
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
-import org.codehaus.groovy.transform.GroovyASTTransformationClass;
+import org.codehaus.groovy.transform.GroovyASTTransformationClass
 
 /**
  * Used to define the artefact type for classes declared outside of Grails' usual conventions.
@@ -32,9 +32,10 @@ import org.codehaus.groovy.transform.GroovyASTTransformationClass;
  * @since 2.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-@GroovyASTTransformationClass("org.grails.compiler.injection.ArtefactTypeAstTransformation")
-public @interface Artefact {
+@Target([ElementType.TYPE])
+@GroovyASTTransformationClass('org.grails.compiler.injection.ArtefactTypeAstTransformation')
+@interface Artefact {
 
-    String value();
+    String value()
+
 }

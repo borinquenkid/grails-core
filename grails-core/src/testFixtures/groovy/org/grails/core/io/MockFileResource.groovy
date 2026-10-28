@@ -16,12 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.io;
+package org.grails.core.io
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.StandardCharsets
 
-import org.springframework.core.io.ByteArrayResource;
+import groovy.transform.CompileStatic
+import org.springframework.core.io.ByteArrayResource
 
 /**
  * Mocks the behavior of a FileResource.
@@ -29,22 +29,23 @@ import org.springframework.core.io.ByteArrayResource;
  * @author Graeme Rocher
  * @since 1.1
  */
-public class MockFileResource extends ByteArrayResource {
+@CompileStatic
+class MockFileResource extends ByteArrayResource {
 
-    private String fileName;
+    private String fileName
 
-    public MockFileResource(String fileName, String contents) throws UnsupportedEncodingException {
-        super(contents.getBytes(StandardCharsets.UTF_8));
-        this.fileName = fileName;
+    MockFileResource(String fileName, String contents) throws UnsupportedEncodingException {
+        super(contents.getBytes(StandardCharsets.UTF_8))
+        this.fileName = fileName
     }
 
-    public MockFileResource(String fileName, String contents, String encoding) throws UnsupportedEncodingException {
-        super(contents.getBytes(encoding));
-        this.fileName = fileName;
+    MockFileResource(String fileName, String contents, String encoding) throws UnsupportedEncodingException {
+        super(contents.getBytes(encoding))
+        this.fileName = fileName
     }
 
     @Override
-    public String getFilename() {
-        return fileName;
+    String getFilename() {
+        return fileName
     }
 }

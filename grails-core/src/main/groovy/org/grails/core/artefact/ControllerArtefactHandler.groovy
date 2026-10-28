@@ -16,11 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.artefact;
+package org.grails.core.artefact
 
-import grails.core.ArtefactHandlerAdapter;
-import grails.core.GrailsControllerClass;
-import org.grails.core.DefaultGrailsControllerClass;
+import groovy.transform.CompileStatic
+
+import grails.core.ArtefactHandlerAdapter
+import grails.core.GrailsControllerClass
+import org.grails.core.DefaultGrailsControllerClass
 
 /**
  * Lookup controllers for uris.
@@ -31,18 +33,20 @@ import org.grails.core.DefaultGrailsControllerClass;
  *
  * @author Marc Palmer (marc@anyware.co.uk)
 */
-public class ControllerArtefactHandler extends ArtefactHandlerAdapter {
+@CompileStatic
+class ControllerArtefactHandler extends ArtefactHandlerAdapter {
 
-    public static final String TYPE = "Controller";
-    public static final String PLUGIN_NAME = "controllers";
+    public static final String TYPE = 'Controller'
+    public static final String PLUGIN_NAME = 'controllers'
 
-    public ControllerArtefactHandler() {
-        super(TYPE, GrailsControllerClass.class, DefaultGrailsControllerClass.class,
-                DefaultGrailsControllerClass.CONTROLLER, false);
+    ControllerArtefactHandler() {
+        super(TYPE, GrailsControllerClass, DefaultGrailsControllerClass,
+                DefaultGrailsControllerClass.CONTROLLER, false)
     }
 
     @Override
-    public String getPluginName() {
-        return PLUGIN_NAME;
+    String getPluginName() {
+        return PLUGIN_NAME
     }
+
 }

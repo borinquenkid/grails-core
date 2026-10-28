@@ -16,9 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.core;
+package grails.core
 
-import org.grails.core.AbstractGrailsClass;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.POJO
+
+import org.grails.core.AbstractGrailsClass
 
 /**
  * A default implementation for Grails classes that need to be registered and managed by a GrailsApplication,
@@ -27,7 +30,9 @@ import org.grails.core.AbstractGrailsClass;
  * @author Graeme Rocher
  * @since 0.5
  */
-public class DefaultGrailsClass extends AbstractGrailsClass {
+@CompileStatic
+@POJO
+class DefaultGrailsClass extends AbstractGrailsClass {
 
     /**
      * Contructor to be used by all child classes to create a
@@ -36,11 +41,12 @@ public class DefaultGrailsClass extends AbstractGrailsClass {
      * @param clazz        the Grails class
      * @param trailingName the trailing part of the name for this class type
      */
-    public DefaultGrailsClass(Class<?> clazz, String trailingName) {
-        super(clazz, trailingName);
+    DefaultGrailsClass(Class<?> clazz, String trailingName) {
+        super(clazz, trailingName)
     }
 
-    public DefaultGrailsClass(Class<?> clazz) {
-        super(clazz, "");
+    DefaultGrailsClass(Class<?> clazz) {
+        super(clazz, '')
     }
+
 }

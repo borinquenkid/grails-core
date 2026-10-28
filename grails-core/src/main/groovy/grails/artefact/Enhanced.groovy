@@ -16,12 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.artefact;
+package grails.artefact
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
 /**
  * An annotation for classes that are compile-time enhanced. Used to
@@ -31,9 +31,11 @@ import java.lang.annotation.Target;
  * @since 2.0
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface Enhanced {
-    String version();
-    String[] enhancedFor() default {};
-    Class<?>[] mixins() default {};
+@Target([ElementType.TYPE])
+@interface Enhanced {
+
+    String version()
+    String[] enhancedFor() default []
+    Class<?>[] mixins() default []
+
 }

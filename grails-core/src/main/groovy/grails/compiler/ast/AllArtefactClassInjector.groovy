@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.compiler.ast;
+package grails.compiler.ast
 
 /**
  * Extended marker interface that indicates this ClassInjector applies to all types of artefacts (but not all classes).
@@ -24,6 +24,8 @@ package grails.compiler.ast;
  * @author Graeme Rocher
  * @since 2.0
  */
-public interface AllArtefactClassInjector extends ClassInjector {
+interface AllArtefactClassInjector extends ClassInjector {
+
     // marker interface
+
 }

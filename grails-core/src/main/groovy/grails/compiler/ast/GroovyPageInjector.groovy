@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.compiler.ast;
+package grails.compiler.ast
 
 /**
  * Extended marker interface that indicates this ClassInjector applies to GSPs.
@@ -24,6 +24,8 @@ package grails.compiler.ast;
  * @author Stephane Maldini
  * @since 2.0
  */
-public interface GroovyPageInjector extends ClassInjector {
+interface GroovyPageInjector extends ClassInjector {
+
     // marker
+
 }

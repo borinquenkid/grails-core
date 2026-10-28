@@ -16,15 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package grails.core;
 
-import java.io.IOException;
+import groovy.transform.CompileStatic;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.net.URL;
 
-import groovy.lang.Closure;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.InnerClassNode;
 
@@ -44,8 +44,10 @@ import org.grails.io.support.UrlResource;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings("deprecation")
-public abstract class ArtefactHandlerAdapter implements ArtefactHandler {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'deprecation'])
+@CompileStatic
+abstract class ArtefactHandlerAdapter implements ArtefactHandler {
 
     protected String type;
     protected Class<?> grailsClassType;
@@ -70,11 +72,11 @@ public abstract class ArtefactHandlerAdapter implements ArtefactHandler {
         this.allowAbstract = allowAbstract;
     }
 
-    public String getPluginName() {
+    String getPluginName() {
         return GrailsNameUtils.getPropertyName(type);
     }
 
-    public String getType() {
+    String getType() {
         return type;
     }
 
@@ -86,7 +88,7 @@ public abstract class ArtefactHandlerAdapter implements ArtefactHandler {
      * @return True if the ClassNode is an artefact of this type
      */
     @Override
-    public boolean isArtefact(ClassNode classNode) {
+    boolean isArtefact(ClassNode classNode) {
         int modifiers = classNode.getModifiers();
 
         URL url = GrailsASTUtils.getSourceUrl(classNode);
@@ -121,7 +123,7 @@ public abstract class ArtefactHandlerAdapter implements ArtefactHandler {
         return GrailsResourceUtils.isGrailsResource(resource);
     }
 
-    public final boolean isArtefact(@SuppressWarnings("rawtypes") Class aClass) {
+    final boolean isArtefact(@SuppressWarnings('rawtypes') Class aClass) {
         if (aClass == null) {
             return false;
         }
@@ -131,7 +133,7 @@ public abstract class ArtefactHandlerAdapter implements ArtefactHandler {
                 return true;
             }
         } catch (Throwable t) {
-            throw new GrailsRuntimeException("Failed to introspect class: " + aClass, t);
+            throw new GrailsRuntimeException('Failed to introspect class: ' + aClass, t);
         }
 
         return false;
@@ -143,10 +145,10 @@ public abstract class ArtefactHandlerAdapter implements ArtefactHandler {
      * @param clazz The class to check
      * @return true if it is an artefact of this type
      */
-    public boolean isArtefactClass(@SuppressWarnings("rawtypes") Class clazz) {
+    boolean isArtefactClass(@SuppressWarnings('rawtypes') Class clazz) {
         if (clazz == null) return false;
 
-        boolean ok = clazz.getName().endsWith(artefactSuffix) && !Closure.class.isAssignableFrom(clazz);
+        boolean ok = clazz.getName().endsWith(artefactSuffix) && !Closure.isAssignableFrom(clazz);
         if (ok && !allowAbstract) {
             ok &= !Modifier.isAbstract(clazz.getModifiers());
         }
@@ -159,23 +161,23 @@ public abstract class ArtefactHandlerAdapter implements ArtefactHandler {
      * @param artefactClass Creates a new artefact for the given class
      * @return An instance of the GrailsClass interface representing the artefact
      */
-    public GrailsClass newArtefactClass(@SuppressWarnings("rawtypes") Class artefactClass) {
+    GrailsClass newArtefactClass(@SuppressWarnings('rawtypes') Class artefactClass) {
         try {
-            Constructor<?> c = grailsClassImpl.getDeclaredConstructor(new Class[] { Class.class });
+            Constructor<?> c = grailsClassImpl.getDeclaredConstructor(new Class[] { Class });
             // TODO GRAILS-720 plugin class instance created here first
             return (GrailsClass) c.newInstance(new Object[] { artefactClass});
         }
         catch (NoSuchMethodException e) {
-            throw new GrailsRuntimeException("Unable to locate constructor with Class parameter for " + artefactClass, e);
+            throw new GrailsRuntimeException('Unable to locate constructor with Class parameter for ' + artefactClass, e);
         }
         catch (IllegalAccessException e) {
-            throw new GrailsRuntimeException("Unable to locate constructor with Class parameter for " + artefactClass, e);
+            throw new GrailsRuntimeException('Unable to locate constructor with Class parameter for ' + artefactClass, e);
         }
         catch (InvocationTargetException e) {
-            throw new GrailsRuntimeException("Error instantiated artefact class [" + artefactClass + "] of type [" + grailsClassImpl + "]: " + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()), e);
+            throw new GrailsRuntimeException('Error instantiated artefact class [' + artefactClass + '] of type [' + grailsClassImpl + ']: ' + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()), e);
         }
         catch (InstantiationException e) {
-            throw new GrailsRuntimeException("Error instantiated artefact class [" + artefactClass + "] of type [" + grailsClassImpl + "]: " + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()), e);
+            throw new GrailsRuntimeException('Error instantiated artefact class [' + artefactClass + '] of type [' + grailsClassImpl + ']: ' + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()), e);
         }
     }
 
@@ -183,20 +185,21 @@ public abstract class ArtefactHandlerAdapter implements ArtefactHandler {
      * Sets up the relationships between the domain classes, this has to be done after
      * the intial creation to avoid looping.
      */
-    public void initialize(ArtefactInfo artefacts) {
+    void initialize(ArtefactInfo artefacts) {
         // do nothing
     }
 
-    public GrailsClass getArtefactForFeature(Object feature) {
+    GrailsClass getArtefactForFeature(Object feature) {
         return null;
     }
 
-    public boolean isArtefactGrailsClass(GrailsClass artefactGrailsClass) {
+    boolean isArtefactGrailsClass(GrailsClass artefactGrailsClass) {
         return grailsClassType.isAssignableFrom(artefactGrailsClass.getClass());
     }
 
     @Override
-    public int getOrder() {
+    int getOrder() {
         return Ordered.LOWEST_PRECEDENCE;
     }
+
 }

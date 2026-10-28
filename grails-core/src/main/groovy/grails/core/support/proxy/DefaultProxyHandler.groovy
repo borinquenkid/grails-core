@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.core.support.proxy;
+package grails.core.support.proxy
+
+import groovy.transform.CompileStatic
 
 /**
  * Trivial default implementation that always returns true and the object.
@@ -24,25 +26,27 @@ package grails.core.support.proxy;
  * @author Graeme Rocher
  * @since 1.2.2
  */
-public class DefaultProxyHandler implements ProxyHandler {
+@CompileStatic
+class DefaultProxyHandler implements ProxyHandler {
 
-    public boolean isInitialized(Object o) {
-        return true;
+    boolean isInitialized(Object o) {
+        return true
     }
 
-    public boolean isInitialized(Object obj, String associationName) {
-        return true;
+    boolean isInitialized(Object obj, String associationName) {
+        return true
     }
 
-    public Object unwrapIfProxy(Object instance) {
-        return instance;
+    Object unwrapIfProxy(Object instance) {
+        return instance
     }
 
-    public boolean isProxy(Object o) {
-        return false;
+    boolean isProxy(Object o) {
+        return false
     }
 
-    public void initialize(Object o) {
+    void initialize(Object o) {
         // do nothing
     }
+
 }

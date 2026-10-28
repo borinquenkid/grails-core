@@ -16,6 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.core;
 
 import java.lang.invoke.MethodHandle;
@@ -23,13 +24,9 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
-import groovy.lang.GroovyObject;
-
+import groovy.transform.CompileStatic;
+import groovy.transform.stc.POJO;
 import org.springframework.util.ReflectionUtils;
 
 import grails.config.Settings;
@@ -46,16 +43,20 @@ import grails.web.UrlConverter;
  * @author Steven Devijver
  * @since 0.1
  */
-@SuppressWarnings("rawtypes")
-public class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass implements GrailsControllerClass {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'rawtypes'])
+@CompileStatic
+@POJO
+class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass implements GrailsControllerClass {
 
-    public static final String CONTROLLER = "Controller";
+    public static final String CONTROLLER = 'Controller';
 
-    private static final String DEFAULT_CLOSURE_PROPERTY = "defaultAction";
-    public static final String ALLOWED_HTTP_METHODS_PROPERTY = "allowedMethods";
+    private static final String DEFAULT_CLOSURE_PROPERTY = 'defaultAction';
+    public static final String ALLOWED_HTTP_METHODS_PROPERTY = 'allowedMethods';
     public static final Object[] EMPTY_ARGS = new Object[0];
-    public static final String SCOPE = "scope";
-    public static final String SCOPE_SINGLETON = "singleton";
+    public static final String SCOPE = 'scope';
+    public static final String SCOPE_SINGLETON = 'singleton';
+    private static final MethodType METHOD_HANDLE_INVOKER_TYPE = MethodType.methodType(Object, Object);
     private String scope;
     private Map<String, ActionInvoker> actions = new HashMap<>();
     private String defaultActionName;
@@ -64,48 +65,48 @@ public class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass 
 
     public DefaultGrailsControllerClass(Class<?> clazz) {
         super(clazz, CONTROLLER);
-        namespace = getStaticPropertyValue(NAMESPACE_PROPERTY, String.class);
-        defaultActionName = getStaticPropertyValue(DEFAULT_CLOSURE_PROPERTY, String.class);
+        namespace = getStaticPropertyValue(NAMESPACE_PROPERTY, String);
+        defaultActionName = getStaticPropertyValue(DEFAULT_CLOSURE_PROPERTY, String);
         if (defaultActionName == null) {
             defaultActionName = INDEX_ACTION;
         }
         methodStrategy(actions);
-        this.scope = getStaticPropertyValue(SCOPE, String.class);
+        this.scope = getStaticPropertyValue(SCOPE, String);
     }
 
-    public void initialize() {
+    void initialize() {
         // no-op
     }
 
     @Override
-    public void setGrailsApplication(GrailsApplication grailsApplication) {
-        this.grailsApplication = grailsApplication;
+    void setGrailsApplication(GrailsApplication grailsApplication) {
+        this.@grailsApplication = grailsApplication;
         if (this.scope == null) {
             this.scope = grailsApplication.getConfig().getProperty(Settings.CONTROLLERS_DEFAULT_SCOPE, SCOPE_SINGLETON);
         }
     }
 
     @Override
-    public Set<String> getActions() {
+    Set<String> getActions() {
         return actions.keySet();
     }
 
-    public String getNamespace() {
+    String getNamespace() {
         return namespace;
     }
 
     @Override
-    public String getScope() {
+    String getScope() {
         return scope;
     }
 
     @Override
-    public boolean isSingleton() {
+    boolean isSingleton() {
         return SCOPE_SINGLETON.equalsIgnoreCase(getScope());
     }
 
     @Override
-    public String getDefaultAction() {
+    String getDefaultAction() {
         return this.defaultActionName;
     }
 
@@ -113,9 +114,9 @@ public class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass 
 
         Class superClass = getClazz();
         MethodHandles.Lookup lookup = MethodHandles.lookup();
-        while (superClass != Object.class && superClass != GroovyObject.class) {
+        while (superClass != Object && superClass != GroovyObject) {
             for (Method method : superClass.getMethods()) {
-                if (Modifier.isPublic(method.getModifiers()) && method.getAnnotation(Action.class) != null) {
+                if (Modifier.isPublic(method.getModifiers()) && method.getAnnotation(Action) != null) {
                     String methodName = method.getName();
                     if (Environment.isDevelopmentMode()) {
                         methodNames.put(methodName, new ReflectionInvoker(method));
@@ -135,15 +136,15 @@ public class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass 
             superClass = superClass.getSuperclass();
         }
 
-        if (!isActionMethod(defaultActionName) && methodNames.size() == 1 && !isReadableProperty("scaffold")) {
+        if (!isActionMethod(defaultActionName) && methodNames.size() == 1 && !isReadableProperty('scaffold')) {
             defaultActionName = methodNames.keySet().iterator().next();
         }
     }
 
     @Override
-    public boolean mapsToURI(String uri) {
-        if (uri.startsWith("/")) {
-            String[] tokens = uri.substring(1).split("\\/");
+    boolean mapsToURI(String uri) {
+        if (uri.startsWith('/')) {
+            String[] tokens = uri.substring(1).split('\\/');
             if (tokens.length > 0) {
                 String controllerName = tokens[0];
                 if (getLogicalPropertyName().equals(controllerName)) {
@@ -168,7 +169,7 @@ public class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass 
      * @param urlConverter The {@link grails.web.UrlConverter} to register
      */
     @Override
-    public void registerUrlConverter(UrlConverter urlConverter) {
+    void registerUrlConverter(UrlConverter urlConverter) {
         for (String actionName : new ArrayList<>(actions.keySet())) {
             actionUriToViewName.put(urlConverter.toUrlElement(actionName), actionName);
             actions.put(urlConverter.toUrlElement(actionName), actions.remove(actionName));
@@ -185,14 +186,14 @@ public class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass 
      * @throws Throwable
      */
     @Override
-    public Object invoke(Object controller, String action) throws Throwable {
+    Object invoke(Object controller, String action) throws Throwable {
         if (action == null) action = this.defaultActionName;
         ActionInvoker handle = actions.get(action);
-        if (handle == null) throw new IllegalArgumentException("Invalid action name: " + action);
+        if (handle == null) throw new IllegalArgumentException('Invalid action name: ' + action);
         return handle.invoke(controller);
     }
 
-    public String actionUriToViewName(String actionUri) {
+    String actionUriToViewName(String actionUri) {
         String actionName = actionUriToViewName.get(actionUri);
 
         return actionName != null ? actionName : actionUri;
@@ -211,7 +212,7 @@ public class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass 
         }
 
         @Override
-        public Object invoke(Object controller) throws Throwable {
+        Object invoke(Object controller) throws Throwable {
             return method.invoke(controller);
         }
     }
@@ -220,12 +221,18 @@ public class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass 
         private final MethodHandle handle;
 
         public MethodHandleInvoker(MethodHandle handle) {
-            this.handle = handle;
+            // Groovy compiles every call to the signature-polymorphic MethodHandle.invoke/invokeExact with the
+            // descriptor (Object[])Object, so the action handle, whose type is (ControllerType)ReturnType, is
+            // adapted once here to exactly that shape: erase both types to Object, then spread the single-element
+            // Object[] that Groovy passes onto the receiver argument. invoke() below is then an exact, direct
+            // invocation on every dispatch instead of the allocating and boxing invokeWithArguments() path.
+            this.handle = handle.asType(METHOD_HANDLE_INVOKER_TYPE).asSpreader(Object[], 1);
         }
 
         @Override
-        public Object invoke(Object controller) throws Throwable {
-            return handle.invoke(controller);
+        Object invoke(Object controller) throws Throwable {
+            return handle.invokeExact(controller);
         }
     }
+
 }

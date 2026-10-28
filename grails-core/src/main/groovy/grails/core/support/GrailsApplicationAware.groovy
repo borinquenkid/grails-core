@@ -16,11 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.core.support;
+package grails.core.support
 
-import org.springframework.beans.factory.Aware;
+import org.springframework.beans.factory.Aware
 
-import grails.core.GrailsApplication;
+import grails.core.GrailsApplication
 
 /**
  * <p>Convenience interface that can be implemented by classes that are
@@ -30,7 +30,8 @@ import grails.core.GrailsApplication;
  * @since 0.2
  * @see GrailsApplication
  */
-public interface GrailsApplicationAware extends Aware {
+interface GrailsApplicationAware extends Aware {
+
     /**
      * <p>This method is called by the {@link org.springframework.context.ApplicationContext} that
      * loads the Grails application. The {@link GrailsApplication} instance that represents
@@ -38,5 +39,6 @@ public interface GrailsApplicationAware extends Aware {
      *
      * @param grailsApplication the {@link GrailsApplication} object that represents this Grails application
      */
-    void setGrailsApplication(GrailsApplication grailsApplication);
+    void setGrailsApplication(GrailsApplication grailsApplication)
+
 }

@@ -16,37 +16,34 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.compiler.injection;
+package org.grails.compiler.injection
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.lang.reflect.Field
 
-import groovy.transform.CompilationUnitAware;
-import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.AnnotatedNode;
-import org.codehaus.groovy.ast.AnnotationNode;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.expr.ClassExpression;
-import org.codehaus.groovy.ast.expr.ConstantExpression;
-import org.codehaus.groovy.ast.expr.Expression;
-import org.codehaus.groovy.ast.expr.PropertyExpression;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.CompilePhase;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.control.messages.SimpleMessage;
-import org.codehaus.groovy.transform.GroovyASTTransformation;
+import groovy.transform.CompilationUnitAware
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.AnnotatedNode
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.expr.ClassExpression
+import org.codehaus.groovy.ast.expr.ConstantExpression
+import org.codehaus.groovy.ast.expr.Expression
+import org.codehaus.groovy.ast.expr.PropertyExpression
+import org.codehaus.groovy.control.CompilationUnit
+import org.codehaus.groovy.control.CompilePhase
+import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.control.messages.SimpleMessage
+import org.codehaus.groovy.transform.GroovyASTTransformation
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import grails.artefact.Artefact;
-import grails.compiler.ast.AllArtefactClassInjector;
-import grails.compiler.ast.ClassInjector;
-import grails.compiler.ast.GlobalClassInjector;
-import grails.compiler.ast.GrailsArtefactClassInjector;
-import org.apache.grails.common.compiler.GroovyTransformOrder;
+import grails.artefact.Artefact
+import grails.compiler.ast.AllArtefactClassInjector
+import grails.compiler.ast.ClassInjector
+import grails.compiler.ast.GlobalClassInjector
+import grails.compiler.ast.GrailsArtefactClassInjector
+import org.apache.grails.common.compiler.GroovyTransformOrder
 
 /**
  * A transformation used to apply transformers to classes not located in Grails
@@ -57,130 +54,133 @@ import org.apache.grails.common.compiler.GroovyTransformOrder;
  * @since 2.0
  */
 @GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
-public class ArtefactTypeAstTransformation extends AbstractArtefactTypeAstTransformation implements CompilationUnitAware {
-    private static final ClassNode MY_TYPE = new ClassNode(Artefact.class);
+@CompileStatic
+class ArtefactTypeAstTransformation extends AbstractArtefactTypeAstTransformation implements CompilationUnitAware {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ArtefactTypeAstTransformation.class);
+    private static final ClassNode MY_TYPE = new ClassNode(Artefact)
 
-    protected CompilationUnit compilationUnit;
+    private static final Logger LOG = LoggerFactory.getLogger(ArtefactTypeAstTransformation)
 
-    public void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
-        AnnotatedNode parent = (AnnotatedNode) astNodes[1];
-        AnnotationNode node = (AnnotationNode) astNodes[0];
+    protected CompilationUnit compilationUnit
+
+    void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
+        AnnotatedNode parent = (AnnotatedNode) astNodes[1]
+        AnnotationNode node = (AnnotationNode) astNodes[0]
 
         if (!(node instanceof AnnotationNode) || !(parent instanceof AnnotatedNode)) {
-            throw new RuntimeException("Internal error: wrong types: $node.class / $parent.class");
+            throw new RuntimeException("Internal error: wrong types: ${node.getClass()} / ${parent.getClass()}")
         }
 
         if (!isArtefactAnnotationNode(node) || !(parent instanceof ClassNode)) {
-            return;
+            return
         }
 
-        ClassNode cNode = (ClassNode) parent;
+        ClassNode cNode = (ClassNode) parent
         if (cNode.isInterface()) {
             throw new RuntimeException("Error processing interface '" + cNode.getName() + "'. @" +
-                    getAnnotationType().getNameWithoutPackage() + " not allowed for interfaces.");
+                    getAnnotationType().getNameWithoutPackage() + ' not allowed for interfaces.')
         }
 
         if (isApplied(cNode)) {
-            return;
+            return
         }
 
-        String artefactType = resolveArtefactType(sourceUnit, node, cNode);
+        String artefactType = resolveArtefactType(sourceUnit, node, cNode)
         if (artefactType != null) {
-            AbstractGrailsArtefactTransformer.addToTransformedClasses(cNode.getName());
+            AbstractGrailsArtefactTransformer.addToTransformedClasses(cNode.getName())
         }
-        performInjectionOnArtefactType(sourceUnit, cNode, artefactType);
+        performInjectionOnArtefactType(sourceUnit, cNode, artefactType)
 
-        performTraitInjectionOnArtefactType(sourceUnit, cNode, artefactType);
+        performTraitInjectionOnArtefactType(sourceUnit, cNode, artefactType)
 
-        postProcess(sourceUnit, node, cNode, artefactType);
+        postProcess(sourceUnit, node, cNode, artefactType)
 
-        markApplied(cNode);
+        markApplied(cNode)
     }
 
     protected void performTraitInjectionOnArtefactType(SourceUnit sourceUnit,
             ClassNode cNode, String artefactType) {
         if (compilationUnit != null) {
-            TraitInjectionUtils.processTraitsForNode(sourceUnit, cNode, artefactType, compilationUnit);
+            TraitInjectionUtils.processTraitsForNode(sourceUnit, cNode, artefactType, compilationUnit)
         }
     }
 
     protected boolean isApplied(ClassNode cNode) {
-        return GrailsASTUtils.isApplied(cNode, getAstAppliedMarkerClass());
+        return GrailsASTUtils.isApplied(cNode, getAstAppliedMarkerClass())
     }
 
     protected void markApplied(ClassNode classNode) {
-        GrailsASTUtils.markApplied(classNode, getAstAppliedMarkerClass());
+        GrailsASTUtils.markApplied(classNode, getAstAppliedMarkerClass())
     }
 
     protected Class<?> getAstAppliedMarkerClass() {
-        return ArtefactTypeAstTransformation.class;
+        return ArtefactTypeAstTransformation
     }
 
     protected void postProcess(SourceUnit sourceUnit, AnnotationNode annotationNode, ClassNode classNode, String artefactType) {
         if (!getAnnotationType().equals(annotationNode.getClassNode())) {
             // add @Artefact annotation to resulting class so that "short cut" annotations like @TagLib
             // also produce an @Artefact annotation in the resulting class file
-            AnnotationNode annotation = new AnnotationNode(getAnnotationType());
-            annotation.addMember("value", new ConstantExpression(artefactType));
-            classNode.addAnnotation(annotation);
+            AnnotationNode annotation = new AnnotationNode(getAnnotationType())
+            annotation.addMember('value', new ConstantExpression(artefactType))
+            classNode.addAnnotation(annotation)
         }
     }
 
     protected String resolveArtefactType(SourceUnit sourceUnit, AnnotationNode annotationNode, ClassNode classNode) {
-        Expression value = annotationNode.getMember("value");
+        Expression value = annotationNode.getMember('value')
 
         if (value != null) {
             if (value instanceof ConstantExpression) {
-                ConstantExpression ce = (ConstantExpression) value;
-                return ce.getText();
+                ConstantExpression ce = (ConstantExpression) value
+                return ce.getText()
             }
             if (value instanceof PropertyExpression) {
-                PropertyExpression pe = (PropertyExpression) value;
+                PropertyExpression pe = (PropertyExpression) value
 
-                Expression objectExpression = pe.getObjectExpression();
+                Expression objectExpression = pe.getObjectExpression()
                 if (objectExpression instanceof ClassExpression) {
-                    ClassExpression ce = (ClassExpression) objectExpression;
+                    ClassExpression ce = (ClassExpression) objectExpression
                     try {
-                        Field field = ce.getType().getTypeClass().getDeclaredField(pe.getPropertyAsString());
-                        return (String) field.get(null);
-                    } catch (Exception e) {}
+                        Field field = ce.getType().getTypeClass().getDeclaredField(pe.getPropertyAsString())
+                        return (String) field.get(null)
+                    } catch (Exception ignored) {
+}
                 }
             }
         }
 
-        throw new RuntimeException("Class [" + classNode.getName() + "] contains an invalid @Artefact annotation. No artefact found for value specified.");
+        throw new RuntimeException('Class [' + classNode.getName() + '] contains an invalid @Artefact annotation. No artefact found for value specified.')
     }
 
     protected boolean isArtefactAnnotationNode(AnnotationNode annotationNode) {
-        return getAnnotationType().equals(annotationNode.getClassNode());
+        return getAnnotationType().equals(annotationNode.getClassNode())
     }
 
     protected ClassNode getAnnotationType() {
-        return new ClassNode(getAnnotationTypeClass());
+        return new ClassNode(getAnnotationTypeClass())
     }
 
     protected Class getAnnotationTypeClass() {
-        return MY_TYPE.getTypeClass();
+        return MY_TYPE.getTypeClass()
     }
 
-    public void performInjectionOnArtefactType(SourceUnit sourceUnit, ClassNode cNode, String artefactType) {
-        List<ClassInjector> injectors = findInjectors(artefactType, GrailsAwareInjectionOperation.getClassInjectors());
-        for (ClassInjector injector : injectors) {
+    void performInjectionOnArtefactType(SourceUnit sourceUnit, ClassNode cNode, String artefactType) {
+        List<ClassInjector> injectors = findInjectors(artefactType, GrailsAwareInjectionOperation.getClassInjectors())
+        for (ClassInjector injector in injectors) {
             if (injector instanceof CompilationUnitAware) {
-                ((CompilationUnitAware) injector).setCompilationUnit(this.compilationUnit);
+                ((CompilationUnitAware) injector).setCompilationUnit(this.compilationUnit)
             }
         }
-        performInjection(sourceUnit, cNode, injectors);
+        performInjection(sourceUnit, cNode, injectors)
     }
 
-    public static void performInjection(SourceUnit sourceUnit, ClassNode cNode, Collection<ClassInjector> injectors) {
+    static void performInjection(SourceUnit sourceUnit, ClassNode cNode, Collection<ClassInjector> injectors) {
         try {
-            for (ClassInjector injector : injectors) {
+            for (ClassInjector injector in injectors) {
                 if (!GrailsASTUtils.isApplied(cNode, injector.getClass())) {
-                    GrailsASTUtils.markApplied(cNode, injector.getClass());
-                    injector.performInjectionOnAnnotatedClass(sourceUnit, cNode);
+                    GrailsASTUtils.markApplied(cNode, injector.getClass())
+                    injector.performInjectionOnAnnotatedClass(sourceUnit, cNode)
                 }
             }
         } catch (RuntimeException e) {
@@ -193,55 +193,56 @@ public class ArtefactTypeAstTransformation extends AbstractArtefactTypeAstTransf
             // Every channel is best-effort and guarded: diagnostics must never replace the failure they
             // describe, which is why the original exception is always the one rethrown.
             try {
-                LOG.error("Error occurred calling AST injector: {}", e.getMessage(), e);
+                LOG.error('Error occurred calling AST injector: {}', e.getMessage(), e)
                 if (sourceUnit != null) {
                     sourceUnit.getErrorCollector().addErrorAndContinue(
-                            new SimpleMessage("Error occurred calling AST injector: " + e.getMessage(), sourceUnit));
+                            new SimpleMessage('Error occurred calling AST injector: ' + e.getMessage(), sourceUnit))
                 }
             } catch (Throwable ignored) {
                 // reporting failed; the original exception below is what matters
             }
-            throw e;
+            throw e
         }
     }
 
-    public static List<ClassInjector> findInjectors(String artefactType, ClassInjector[] classInjectors) {
-        List<ClassInjector> injectors = new ArrayList<>();
-        for (ClassInjector classInjector : classInjectors) {
+    static List<ClassInjector> findInjectors(String artefactType, ClassInjector[] classInjectors) {
+        List<ClassInjector> injectors = new ArrayList<>()
+        for (ClassInjector classInjector in classInjectors) {
             if (classInjector instanceof AllArtefactClassInjector) {
-                injectors.add(classInjector);
+                injectors.add(classInjector)
             }
             else if (classInjector instanceof GlobalClassInjector) {
-                injectors.add(classInjector);
+                injectors.add(classInjector)
             }
             else if (classInjector instanceof GrailsArtefactClassInjector) {
-                GrailsArtefactClassInjector gace = (GrailsArtefactClassInjector) classInjector;
+                GrailsArtefactClassInjector gace = (GrailsArtefactClassInjector) classInjector
 
                 if (hasArtefactType(artefactType, gace)) {
-                    injectors.add(gace);
+                    injectors.add(gace)
                 }
             }
         }
-        return injectors;
+        return injectors
     }
 
-    public static boolean hasArtefactType(String artefactType, GrailsArtefactClassInjector gace) {
-        for (String _artefactType : gace.getArtefactTypes()) {
-            if (_artefactType.equals("*")) return true;
+    static boolean hasArtefactType(String artefactType, GrailsArtefactClassInjector gace) {
+        for (String _artefactType in gace.getArtefactTypes()) {
+            if (_artefactType.equals('*')) return true
             if (_artefactType.equals(artefactType)) {
-                return true;
+                return true
             }
         }
-        return false;
+        return false
     }
 
     @Override
-    public void setCompilationUnit(CompilationUnit unit) {
-        compilationUnit = unit;
+    void setCompilationUnit(CompilationUnit unit) {
+        compilationUnit = unit
     }
 
     @Override
-    public int priority() {
-        return GroovyTransformOrder.ARTIFACT_TYPE_ORDER;
+    int priority() {
+        return GroovyTransformOrder.ARTIFACT_TYPE_ORDER
     }
+
 }

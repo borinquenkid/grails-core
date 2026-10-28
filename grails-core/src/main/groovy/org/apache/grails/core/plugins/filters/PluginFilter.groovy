@@ -16,16 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.plugins.filters;
+package org.apache.grails.core.plugins.filters
 
-import java.util.List;
-
-import org.apache.grails.core.plugins.PluginMetadata;
+import org.apache.grails.core.plugins.PluginMetadata
 
 /**
  * Defines a strategy for filtering a list of {@link PluginMetadata}.
  */
-public interface PluginFilter {
+interface PluginFilter {
 
     /**
      * Filters the supplied plugin metadata.
@@ -33,5 +31,6 @@ public interface PluginFilter {
      * @param original the original plugin metadata list to filter
      * @return the filtered plugin metadata list
      */
-    List<PluginMetadata> filterPluginList(List<PluginMetadata> original);
+    List<PluginMetadata> filterPluginList(List<PluginMetadata> original)
+
 }

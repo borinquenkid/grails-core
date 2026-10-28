@@ -16,9 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.compiler.ast;
+package grails.compiler.ast
 
-import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.ClassNode
 
 /**
  * Mainly just a marker interface for implementations that perform injection on domain classes.
@@ -27,7 +27,7 @@ import org.codehaus.groovy.ast.ClassNode;
  *
  * @since 0.2
  */
-public interface GrailsDomainClassInjector extends ClassInjector {
+interface GrailsDomainClassInjector extends ClassInjector {
 
     /**
      * Doesn't check with the specified ClassNode is a valid entity and assumes it
@@ -36,5 +36,6 @@ public interface GrailsDomainClassInjector extends ClassInjector {
      * @param classNode The ClassNode
      * @since 1.1
      */
-    void performInjectionOnAnnotatedEntity(ClassNode classNode);
+    void performInjectionOnAnnotatedEntity(ClassNode classNode)
+
 }

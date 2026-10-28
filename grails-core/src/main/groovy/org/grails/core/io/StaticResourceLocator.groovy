@@ -16,13 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.io;
+package org.grails.core.io
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.core.io.Resource;
+import groovy.transform.CompileStatic
+import org.springframework.core.io.Resource
 
 /**
  *
@@ -31,26 +28,29 @@ import org.springframework.core.io.Resource;
  * @author Graeme Rocher
  * @since 2.0
  */
-public class StaticResourceLocator implements ResourceLocator {
-    private Map<String, Resource> classToResourceMap = new HashMap<>();
+@CompileStatic
+class StaticResourceLocator implements ResourceLocator {
 
-    public void setSearchLocation(String searchLocation) {
+    private Map<String, Resource> classToResourceMap = new HashMap<>()
+
+    void setSearchLocation(String searchLocation) {
         // do nothing
     }
 
-    public void setSearchLocations(Collection<String> searchLocations) {
+    void setSearchLocations(Collection<String> searchLocations) {
         // do nothing
     }
 
-    public Resource findResourceForURI(String uri) {
-        return null; // TODO implement static resource location
+    Resource findResourceForURI(String uri) {
+        return null // TODO implement static resource location
     }
 
-    public Resource findResourceForClassName(String className) {
-        return classToResourceMap.get(className);
+    Resource findResourceForClassName(String className) {
+        return classToResourceMap.get(className)
     }
 
-    public void addClassResource(String className, Resource res) {
-        classToResourceMap.put(className, res);
+    void addClassResource(String className, Resource res) {
+        classToResourceMap.put(className, res)
     }
+
 }

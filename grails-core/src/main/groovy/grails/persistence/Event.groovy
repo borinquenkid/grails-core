@@ -16,10 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.persistence;
+package grails.persistence
 
-import java.util.ArrayList;
-import java.util.List;
+import groovy.transform.CompileStatic
 
 /**
  * Enum of the available events that Grails triggers.
@@ -27,23 +26,26 @@ import java.util.List;
  * @author Graeme Rocher
  * @since 1.2
  */
-public enum Event {
-    onLoad, onSave, beforeLoad, beforeInsert, beforeUpdate, beforeDelete, afterLoad, afterInsert, afterUpdate, afterDelete;
+@CompileStatic
+enum Event {
 
-    private static final String[] allEvents;
+    onLoad, onSave, beforeLoad, beforeInsert, beforeUpdate, beforeDelete, afterLoad, afterInsert, afterUpdate, afterDelete
+
+    private static final String[] allEvents
 
     static {
-        List<String> events = new ArrayList<>();
-        for (Event e : values()) {
-            events.add(e.toString());
+        List<String> events = new ArrayList<>()
+        for (Event e in values()) {
+            events.add(e.toString())
         }
-        allEvents = events.toArray(new String[events.size()]);
+        allEvents = events.toArray(new String[events.size()])
     }
 
     /**
      * @return The names of all persistence events
      */
-    public static String[] getAllEvents() {
-        return allEvents;
+    static String[] getAllEvents() {
+        return allEvents
     }
+
 }

@@ -16,14 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.spring.aop.autoproxy;
+package org.grails.spring.aop.autoproxy
 
-import java.lang.reflect.Field;
-import java.util.List;
+import java.lang.reflect.Field
 
-import org.slf4j.LoggerFactory;
+import groovy.transform.CompileStatic
+import org.slf4j.LoggerFactory
 
-import org.springframework.aop.config.AopConfigUtils;
+import org.springframework.aop.config.AopConfigUtils
 
 /**
  * Makes the Grails auto-proxy creators known to Spring's {@link AopConfigUtils}.
@@ -42,13 +42,14 @@ import org.springframework.aop.config.AopConfigUtils;
  *
  * @since 8.0
  */
-public final class GroovyAwareAutoProxyCreators {
+@CompileStatic
+final class GroovyAwareAutoProxyCreators {
 
-    private static final String APC_PRIORITY_LIST_FIELD = "APC_PRIORITY_LIST";
+    private static final String APC_PRIORITY_LIST_FIELD = 'APC_PRIORITY_LIST'
 
     private static final List<Class<?>> CREATORS = List.of(
-            GroovyAwareInfrastructureAdvisorAutoProxyCreator.class,
-            GroovyAwareAspectJAwareAdvisorAutoProxyCreator.class);
+            GroovyAwareInfrastructureAdvisorAutoProxyCreator,
+            GroovyAwareAspectJAwareAdvisorAutoProxyCreator)
 
     private GroovyAwareAutoProxyCreators() {
     }
@@ -58,25 +59,25 @@ public final class GroovyAwareAutoProxyCreators {
      * before the Grails creator is registered under Spring's auto-proxy creator bean name, and is
      * idempotent, so every registration site can call it.
      */
-    public static void registerWithAopConfigUtils() {
+    static void registerWithAopConfigUtils() {
         try {
-            Field field = AopConfigUtils.class.getDeclaredField(APC_PRIORITY_LIST_FIELD);
-            field.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            List<Class<?>> priorityList = (List<Class<?>>) field.get(null);
-            for (Class<?> creator : CREATORS) {
+            Field field = AopConfigUtils.getDeclaredField(APC_PRIORITY_LIST_FIELD)
+            field.setAccessible(true)
+            @SuppressWarnings('unchecked')
+            List<Class<?>> priorityList = (List<Class<?>>) field.get(null)
+            for (Class<?> creator in CREATORS) {
                 if (!priorityList.contains(creator)) {
-                    priorityList.add(creator);
+                    priorityList.add(creator)
                 }
             }
         }
         catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
             // The logger is resolved here rather than held in a static field because this runs from the
             // static initializer of GrailsAutoConfiguration, which must not initialize logging.
-            LoggerFactory.getLogger(GroovyAwareAutoProxyCreators.class).warn(
+            LoggerFactory.getLogger(GroovyAwareAutoProxyCreators).warn(
                     "Unable to make the Grails auto-proxy creators known to Spring's [{}]. Spring AOP " +
-                            "configuration that registers or escalates the auto-proxy creator will fail " +
-                            "with 'is not a known auto-proxy creator class'", AopConfigUtils.class.getName(), e);
+                            'configuration that registers or escalates the auto-proxy creator will fail ' +
+                            "with 'is not a known auto-proxy creator class'", AopConfigUtils.getName(), e)
         }
     }
 

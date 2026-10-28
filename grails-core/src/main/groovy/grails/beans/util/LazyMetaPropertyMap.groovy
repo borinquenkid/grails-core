@@ -16,25 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package grails.beans.util;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaBeanProperty;
-import groovy.lang.MetaClass;
-import groovy.lang.MetaProperty;
 import groovy.transform.CompileStatic;
-import groovy.util.MapEntry;
-
+import groovy.transform.stc.POJO;
 import org.springframework.util.Assert;
 
 import org.grails.datastore.mapping.model.config.GormProperties;
@@ -45,20 +33,22 @@ import org.grails.datastore.mapping.reflect.NameUtils;
  *
  * @author Graeme Rocher
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'unchecked', 'rawtypes'])
 @CompileStatic
-public class LazyMetaPropertyMap implements Map {
+@POJO
+class LazyMetaPropertyMap implements Map {
 
     private MetaClass metaClass;
     private Object instance;
-    private static List<String> EXCLUDES = Arrays.asList("class", "constraints", "hasMany", "mapping", "properties", GormProperties.IDENTITY, GormProperties.VERSION, "domainClass", "dirty", GormProperties.ERRORS, "dirtyPropertyNames");
+    private static List<String> EXCLUDES = Arrays.asList('class', 'constraints', 'hasMany', 'mapping', 'properties', GormProperties.IDENTITY, GormProperties.VERSION, 'domainClass', 'dirty', GormProperties.ERRORS, 'dirtyPropertyNames');
 
     /**
      * Constructs the map
      * @param o The object to inspect
      */
     public LazyMetaPropertyMap(Object o) {
-        Assert.notNull(o, "Object cannot be null");
+        Assert.notNull(o, 'Object cannot be null');
 
         instance = o;
         metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(o.getClass());
@@ -68,7 +58,7 @@ public class LazyMetaPropertyMap implements Map {
      * {@inheritDoc}
      * @see java.util.Map#size()
      */
-    public int size() {
+    int size() {
         return keySet().size();
     }
 
@@ -76,7 +66,7 @@ public class LazyMetaPropertyMap implements Map {
      * {@inheritDoc}
      * @see java.util.Map#isEmpty()
      */
-    public boolean isEmpty() {
+    boolean isEmpty() {
         return false; // will never be empty
     }
 
@@ -84,9 +74,9 @@ public class LazyMetaPropertyMap implements Map {
      * {@inheritDoc}
      * @see java.util.Map#containsKey(java.lang.Object)
      */
-    public boolean containsKey(Object propertyName) {
+    boolean containsKey(Object propertyName) {
         if (propertyName instanceof CharSequence) propertyName = propertyName.toString();
-        Assert.isInstanceOf(String.class, propertyName, "This map implementation only supports String based keys!");
+        Assert.isInstanceOf(String, propertyName, 'This map implementation only supports String based keys!');
 
         String pn = propertyName.toString();
         return !NameUtils.isConfigurational(pn) && metaClass.getMetaProperty(pn) != null;
@@ -99,7 +89,7 @@ public class LazyMetaPropertyMap implements Map {
      *
      * @see java.util.Map#containsValue(Object)
      */
-    public boolean containsValue(Object o) {
+    boolean containsValue(Object o) {
         return values().contains(o);
     }
 
@@ -109,7 +99,7 @@ public class LazyMetaPropertyMap implements Map {
      * @param propertyName The name of the property
      * @return The property value or null
      */
-    public Object get(Object propertyName) {
+    Object get(Object propertyName) {
         if (propertyName instanceof CharSequence) {
             propertyName = propertyName.toString();
         }
@@ -140,7 +130,7 @@ public class LazyMetaPropertyMap implements Map {
         return val;
     }
 
-    public Object put(Object propertyName, Object propertyValue) {
+    Object put(Object propertyName, Object propertyValue) {
         if (propertyName instanceof CharSequence) {
             propertyName = propertyName.toString();
         }
@@ -160,11 +150,11 @@ public class LazyMetaPropertyMap implements Map {
     /**
      * @throws UnsupportedOperationException
      */
-    public Object remove(Object o) {
-        throw new UnsupportedOperationException("Method remove(Object o) is not supported by this implementation");
+    Object remove(Object o) {
+        throw new UnsupportedOperationException('Method remove(Object o) is not supported by this implementation');
     }
 
-    public void putAll(Map map) {
+    void putAll(Map map) {
         for (Object key : map.keySet()) {
             put(key, map.get(key));
         }
@@ -173,11 +163,11 @@ public class LazyMetaPropertyMap implements Map {
     /**
      * @throws UnsupportedOperationException
      */
-    public void clear() {
-        throw new UnsupportedOperationException("Method clear() is not supported by this implementation");
+    void clear() {
+        throw new UnsupportedOperationException('Method clear() is not supported by this implementation');
     }
 
-    public Set<String> keySet() {
+    Set<String> keySet() {
         Set<String> names = new HashSet<>();
         for (MetaProperty mp : metaClass.getProperties()) {
             if (isExcluded(mp)) continue;
@@ -186,7 +176,7 @@ public class LazyMetaPropertyMap implements Map {
         return names;
     }
 
-    public Collection<Object> values() {
+    Collection<Object> values() {
         Collection<Object> values = new ArrayList<>();
         for (MetaProperty mp : metaClass.getProperties()) {
             if (isExcluded(mp)) continue;
@@ -196,12 +186,12 @@ public class LazyMetaPropertyMap implements Map {
     }
 
     @Override
-    public int hashCode() {
+    int hashCode() {
         return instance.hashCode();
     }
 
     @Override
-    public boolean equals(Object o) {
+    boolean equals(Object o) {
         if (o instanceof LazyMetaPropertyMap) {
             LazyMetaPropertyMap other = (LazyMetaPropertyMap) o;
             return instance.equals(other.getInstance());
@@ -214,11 +204,11 @@ public class LazyMetaPropertyMap implements Map {
      *
      * @return The wrapped instance
      */
-    public Object getInstance() {
+    Object getInstance() {
         return instance;
     }
 
-    public Set<MapEntry> entrySet() {
+    Set<MapEntry> entrySet() {
         Set<MapEntry> entries = new HashSet<>();
         for (MetaProperty mp : metaClass.getProperties()) {
             if (isExcluded(mp)) continue;
@@ -229,10 +219,10 @@ public class LazyMetaPropertyMap implements Map {
     }
 
     private boolean isExcluded(MetaProperty mp) {
-        return
-                Modifier.isStatic(mp.getModifiers()) ||
-                        EXCLUDES.contains(mp.getName()) ||
-                        NameUtils.isConfigurational(mp.getName()) ||
-                        (mp instanceof MetaBeanProperty) && (((MetaBeanProperty) mp).getGetter()) == null;
+        return Modifier.isStatic(mp.getModifiers()) ||
+                EXCLUDES.contains(mp.getName()) ||
+                NameUtils.isConfigurational(mp.getName()) ||
+                (mp instanceof MetaBeanProperty) && (((MetaBeanProperty) mp).getGetter()) == null;
     }
+
 }

@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.io.watch;
+package org.grails.core.io.watch
+
+import groovy.transform.CompileStatic
 
 /**
  * Exception thrown when there was an error in the packing process of an application.
@@ -24,15 +26,17 @@ package org.grails.core.io.watch;
  * @author Graeme Rocher
  * @since 2.0
  */
-public class PackagingException extends RuntimeException {
+@CompileStatic
+class PackagingException extends RuntimeException {
 
-    private static final long serialVersionUID = 1;
+    private static final long serialVersionUID = 1
 
-    public PackagingException(String message) {
-        super(message);
+    PackagingException(String message) {
+        super(message)
     }
 
-    public PackagingException(String message, Throwable cause) {
-        super(message, cause);
+    PackagingException(String message, Throwable cause) {
+        super(message, cause)
     }
+
 }

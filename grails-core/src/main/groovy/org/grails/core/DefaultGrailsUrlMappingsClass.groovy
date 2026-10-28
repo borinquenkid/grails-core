@@ -16,36 +16,37 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core;
+package org.grails.core
 
-import java.util.ArrayList;
-import java.util.List;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.POJO
 
-import groovy.lang.Closure;
+import grails.core.GrailsUrlMappingsClass
 
-import grails.core.GrailsUrlMappingsClass;
+@CompileStatic
+@POJO
+class DefaultGrailsUrlMappingsClass extends AbstractGrailsClass implements GrailsUrlMappingsClass {
 
-public class DefaultGrailsUrlMappingsClass extends AbstractGrailsClass implements GrailsUrlMappingsClass {
+    public static final String URL_MAPPINGS = 'UrlMappings'
 
-    public static final String URL_MAPPINGS = "UrlMappings";
+    private static final String MAPPINGS_CLOSURE = 'mappings'
+    private static final String EXCLUDE_PATTERNS = 'excludes'
 
-    private static final String MAPPINGS_CLOSURE = "mappings";
-    private static final String EXCLUDE_PATTERNS = "excludes";
-
-    public DefaultGrailsUrlMappingsClass(Class<?> clazz) {
-        super(clazz, URL_MAPPINGS);
+    DefaultGrailsUrlMappingsClass(Class<?> clazz) {
+        super(clazz, URL_MAPPINGS)
     }
 
-    public Closure<?> getMappingsClosure() {
-        Closure<?> result = getStaticPropertyValue(MAPPINGS_CLOSURE, Closure.class);
+    Closure<?> getMappingsClosure() {
+        Closure<?> result = getStaticPropertyValue(MAPPINGS_CLOSURE, Closure)
         if (result == null) {
-            throw new RuntimeException(MAPPINGS_CLOSURE + " closure does not exists for class " + getClazz().getName());
+            throw new RuntimeException(MAPPINGS_CLOSURE + ' closure does not exists for class ' + getClazz().getName())
         }
-        return result;
+        return result
     }
 
-    @SuppressWarnings("rawtypes")
-    public List getExcludePatterns() {
-        return getStaticPropertyValue(EXCLUDE_PATTERNS, ArrayList.class);
+    @SuppressWarnings('rawtypes')
+    List getExcludePatterns() {
+        return getStaticPropertyValue(EXCLUDE_PATTERNS, ArrayList)
     }
+
 }

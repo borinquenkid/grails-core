@@ -16,17 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.config;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import groovy.util.ConfigObject;
+import groovy.transform.CompileStatic;
+import groovy.transform.stc.POJO;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MapPropertySource;
@@ -41,7 +36,11 @@ import grails.util.GrailsStringUtils;
  * @author Graeme Rocher
  * @since 3.0
  */
-public class PropertySourcesConfig extends NavigableMapConfig {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+@POJO
+class PropertySourcesConfig extends NavigableMapConfig {
 
     protected PropertySources propertySources;
     protected PropertySourcesPropertyResolver propertySourcesPropertyResolver;
@@ -62,7 +61,7 @@ public class PropertySourcesConfig extends NavigableMapConfig {
         NavigableMap map = new NavigableMap();
         map.merge(mapPropertySource, true);
 
-        mutablePropertySources.addFirst(new MapPropertySource("config", map));
+        mutablePropertySources.addFirst(new MapPropertySource('config', map));
         this.propertySources = mutablePropertySources;
         this.propertySourcesPropertyResolver = new PropertySourcesPropertyResolver(propertySources);
         initializeFromPropertySources(propertySources);
@@ -76,11 +75,11 @@ public class PropertySourcesConfig extends NavigableMapConfig {
         initializeFromPropertySources(propertySources);
     }
 
-    public PropertySources getPropertySources() {
+    PropertySources getPropertySources() {
         return propertySources;
     }
 
-    public void refresh() {
+    void refresh() {
         initializeFromPropertySources(propertySources);
     }
 
@@ -88,7 +87,7 @@ public class PropertySourcesConfig extends NavigableMapConfig {
 
         EnvironmentAwarePropertySource environmentAwarePropertySource = new EnvironmentAwarePropertySource(propertySources);
         if (propertySources instanceof MutablePropertySources) {
-            final String applicationConfig = "applicationConfigurationProperties";
+            final String applicationConfig = 'applicationConfigurationProperties';
             if (propertySources.contains(applicationConfig)) {
                 ((MutablePropertySources) propertySources).addBefore(applicationConfig, environmentAwarePropertySource);
             } else {
@@ -108,7 +107,7 @@ public class PropertySourcesConfig extends NavigableMapConfig {
 
     private void mergeEnumerablePropertySource(EnumerablePropertySource enumerablePropertySource) {
         if (enumerablePropertySource instanceof NavigableMapPropertySource) {
-            configMap.merge(((NavigableMapPropertySource) enumerablePropertySource).getSource(), false);
+            this.@configMap.merge(((NavigableMapPropertySource) enumerablePropertySource).getSource(), false);
         } else {
             Map<String, Object> map = new LinkedHashMap<>();
 
@@ -123,7 +122,7 @@ public class PropertySourcesConfig extends NavigableMapConfig {
                 map.put(propertyName, value);
             }
 
-            configMap.merge(map, true);
+            this.@configMap.merge(map, true);
         }
     }
 
@@ -147,16 +146,16 @@ public class PropertySourcesConfig extends NavigableMapConfig {
         return value;
     }
 
-    public void setClassLoader(ClassLoader classLoader) {
-        this.classLoader = classLoader;
+    void setClassLoader(ClassLoader classLoader) {
+        this.@classLoader = classLoader;
     }
 
-    public void setConversionService(ConfigurableConversionService conversionService) {
-        this.conversionService = conversionService;
+    void setConversionService(ConfigurableConversionService conversionService) {
+        this.@conversionService = conversionService;
     }
 
     @Override
-    public String resolvePlaceholders(String text) {
+    String resolvePlaceholders(String text) {
         if (!GrailsStringUtils.isBlank(text)) {
             return propertySourcesPropertyResolver.resolvePlaceholders(text);
         }
@@ -164,7 +163,8 @@ public class PropertySourcesConfig extends NavigableMapConfig {
     }
 
     @Override
-    public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
+    String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
         return propertySourcesPropertyResolver.resolveRequiredPlaceholders(text);
     }
+
 }

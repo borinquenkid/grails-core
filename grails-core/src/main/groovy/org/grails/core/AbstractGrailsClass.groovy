@@ -16,32 +16,29 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core;
+package org.grails.core
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.List;
+import java.lang.reflect.Constructor
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
-import groovy.lang.GroovyObject;
-import groovy.lang.MetaClass;
-import groovy.lang.MetaProperty;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.POJO
+import org.springframework.beans.BeanUtils
+import org.springframework.util.Assert
+import org.springframework.util.ClassUtils
+import org.springframework.util.ReflectionUtils
+import org.springframework.util.StringUtils
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
-
-import grails.core.GrailsApplication;
-import grails.core.GrailsClass;
-import grails.plugins.GrailsVersionUtils;
-import grails.util.GrailsMetaClassUtils;
-import grails.util.GrailsNameUtils;
-import grails.web.Action;
-import org.grails.core.exceptions.NewInstanceCreationException;
-import org.grails.datastore.mapping.reflect.ClassPropertyFetcher;
+import grails.core.GrailsApplication
+import grails.core.GrailsClass
+import grails.plugins.GrailsVersionUtils
+import grails.util.GrailsMetaClassUtils
+import grails.util.GrailsNameUtils
+import grails.web.Action
+import org.grails.core.exceptions.NewInstanceCreationException
+import org.grails.datastore.mapping.reflect.ClassPropertyFetcher
 
 /**
  * Abstract base class for Grails types that provides common functionality for
@@ -52,19 +49,21 @@ import org.grails.datastore.mapping.reflect.ClassPropertyFetcher;
  *
  * @since 0.1
  */
-public abstract class AbstractGrailsClass implements GrailsClass {
+@CompileStatic
+@POJO
+abstract class AbstractGrailsClass implements GrailsClass {
 
-    private final Class<?> clazz;
-    private final String fullName;
-    private final String name;
-    private final String packageName;
-    private final String naturalName;
-    private final String shortName;
-    private final String propertyName;
-    private final String logicalPropertyName;
-    private ClassPropertyFetcher classPropertyFetcher;
-    protected GrailsApplication grailsApplication;
-    private boolean isAbstract;
+    private final Class<?> clazz
+    private final String fullName
+    private final String name
+    private final String packageName
+    private final String naturalName
+    private final String shortName
+    private final String propertyName
+    private final String logicalPropertyName
+    private ClassPropertyFetcher classPropertyFetcher
+    protected GrailsApplication grailsApplication
+    private boolean isAbstract
 
     /**
      * Used by all child classes to create a new instance and get the name right.
@@ -72,137 +71,137 @@ public abstract class AbstractGrailsClass implements GrailsClass {
      * @param clazz the Grails class
      * @param trailingName the trailing part of the name for this class type
      */
-    public AbstractGrailsClass(Class<?> clazz, String trailingName) {
-        Assert.notNull(clazz, "Clazz parameter should not be null");
+    AbstractGrailsClass(Class<?> clazz, String trailingName) {
+        Assert.notNull(clazz, 'Clazz parameter should not be null')
 
-        this.clazz = clazz;
-        fullName = clazz.getName();
-        packageName = ClassUtils.getPackageName(clazz);
-        naturalName = GrailsNameUtils.getNaturalName(clazz.getName());
-        shortName = ClassUtils.getShortName(clazz);
-        name = GrailsNameUtils.getLogicalName(clazz, trailingName);
-        propertyName = GrailsNameUtils.getPropertyNameRepresentation(shortName);
+        this.clazz = clazz
+        fullName = clazz.getName()
+        packageName = ClassUtils.getPackageName(clazz)
+        naturalName = GrailsNameUtils.getNaturalName(clazz.getName())
+        shortName = ClassUtils.getShortName(clazz)
+        name = GrailsNameUtils.getLogicalName(clazz, trailingName)
+        propertyName = GrailsNameUtils.getPropertyNameRepresentation(shortName)
         if (!StringUtils.hasText(name)) {
-            logicalPropertyName = propertyName;
+            logicalPropertyName = propertyName
         }
         else {
-            logicalPropertyName = GrailsNameUtils.getPropertyNameRepresentation(name);
+            logicalPropertyName = GrailsNameUtils.getPropertyNameRepresentation(name)
         }
-        isAbstract = Modifier.isAbstract(clazz.getModifiers());
+        isAbstract = Modifier.isAbstract(clazz.getModifiers())
     }
 
     @Override
-    public String getPluginName() {
-        return GrailsVersionUtils.getPluginName(this.clazz);
+    String getPluginName() {
+        return GrailsVersionUtils.getPluginName(this.clazz)
     }
 
-    public void setGrailsApplication(GrailsApplication grailsApplication) {
-        this.grailsApplication = grailsApplication;
+    void setGrailsApplication(GrailsApplication grailsApplication) {
+        this.grailsApplication = grailsApplication
     }
 
     @Override
-    public GrailsApplication getApplication() {
-        return this.grailsApplication;
+    GrailsApplication getApplication() {
+        return this.grailsApplication
     }
 
-    public String getShortName() {
-        return shortName;
+    String getShortName() {
+        return shortName
     }
 
-    public Class<?> getClazz() {
-        return clazz;
+    Class<?> getClazz() {
+        return clazz
     }
 
-    public Object newInstance() {
+    Object newInstance() {
         try {
-            Constructor<?> defaultConstructor = getClazz().getDeclaredConstructor(new Class[]{});
+            Constructor<?> defaultConstructor = getClazz().getDeclaredConstructor(new Class[0])
             if (!defaultConstructor.canAccess(null)) {
-                defaultConstructor.setAccessible(true);
+                defaultConstructor.setAccessible(true)
             }
-            return defaultConstructor.newInstance();
+            return defaultConstructor.newInstance()
         }
         catch (Exception e) {
-            Throwable targetException;
+            Throwable targetException
             if (e instanceof InvocationTargetException) {
-                targetException = ((InvocationTargetException) e).getTargetException();
+                targetException = ((InvocationTargetException) e).getTargetException()
             }
             else {
-                targetException = e;
+                targetException = e
             }
-            throw new NewInstanceCreationException("Could not create a new instance of class [" +
-                    getClazz().getName() + "]!", targetException);
+            throw new NewInstanceCreationException('Could not create a new instance of class [' +
+                    getClazz().getName() + ']!', targetException)
         }
     }
 
-    public String getName() {
-        return name;
+    String getName() {
+        return name
     }
 
-    public String getNaturalName() {
-        return naturalName;
+    String getNaturalName() {
+        return naturalName
     }
 
-    public String getFullName() {
-        return fullName;
+    String getFullName() {
+        return fullName
     }
 
-    public String getPropertyName() {
-        return propertyName;
+    String getPropertyName() {
+        return propertyName
     }
 
-    public String getLogicalPropertyName() {
-        return logicalPropertyName;
+    String getLogicalPropertyName() {
+        return logicalPropertyName
     }
 
-    public String getPackageName() {
-        return packageName;
+    String getPackageName() {
+        return packageName
     }
 
-    public Object getReferenceInstance() {
-        Object obj = BeanUtils.instantiateClass(clazz);
+    Object getReferenceInstance() {
+        Object obj = BeanUtils.instantiateClass(clazz)
         if (obj instanceof GroovyObject) {
-            ((GroovyObject) obj).setMetaClass(getMetaClass());
+            ((GroovyObject) obj).setMetaClass(getMetaClass())
         }
-        return obj;
+        return obj
     }
 
     private ClassPropertyFetcher resolvePropertyFetcher() {
         if (classPropertyFetcher == null) {
-            classPropertyFetcher = ClassPropertyFetcher.forClass(clazz);
+            classPropertyFetcher = ClassPropertyFetcher.forClass(clazz)
         }
-        return classPropertyFetcher;
+        return classPropertyFetcher
     }
 
-    public List<MetaProperty> getMetaProperties() {
-        return resolvePropertyFetcher().getMetaProperties();
+    List<MetaProperty> getMetaProperties() {
+        return resolvePropertyFetcher().getMetaProperties()
     }
 
-    public Class<?> getPropertyType(String typeName) {
-        return ClassPropertyFetcher.getPropertyType(getClazz(), typeName);
+    Class<?> getPropertyType(String typeName) {
+        return ClassPropertyFetcher.getPropertyType(getClazz(), typeName)
     }
 
-    public boolean isReadableProperty(String propName) {
-        return ClassPropertyFetcher.getPropertyType(getClazz(), propName) != null;
+    boolean isReadableProperty(String propName) {
+        return ClassPropertyFetcher.getPropertyType(getClazz(), propName) != null
     }
 
-    public boolean isActionMethod(String methodName) {
-        Method m = ReflectionUtils.findMethod(getClazz(), methodName, new Class[0]);
+    boolean isActionMethod(String methodName) {
+        Method m = ReflectionUtils.findMethod(getClazz(), methodName, new Class[0])
         if (m != null) {
-            ReflectionUtils.makeAccessible(m);
+            ReflectionUtils.makeAccessible(m)
         }
-        return m != null && m.getAnnotation(Action.class) != null;
+        return m != null && m.getAnnotation(Action) != null
     }
 
-    public boolean hasMetaMethod(String methodName) {
-        return hasMetaMethod(methodName, null);
+    boolean hasMetaMethod(String methodName) {
+        return hasMetaMethod(methodName, null)
     }
 
-    public boolean hasMetaMethod(String methodName, Object[] args) {
-        return (getMetaClass().getMetaMethod(methodName, args) != null);
+    boolean hasMetaMethod(String methodName, Object[] args) {
+        return (getMetaClass().getMetaMethod(methodName, args) != null)
     }
 
-    public boolean hasMetaProperty(String propName) {
-        return (getMetaClass().getMetaProperty(propName) != null);
+    boolean hasMetaProperty(String propName) {
+        return (getMetaClass().getMetaProperty(propName) != null)
     }
 
     /**
@@ -219,7 +218,7 @@ public abstract class AbstractGrailsClass implements GrailsClass {
      * @return property value or null if no property or static field was found
      */
     protected <T> T getPropertyOrStaticPropertyOrFieldValue(String name, Class<T> type) {
-        return ClassPropertyFetcher.getStaticPropertyValue(getClazz(), name, type);
+        return ClassPropertyFetcher.getStaticPropertyValue(getClazz(), name, type)
     }
 
     /**
@@ -229,8 +228,8 @@ public abstract class AbstractGrailsClass implements GrailsClass {
      * @param type
      * @return The property value or null
      */
-    public <T> T getStaticPropertyValue(String propName, Class<T> type) {
-        return ClassPropertyFetcher.getStaticPropertyValue(getClazz(), propName, type);
+    def <T> T getStaticPropertyValue(String propName, Class<T> type) {
+        return ClassPropertyFetcher.getStaticPropertyValue(getClazz(), propName, type)
     }
 
     /**
@@ -240,42 +239,43 @@ public abstract class AbstractGrailsClass implements GrailsClass {
      * @param type
      * @return The property value or null
      */
-    public <T> T getPropertyValue(String propName, Class<T> type) {
-        return ClassPropertyFetcher.getStaticPropertyValue(getClazz(), propName, type);
+    def <T> T getPropertyValue(String propName, Class<T> type) {
+        return ClassPropertyFetcher.getStaticPropertyValue(getClazz(), propName, type)
     }
 
-    public Object getPropertyValueObject(String propertyNAme) {
-        return getPropertyValue(propertyNAme, Object.class);
+    Object getPropertyValueObject(String propertyNAme) {
+        return getPropertyValue(propertyNAme, Object)
     }
 
     /* (non-Javadoc)
      * @see grails.core.GrailsClass#getPropertyValue(java.lang.String)
      */
-    public Object getPropertyValue(String propName) {
-        return getPropertyOrStaticPropertyOrFieldValue(propName, Object.class);
+    Object getPropertyValue(String propName) {
+        return getPropertyOrStaticPropertyOrFieldValue(propName, Object)
     }
 
-    public boolean isAbstract() {
+    boolean isAbstract() {
 
-        return isAbstract;
+        return isAbstract
     }
 
     /* (non-Javadoc)
     * @see grails.core.GrailsClass#hasProperty(java.lang.String)
     */
-    public boolean hasProperty(String propName) {
-        return ClassPropertyFetcher.getPropertyType(getClazz(), propName) != null;
+    boolean hasProperty(String propName) {
+        return ClassPropertyFetcher.getPropertyType(getClazz(), propName) != null
     }
 
     /**
      * @return the metaClass
      */
-    public MetaClass getMetaClass() {
-        return GrailsMetaClassUtils.getExpandoMetaClass(getClazz());
+    MetaClass getMetaClass() {
+        return GrailsMetaClassUtils.getExpandoMetaClass(getClazz())
     }
 
     @Override
-    public String toString() {
-        return "Artefact > " + getName();
+    String toString() {
+        return 'Artefact > ' + getName()
     }
+
 }

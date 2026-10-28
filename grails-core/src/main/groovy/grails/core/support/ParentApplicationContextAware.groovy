@@ -16,10 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.core.support;
+package grails.core.support
 
-import org.springframework.beans.factory.Aware;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.Aware
+import org.springframework.context.ApplicationContext
 
 /**
  * Allows objects to be aware of the Grails parent application context.
@@ -27,6 +27,8 @@ import org.springframework.context.ApplicationContext;
  * @author Graeme Rocher
  * @since 0.4
  */
-public interface ParentApplicationContextAware extends Aware {
-    void setParentApplicationContext(ApplicationContext parent);
+interface ParentApplicationContextAware extends Aware {
+
+    void setParentApplicationContext(ApplicationContext parent)
+
 }

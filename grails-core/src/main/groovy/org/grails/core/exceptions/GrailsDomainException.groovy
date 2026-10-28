@@ -16,30 +16,34 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.exceptions;
+package org.grails.core.exceptions
+
+import groovy.transform.CompileStatic
 
 /**
  * Thrown when creation of the Grails domain from the Grails domain classes fails.
  *
  * @author Graeme Rocher
  */
-public class GrailsDomainException extends GrailsException {
+@CompileStatic
+class GrailsDomainException extends GrailsException {
 
-    private static final long serialVersionUID = -3824320541041888143L;
+    private static final long serialVersionUID = -3824320541041888143L
 
-    public GrailsDomainException() {
-        super();
+    GrailsDomainException() {
+        super()
     }
 
-    public GrailsDomainException(String message, Throwable cause) {
-        super(message, cause);
+    GrailsDomainException(String message, Throwable cause) {
+        super(message, cause)
     }
 
-    public GrailsDomainException(String message) {
-        super(message);
+    GrailsDomainException(String message) {
+        super(message)
     }
 
-    public GrailsDomainException(Throwable cause) {
-        super(cause);
+    GrailsDomainException(Throwable cause) {
+        super(cause)
     }
+
 }

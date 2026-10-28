@@ -16,9 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.plugins;
+package grails.plugins
 
-import org.springframework.beans.factory.Aware;
+import org.springframework.beans.factory.Aware
 
 /**
  * For implementors interested in obtaining a reference to the Grails PluginManager instance.
@@ -28,12 +28,13 @@ import org.springframework.beans.factory.Aware;
  * @author Graeme Rocher
  * @since 0.6
  */
-public interface PluginManagerAware extends Aware {
+interface PluginManagerAware extends Aware {
 
     /**
      * Sets the plug-in manager on this instance
      *
      * @param pluginManager The PluginManager
      */
-    void setPluginManager(GrailsPluginManager pluginManager);
+    void setPluginManager(GrailsPluginManager pluginManager)
+
 }

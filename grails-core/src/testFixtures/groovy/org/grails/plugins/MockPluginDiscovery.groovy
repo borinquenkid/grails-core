@@ -16,49 +16,52 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.plugins;
+package org.grails.plugins
 
-import grails.plugins.GrailsPlugin;
-import org.apache.grails.core.plugins.DefaultPluginDiscovery;
-import org.apache.grails.core.plugins.PluginInfo;
-import org.apache.grails.core.plugins.PluginUtils;
+import groovy.transform.CompileStatic
 
-public class MockPluginDiscovery extends DefaultPluginDiscovery {
+import grails.plugins.GrailsPlugin
+import org.apache.grails.core.plugins.DefaultPluginDiscovery
+import org.apache.grails.core.plugins.PluginInfo
+import org.apache.grails.core.plugins.PluginUtils
 
-    public MockPluginDiscovery() {
-        super();
-        reset();
+@CompileStatic
+class MockPluginDiscovery extends DefaultPluginDiscovery {
+
+    MockPluginDiscovery() {
+        super()
+        reset()
     }
 
-    public MockPluginDiscovery(Class<?>[] pluginClasses) {
-        super(pluginClasses);
+    MockPluginDiscovery(Class<?>[] pluginClasses) {
+        super(pluginClasses)
     }
 
-    public void registerMockPlugin(GrailsPlugin plugin) {
-        registerMockPlugin(PluginUtils.createPluginInfo(plugin.getPluginClass(), null, true));
+    void registerMockPlugin(GrailsPlugin plugin) {
+        registerMockPlugin(PluginUtils.createPluginInfo(plugin.getPluginClass(), null, true))
     }
 
-    public void registerMockPlugin(BinaryGrailsPlugin plugin) {
-        registerMockPlugin(PluginUtils.createPluginInfo(plugin.getPluginClass(), plugin.getPluginDescriptor().getResource(), false));
+    void registerMockPlugin(BinaryGrailsPlugin plugin) {
+        registerMockPlugin(PluginUtils.createPluginInfo(plugin.getPluginClass(), plugin.getPluginDescriptor().getResource(), false))
     }
 
-    public void registerMockPlugin(PluginInfo pluginInfo) {
-        initPluginsIfNotDefined();
+    void registerMockPlugin(PluginInfo pluginInfo) {
+        initPluginsIfNotDefined()
 
-        plugins.put(pluginInfo.getName(), pluginInfo);
-        loadOrderedPlugins.add(pluginInfo);
-        orderedPlugins.add(pluginInfo);
+        plugins.put(pluginInfo.getName(), pluginInfo)
+        loadOrderedPlugins.add(pluginInfo)
+        orderedPlugins.add(pluginInfo)
     }
 
     private void initPluginsIfNotDefined() {
         if (plugins == null) {
-            reset();
+            reset()
         }
     }
 
     @Override
-    public void reset() {
-        super.reset();
-        initialized = true; // do not search on the classpath by default
+    void reset() {
+        super.reset()
+        initialized = true // do not search on the classpath by default
     }
 }

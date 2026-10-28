@@ -16,14 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.artefact;
+package grails.artefact
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
-import org.codehaus.groovy.transform.GroovyASTTransformationClass;
+import org.codehaus.groovy.transform.GroovyASTTransformationClass
 
 /**
  * Can be applied to any Trait to indicate to Grails that the trait should be automatically added to the given artefact types
@@ -33,12 +33,13 @@ import org.codehaus.groovy.transform.GroovyASTTransformationClass;
  */
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-@GroovyASTTransformationClass("org.grails.compiler.injection.EnhancesTraitTransformation")
-public @interface Enhances {
+@Target([ElementType.TYPE])
+@GroovyASTTransformationClass('org.grails.compiler.injection.EnhancesTraitTransformation')
+@interface Enhances {
 
     /**
      * @return The artefact types (Example: Controller, Service etc.)
      */
-    String[] value();
+    String[] value()
+
 }

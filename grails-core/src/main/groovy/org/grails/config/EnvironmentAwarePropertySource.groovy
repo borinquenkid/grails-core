@@ -17,16 +17,15 @@
  *  under the License.
  */
 
-package org.grails.config;
+package org.grails.config
 
-import java.util.ArrayList;
-import java.util.List;
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
+import org.springframework.core.env.EnumerablePropertySource
+import org.springframework.core.env.PropertySource
+import org.springframework.core.env.PropertySources
 
-import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.env.PropertySources;
-
-import grails.util.Environment;
+import grails.util.Environment
 
 /**
  * A PropertySource aware of the Grails environment and that resolves keys based on the environment from other property sources
@@ -35,56 +34,60 @@ import grails.util.Environment;
  * @since 3.0
  */
 
-public class EnvironmentAwarePropertySource extends EnumerablePropertySource<PropertySources> {
+@CompileStatic
+class EnvironmentAwarePropertySource extends EnumerablePropertySource<PropertySources> {
+
+    @PackageScope
     EnvironmentAwarePropertySource(PropertySources source) {
-        super("grails.environment", source);
+        super('grails.environment', source)
     }
 
-    protected List<String> propertyNames;
+    protected List<String> propertyNames
 
     @Override
-    public String[] getPropertyNames() {
-        initialize();
-        return propertyNames.toArray(new String[propertyNames.size()]);
+    String[] getPropertyNames() {
+        initialize()
+        return propertyNames.toArray(new String[propertyNames.size()])
     }
 
     @Override
-    public Object getProperty(String name) {
-        initialize();
+    Object getProperty(String name) {
+        initialize()
         if (!propertyNames.contains(name)) {
-            return null;
+            return null
         }
 
-        Environment env = Environment.getCurrent();
-        String key = "environments." + env.getName() + '.' + name;
-        for (PropertySource propertySource : source) {
-            if (propertySource != this) {
-                Object value = propertySource.getProperty(key);
-                if (value != null) return value;
+        Environment env = Environment.getCurrent()
+        String key = 'environments.' + env.getName() + '.' + name
+        for (PropertySource propertySource in source) {
+            if (!propertySource.is(this)) {
+                Object value = propertySource.getProperty(key)
+                if (value != null) return value
             }
         }
-        return null;
+        return null
     }
 
     private void initialize() {
         if (propertyNames == null) {
-            propertyNames = new ArrayList<>();
-            Environment env = Environment.getCurrent();
-            String key = "environments." + env.getName();
-            for (PropertySource propertySource : source) {
+            propertyNames = new ArrayList<>()
+            Environment env = Environment.getCurrent()
+            String key = 'environments.' + env.getName()
+            for (PropertySource propertySource in source) {
 
-                if ((propertySource != this) &&
-                        !propertySource.getName().contains("plugin") && // plugin default configuration is not allowed to be environment aware (GRAILS-12123)
+                if (!propertySource.is(this) &&
+                        !propertySource.getName().contains('plugin') && // plugin default configuration is not allowed to be environment aware (GRAILS-12123)
                         propertySource instanceof EnumerablePropertySource) {
-                    EnumerablePropertySource enumerablePropertySource = (EnumerablePropertySource) propertySource;
+                    EnumerablePropertySource enumerablePropertySource = (EnumerablePropertySource) propertySource
 
-                    for (String propertyName : enumerablePropertySource.getPropertyNames()) {
+                    for (String propertyName in enumerablePropertySource.getPropertyNames()) {
                         if (propertyName.startsWith(key) && propertyName.length() > key.length()) {
-                            propertyNames.add(propertyName.substring(key.length() + 1));
+                            propertyNames.add(propertyName.substring(key.length() + 1))
                         }
                     }
                 }
             }
         }
     }
+
 }

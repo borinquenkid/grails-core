@@ -16,16 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.apache.grails.core.internal.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+
+import groovy.transform.CompileStatic;
 
 import grails.util.GrailsStringUtils;
 
@@ -38,14 +35,17 @@ import grails.util.GrailsStringUtils;
  *
  * @since 8.0
  */
-public final class TypeConverters {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+final class TypeConverters {
 
-    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.S";
+    public static final String DEFAULT_DATE_FORMAT = 'yyyy-MM-dd HH:mm:ss.S';
 
     private TypeConverters() {
     }
 
-    public static Byte toByte(Object o) {
+    static Byte toByte(Object o) {
         if (o instanceof Number) {
             return ((Number) o).byteValue();
         }
@@ -61,7 +61,7 @@ public final class TypeConverters {
         return null;
     }
 
-    public static Character toCharacter(Object o) {
+    static Character toCharacter(Object o) {
         if (o instanceof Character) {
             return (Character) o;
         }
@@ -74,7 +74,7 @@ public final class TypeConverters {
         return null;
     }
 
-    public static Integer toInteger(Object o) {
+    static Integer toInteger(Object o) {
         if (o instanceof Number) {
             return ((Number) o).intValue();
         }
@@ -90,7 +90,7 @@ public final class TypeConverters {
         return null;
     }
 
-    public static Long toLong(Object o) {
+    static Long toLong(Object o) {
         if (o instanceof Number) {
             return ((Number) o).longValue();
         }
@@ -103,7 +103,7 @@ public final class TypeConverters {
         return null;
     }
 
-    public static Short toShort(Object o) {
+    static Short toShort(Object o) {
         if (o instanceof Number) {
             return ((Number) o).shortValue();
         }
@@ -119,7 +119,7 @@ public final class TypeConverters {
         return null;
     }
 
-    public static Double toDouble(Object o) {
+    static Double toDouble(Object o) {
         if (o instanceof Number) {
             return ((Number) o).doubleValue();
         }
@@ -135,7 +135,7 @@ public final class TypeConverters {
         return null;
     }
 
-    public static Float toFloat(Object o) {
+    static Float toFloat(Object o) {
         if (o instanceof Number) {
             return ((Number) o).floatValue();
         }
@@ -151,7 +151,7 @@ public final class TypeConverters {
         return null;
     }
 
-    public static Boolean toBoolean(Object o) {
+    static Boolean toBoolean(Object o) {
         if (o instanceof Boolean) {
             return (Boolean) o;
         }
@@ -167,7 +167,7 @@ public final class TypeConverters {
         return null;
     }
 
-    public static String toStringValue(Object o) {
+    static String toStringValue(Object o) {
         if (o == null) {
             return null;
         }
@@ -178,11 +178,11 @@ public final class TypeConverters {
         return o.toString();
     }
 
-    public static Date toDate(Object value) {
+    static Date toDate(Object value) {
         return toDate(value, DEFAULT_DATE_FORMAT);
     }
 
-    public static Date toDate(Object value, String format) {
+    static Date toDate(Object value, String format) {
         if (value instanceof Date) {
             return (Date) value;
         }
@@ -197,7 +197,7 @@ public final class TypeConverters {
         return null;
     }
 
-    public static Date toDate(Object value, Collection<String> formats) {
+    static Date toDate(Object value, Collection<String> formats) {
         for (String format : formats) {
             Date date = toDate(value, format);
             if (date != null) return date;
@@ -205,7 +205,7 @@ public final class TypeConverters {
         return null;
     }
 
-    public static List<Object> toList(Object paramValues) {
+    static List<Object> toList(Object paramValues) {
         if (paramValues == null) {
             return Collections.emptyList();
         }
@@ -213,12 +213,12 @@ public final class TypeConverters {
             return Arrays.asList((Object[]) paramValues);
         }
         if (paramValues instanceof Collection) {
-            return new ArrayList<>((Collection<?>) paramValues);
+            return new ArrayList<Object>((Collection) paramValues);
         }
         return Collections.singletonList(paramValues);
     }
 
-    public static Byte toByte(Object o, Integer defaultValue) {
+    static Byte toByte(Object o, Integer defaultValue) {
         Byte value = toByte(o);
         if (value == null && defaultValue != null) {
             return (byte) defaultValue.intValue();
@@ -226,7 +226,7 @@ public final class TypeConverters {
         return value;
     }
 
-    public static Character toCharacter(Object o, Integer defaultValue) {
+    static Character toCharacter(Object o, Integer defaultValue) {
         Character value = toCharacter(o);
         if (value == null && defaultValue != null) {
             return (char) defaultValue.intValue();
@@ -234,12 +234,12 @@ public final class TypeConverters {
         return value;
     }
 
-    public static Character toCharacter(Object o, Character defaultValue) {
+    static Character toCharacter(Object o, Character defaultValue) {
         Character value = toCharacter(o);
         return value != null ? value : defaultValue;
     }
 
-    public static Short toShort(Object o, Integer defaultValue) {
+    static Short toShort(Object o, Integer defaultValue) {
         Short value = toShort(o);
         if (value == null && defaultValue != null) {
             return defaultValue.shortValue();
@@ -247,28 +247,29 @@ public final class TypeConverters {
         return value;
     }
 
-    public static Integer toInteger(Object o, Integer defaultValue) {
+    static Integer toInteger(Object o, Integer defaultValue) {
         Integer value = toInteger(o);
         return value != null ? value : defaultValue;
     }
 
-    public static Long toLong(Object o, Long defaultValue) {
+    static Long toLong(Object o, Long defaultValue) {
         Long value = toLong(o);
         return value != null ? value : defaultValue;
     }
 
-    public static Double toDouble(Object o, Double defaultValue) {
+    static Double toDouble(Object o, Double defaultValue) {
         Double value = toDouble(o);
         return value != null ? value : defaultValue;
     }
 
-    public static Float toFloat(Object o, Float defaultValue) {
+    static Float toFloat(Object o, Float defaultValue) {
         Float value = toFloat(o);
         return value != null ? value : defaultValue;
     }
 
-    public static String toStringValue(Object o, String defaultValue) {
+    static String toStringValue(Object o, String defaultValue) {
         String value = toStringValue(o);
         return value != null ? value : defaultValue;
     }
+
 }

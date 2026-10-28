@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.exceptions;
+package org.grails.core.exceptions
+
+import groovy.transform.CompileStatic
 
 /**
  * Base class for all Grails exceptions that are not recoverable.
@@ -24,23 +26,25 @@ package org.grails.core.exceptions;
  * @author Steven Devijver
  * @since Jul 2, 2005
  */
-public abstract class GrailsException extends RuntimeException {
+@CompileStatic
+abstract class GrailsException extends RuntimeException {
 
-    private static final long serialVersionUID = 8909019964961528326L;
+    private static final long serialVersionUID = 8909019964961528326L
 
-    public GrailsException() {
-        super();
+    GrailsException() {
+        super()
     }
 
-    public GrailsException(String message) {
-        super(message);
+    GrailsException(String message) {
+        super(message)
     }
 
-    public GrailsException(String message, Throwable cause) {
-        super(message, cause);
+    GrailsException(String message, Throwable cause) {
+        super(message, cause)
     }
 
-    public GrailsException(Throwable cause) {
-        super(cause);
+    GrailsException(Throwable cause) {
+        super(cause)
     }
+
 }

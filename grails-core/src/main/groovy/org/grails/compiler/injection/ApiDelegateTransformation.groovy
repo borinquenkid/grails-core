@@ -16,27 +16,25 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.compiler.injection;
+package org.grails.compiler.injection
 
-import java.util.Arrays;
-import java.util.Map;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.GroovyBugError
+import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.AnnotatedNode
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.FieldNode
+import org.codehaus.groovy.ast.expr.ClassExpression
+import org.codehaus.groovy.ast.expr.Expression
+import org.codehaus.groovy.ast.expr.VariableExpression
+import org.codehaus.groovy.control.CompilePhase
+import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.transform.ASTTransformation
+import org.codehaus.groovy.transform.GroovyASTTransformation
+import org.codehaus.groovy.transform.TransformWithPriority
 
-import org.codehaus.groovy.GroovyBugError;
-import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.AnnotatedNode;
-import org.codehaus.groovy.ast.AnnotationNode;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.FieldNode;
-import org.codehaus.groovy.ast.expr.ClassExpression;
-import org.codehaus.groovy.ast.expr.Expression;
-import org.codehaus.groovy.ast.expr.VariableExpression;
-import org.codehaus.groovy.control.CompilePhase;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.transform.ASTTransformation;
-import org.codehaus.groovy.transform.GroovyASTTransformation;
-import org.codehaus.groovy.transform.TransformWithPriority;
-
-import org.apache.grails.common.compiler.GroovyTransformOrder;
+import org.apache.grails.common.compiler.GroovyTransformOrder
 
 /**
  * The logic for the {@link grails.artefact.ApiDelegate} location transform.
@@ -45,47 +43,50 @@ import org.apache.grails.common.compiler.GroovyTransformOrder;
  * @since 2.0
  */
 @GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
-public class ApiDelegateTransformation implements ASTTransformation, TransformWithPriority {
+@CompileStatic
+class ApiDelegateTransformation implements ASTTransformation, TransformWithPriority {
+
     @Override
-    public int priority() {
-        return GroovyTransformOrder.API_DELEGATE_ORDER;
+    int priority() {
+        return GroovyTransformOrder.API_DELEGATE_ORDER
     }
 
-    public void visit(ASTNode[] nodes, SourceUnit source) {
+    void visit(ASTNode[] nodes, SourceUnit source) {
         if (nodes.length != 2 || !(nodes[0] instanceof AnnotationNode) || !(nodes[1] instanceof AnnotatedNode)) {
-            throw new GroovyBugError("Internal error: expecting [AnnotationNode, AnnotatedNode] but got: " + Arrays.asList(nodes));
+            throw new GroovyBugError('Internal error: expecting [AnnotationNode, AnnotatedNode] but got: ' + Arrays.asList(nodes))
         }
 
-        AnnotatedNode parent = (AnnotatedNode) nodes[1];
-        AnnotationNode annotationNode = (AnnotationNode) nodes[0];
+        AnnotatedNode parent = (AnnotatedNode) nodes[1]
+        AnnotationNode annotationNode = (AnnotationNode) nodes[0]
 
         if (parent instanceof FieldNode) {
-            Expression value = annotationNode.getMember("value");
-            FieldNode fieldNode = (FieldNode) parent;
-            final ClassNode type = fieldNode.getType();
-            final ClassNode owner = fieldNode.getOwner();
-            ClassNode supportedType = owner;
+            Expression value = annotationNode.getMember('value')
+            FieldNode fieldNode = (FieldNode) parent
+            final ClassNode type = fieldNode.getType()
+            final ClassNode owner = fieldNode.getOwner()
+            ClassNode supportedType = owner
             if (value instanceof ClassExpression) {
-                ClassNode valueType = value.getType();
+                ClassNode valueType = value.getType()
                 // Only use the specified value if it's not the default Object.class
-                if (!valueType.getName().equals("java.lang.Object")) {
-                    supportedType = valueType;
+                if (!valueType.getName().equals('java.lang.Object')) {
+                    supportedType = valueType
                 }
             }
 
-            GrailsASTUtils.addDelegateInstanceMethods(supportedType, owner, type, new VariableExpression(fieldNode.getName()), resolveGenericsPlaceHolders(supportedType), isNoNullCheck(), isUseCompileStatic());
+            GrailsASTUtils.addDelegateInstanceMethods(supportedType, owner, type, new VariableExpression(fieldNode.getName()), resolveGenericsPlaceHolders(supportedType), isNoNullCheck(), isUseCompileStatic())
         }
     }
 
     protected boolean isNoNullCheck() {
-        return true;
+        return true
     }
 
     protected boolean isUseCompileStatic() {
-        return true;
+        return true
     }
 
     protected Map<String, ClassNode> resolveGenericsPlaceHolders(ClassNode classNode) {
-        return null;
+        return null
     }
+
 }

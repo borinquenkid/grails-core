@@ -16,14 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.artefact;
+package grails.artefact
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
-import org.codehaus.groovy.transform.GroovyASTTransformationClass;
+import org.codehaus.groovy.transform.GroovyASTTransformationClass
 
 /**
  * Similar to Groovy's @Delegate AST transform but instead assumes the first
@@ -34,12 +34,13 @@ import org.codehaus.groovy.transform.GroovyASTTransformationClass;
  */
 @java.lang.annotation.Documented
 @Retention(RetentionPolicy.SOURCE)
-@Target({ElementType.FIELD})
-@GroovyASTTransformationClass("org.grails.compiler.injection.ApiDelegateTransformation")
-public @interface ApiDelegate {
+@Target([ElementType.FIELD])
+@GroovyASTTransformationClass('org.grails.compiler.injection.ApiDelegateTransformation')
+@interface ApiDelegate {
 
     /**
      * @return The super class to check for in the first argument of api methods. Defaults to Object.class.
      */
-    Class<?> value() default Object.class;
+    Class<?> value() default Object
+
 }

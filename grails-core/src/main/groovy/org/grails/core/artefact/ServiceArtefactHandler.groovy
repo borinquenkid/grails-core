@@ -16,28 +16,31 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.artefact;
+package org.grails.core.artefact
 
-import grails.core.ArtefactHandlerAdapter;
-import grails.core.GrailsServiceClass;
-import org.grails.core.DefaultGrailsServiceClass;
+import groovy.transform.CompileStatic
+
+import grails.core.ArtefactHandlerAdapter
+import grails.core.GrailsServiceClass
+import org.grails.core.DefaultGrailsServiceClass
 
 /**
  * @author Marc Palmer (marc@anyware.co.uk)
  */
-public class ServiceArtefactHandler extends ArtefactHandlerAdapter {
+@CompileStatic
+class ServiceArtefactHandler extends ArtefactHandlerAdapter {
 
-    public static final String TYPE = "Service";
-    public static final String PLUGIN_NAME = "services";
+    public static final String TYPE = 'Service'
+    public static final String PLUGIN_NAME = 'services'
 
-    public ServiceArtefactHandler() {
-        super(TYPE, GrailsServiceClass.class, DefaultGrailsServiceClass.class,
-                DefaultGrailsServiceClass.SERVICE, false);
+    ServiceArtefactHandler() {
+        super(TYPE, GrailsServiceClass, DefaultGrailsServiceClass,
+                DefaultGrailsServiceClass.SERVICE, false)
     }
 
     @Override
-    public String getPluginName() {
-        return PLUGIN_NAME;
+    String getPluginName() {
+        return PLUGIN_NAME
     }
 
 }

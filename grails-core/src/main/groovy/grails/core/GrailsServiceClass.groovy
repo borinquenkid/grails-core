@@ -16,33 +16,34 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.core;
+package grails.core
 
 /**
  * @author Steven Devijver
  */
-public interface GrailsServiceClass extends InjectableGrailsClass {
+interface GrailsServiceClass extends InjectableGrailsClass {
 
-    String DATA_SOURCE = "datasource";
-    String DEFAULT_DATA_SOURCE = "DEFAULT";
-    String ALL_DATA_SOURCES = "ALL";
+    String DATA_SOURCE = 'datasource'
+    String DEFAULT_DATA_SOURCE = 'DEFAULT'
+    String ALL_DATA_SOURCES = 'ALL'
 
     /**
      * Service should be configured with transaction demarcation.
      *
      * @return configure with transaction demarcation
      */
-    boolean isTransactional();
+    boolean isTransactional()
 
     /**
      * Get the datasource name that this service class works with.
      * @return the name
      */
-    String getDatasource();
+    String getDatasource()
 
     /**
      * Check if the service class can use the named DataSource.
      * @param name the name
      */
-    boolean usesDatasource(String name);
+    boolean usesDatasource(String name)
+
 }

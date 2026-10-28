@@ -16,11 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.plugins.filters;
+package org.apache.grails.core.plugins.filters
 
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import org.apache.grails.core.plugins.PluginMetadata;
+import org.apache.grails.core.plugins.PluginMetadata
 
 /**
  * A {@link PluginFilter} implementation that performs no filtering.
@@ -28,7 +28,8 @@ import org.apache.grails.core.plugins.PluginMetadata;
  * <p>This filter returns the original plugin metadata list unchanged and is useful when no include or
  * exclude rules are configured.</p>
  */
-public class NoOpPluginFilter implements PluginFilter {
+@CompileStatic
+class NoOpPluginFilter implements PluginFilter {
 
     /**
      * Returns the original plugin metadata list unchanged.
@@ -37,7 +38,8 @@ public class NoOpPluginFilter implements PluginFilter {
      * @return the same {@code original} list reference, without modification
      */
     @Override
-    public List<PluginMetadata> filterPluginList(List<PluginMetadata> original) {
-        return original;
+    List<PluginMetadata> filterPluginList(List<PluginMetadata> original) {
+        return original
     }
+
 }

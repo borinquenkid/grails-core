@@ -16,28 +16,32 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.exceptions;
+package org.grails.core.exceptions
+
+import groovy.transform.CompileStatic
 
 /**
  * @author Graeme Rocher
  */
-public class GrailsConfigurationException extends GrailsException {
+@CompileStatic
+class GrailsConfigurationException extends GrailsException {
 
-    private static final long serialVersionUID = -4535880758562704335L;
+    private static final long serialVersionUID = -4535880758562704335L
 
-    public GrailsConfigurationException() {
+    GrailsConfigurationException() {
         // default
     }
 
-    public GrailsConfigurationException(String message) {
-        super(message);
+    GrailsConfigurationException(String message) {
+        super(message)
     }
 
-    public GrailsConfigurationException(String message, Throwable cause) {
-        super(message, cause);
+    GrailsConfigurationException(String message, Throwable cause) {
+        super(message, cause)
     }
 
-    public GrailsConfigurationException(Throwable cause) {
-        super(cause);
+    GrailsConfigurationException(Throwable cause) {
+        super(cause)
     }
+
 }

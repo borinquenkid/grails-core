@@ -16,9 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core;
+package org.grails.core
 
-import grails.core.InjectableGrailsClass;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.POJO
+
+import grails.core.InjectableGrailsClass
 
 /**
  * Configures Grails classes to be autowirable by name, always.
@@ -28,21 +31,24 @@ import grails.core.InjectableGrailsClass;
  *
  * @since 0.1
  */
-public abstract class AbstractInjectableGrailsClass extends AbstractGrailsClass implements InjectableGrailsClass {
+@CompileStatic
+@POJO
+abstract class AbstractInjectableGrailsClass extends AbstractGrailsClass implements InjectableGrailsClass {
 
-    public AbstractInjectableGrailsClass(Class<?> clazz, String trailingName) {
-        super(clazz, trailingName);
+    AbstractInjectableGrailsClass(Class<?> clazz, String trailingName) {
+        super(clazz, trailingName)
     }
 
-    public boolean byName() {
-        return true;
+    boolean byName() {
+        return true
     }
 
-    public boolean byType() {
-        return false;
+    boolean byType() {
+        return false
     }
 
-    public boolean getAvailable() {
-        return true;
+    boolean getAvailable() {
+        return true
     }
+
 }

@@ -16,11 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.core.support;
+package grails.core.support
 
-import org.springframework.beans.factory.Aware;
+import org.springframework.beans.factory.Aware
 
-import grails.config.Config;
+import grails.config.Config
 
 /**
  * Obtains the Grails ConfigObject via Spring.
@@ -28,7 +28,8 @@ import grails.config.Config;
  * @author Graeme Rocher
  * @since 1.2
  */
-public interface GrailsConfigurationAware extends Aware {
+interface GrailsConfigurationAware extends Aware {
 
-    void setConfiguration(Config co);
+    void setConfiguration(Config co)
+
 }

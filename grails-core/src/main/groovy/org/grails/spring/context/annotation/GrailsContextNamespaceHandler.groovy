@@ -16,9 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.spring.context.annotation;
+package org.grails.spring.context.annotation
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import groovy.transform.CompileStatic
+
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport
 
 /**
  * Provides custom implementation of component-scan that ignores Groovy closures.
@@ -26,10 +28,12 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
  * @author Graeme Rocher
  * @since 1.2
  */
-public class GrailsContextNamespaceHandler extends NamespaceHandlerSupport {
+@CompileStatic
+class GrailsContextNamespaceHandler extends NamespaceHandlerSupport {
 
-    public void init() {
-        registerBeanDefinitionParser("component-scan",
-                new ClosureClassIgnoringComponentScanBeanDefinitionParser());
+    void init() {
+        registerBeanDefinitionParser('component-scan',
+                new ClosureClassIgnoringComponentScanBeanDefinitionParser())
     }
+
 }

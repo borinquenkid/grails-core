@@ -16,11 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.spring.aop.autoproxy;
+package org.grails.spring.aop.autoproxy
 
-import groovy.lang.GroovyObject;
+import groovy.transform.CompileStatic
 
-import org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator;
+import org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator
 
 /**
  * Enables AspectJ weaving from the application context.
@@ -28,12 +28,14 @@ import org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProx
  * @author Graeme Rocher
  * @since 1.3.4
  */
-public class GroovyAwareAspectJAwareAdvisorAutoProxyCreator extends AnnotationAwareAspectJAutoProxyCreator {
+@CompileStatic
+class GroovyAwareAspectJAwareAdvisorAutoProxyCreator extends AnnotationAwareAspectJAutoProxyCreator {
 
-    private static final long serialVersionUID = 1;
+    private static final long serialVersionUID = 1
 
     @Override
     protected boolean shouldProxyTargetClass(Class<?> beanClass, String beanName) {
-        return GroovyObject.class.isAssignableFrom(beanClass) || super.shouldProxyTargetClass(beanClass, beanName);
+        GroovyObject.isAssignableFrom(beanClass) || super.shouldProxyTargetClass(beanClass, beanName)
     }
+
 }

@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.web;
+package grails.web
 
 /**
  * URL converter interface for conversion strategies to implement
@@ -24,8 +24,10 @@ package grails.web;
  * @author Jeff Brown
  * @since 2.0
  */
-public interface UrlConverter {
-    String BEAN_NAME = "grailsUrlConverter";
+interface UrlConverter {
 
-    String toUrlElement(String propertyOrClassName);
+    String BEAN_NAME = 'grailsUrlConverter'
+
+    String toUrlElement(String propertyOrClassName)
+
 }

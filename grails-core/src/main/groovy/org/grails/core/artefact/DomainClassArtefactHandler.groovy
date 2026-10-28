@@ -16,16 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.core.artefact;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
-import java.net.URL;
 
-import groovy.lang.Closure;
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.InnerClassNode;
-
 import org.springframework.core.Ordered;
 
 import grails.artefact.Artefact;
@@ -46,35 +44,38 @@ import org.grails.io.support.Resource;
  * @author Graeme Rocher
  * @author Marc Palmer (marc@anyware.co.uk)
  */
-public class DomainClassArtefactHandler extends ArtefactHandlerAdapter implements GrailsApplicationAware {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class DomainClassArtefactHandler extends ArtefactHandlerAdapter implements GrailsApplicationAware {
 
-    public static final String TYPE = "Domain";
-    public static final String PLUGIN_NAME = "domainClass";
-    private static final String ENTITY_ANN_NAME = "Entity";
-    private static final String GRAILS_PACKAGE_PREFIX = "grails.";
-    private static final String JAKARTA_PERSISTENCE = "jakarta.persistence";
+    public static final String TYPE = 'Domain';
+    public static final String PLUGIN_NAME = 'domainClass';
+    private static final String ENTITY_ANN_NAME = 'Entity';
+    private static final String GRAILS_PACKAGE_PREFIX = 'grails.';
+    private static final String JAKARTA_PERSISTENCE = 'jakarta.persistence';
 
     public DomainClassArtefactHandler() {
-        super(TYPE, GrailsDomainClass.class, DefaultGrailsDomainClass.class, null, true);
+        super(TYPE, GrailsDomainClass, DefaultGrailsDomainClass, null, true);
     }
 
-    public void setGrailsApplication(GrailsApplication grailsApplication) {
+    void setGrailsApplication(GrailsApplication grailsApplication) {
         // no-op
     }
 
     @Override
-    public String getPluginName() {
+    String getPluginName() {
         return PLUGIN_NAME;
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public GrailsClass newArtefactClass(Class artefactClass) {
+    @SuppressWarnings('rawtypes')
+    GrailsClass newArtefactClass(Class artefactClass) {
         return new DefaultGrailsDomainClass(artefactClass);
     }
 
-    @SuppressWarnings("rawtypes")
-    public GrailsClass newArtefactClass(Class artefactClass, MappingContext mappingContext) {
+    @SuppressWarnings('rawtypes')
+    GrailsClass newArtefactClass(Class artefactClass, MappingContext mappingContext) {
         return new DefaultGrailsDomainClass(artefactClass, mappingContext);
     }
 
@@ -89,7 +90,7 @@ public class DomainClassArtefactHandler extends ArtefactHandlerAdapter implement
     }
 
     @Override
-    public boolean isArtefact(ClassNode classNode) {
+    boolean isArtefact(ClassNode classNode) {
         if (classNode == null) return false;
         if (!isValidArtefactClassNode(classNode, classNode.getModifiers())) return false;
 
@@ -103,35 +104,35 @@ public class DomainClassArtefactHandler extends ArtefactHandlerAdapter implement
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public boolean isArtefactClass(Class clazz) {
+    @SuppressWarnings('rawtypes')
+    boolean isArtefactClass(Class clazz) {
         return isDomainClass(clazz);
     }
 
-    public static boolean isDomainClass(Class<?> clazz, boolean allowProxyClass) {
+    static boolean isDomainClass(Class<?> clazz, boolean allowProxyClass) {
         boolean retval = isDomainClass(clazz);
-        if (!retval && allowProxyClass && clazz != null && clazz.getSimpleName().contains("$")) {
+        if (!retval && allowProxyClass && clazz != null && clazz.getSimpleName().contains('\$')) {
             retval = isDomainClass(clazz.getSuperclass());
         }
         return retval;
     }
 
-    public static boolean isDomainClass(Class<?> clazz) {
+    static boolean isDomainClass(Class<?> clazz) {
         return clazz != null && doIsDomainClassCheck(clazz);
 
     }
 
     private static boolean doIsDomainClassCheck(Class<?> clazz) {
         // it's not a closure
-        if (Closure.class.isAssignableFrom(clazz)) {
+        if (Closure.isAssignableFrom(clazz)) {
             return false;
         }
 
         if (clazz.isEnum()) return false;
         Artefact artefactAnn = null;
         try {
-            artefactAnn = clazz.getAnnotation(Artefact.class);
-        } catch (ArrayStoreException e) {
+            artefactAnn = clazz.getAnnotation(Artefact);
+        } catch (ArrayStoreException ignored) {
             // happens if a reference to a class that no longer exists is there
         }
 
@@ -142,7 +143,7 @@ public class DomainClassArtefactHandler extends ArtefactHandlerAdapter implement
         Annotation[] annotations = null;
         try {
             annotations = clazz.getAnnotations();
-        } catch (ArrayStoreException e) {
+        } catch (ArrayStoreException ignored) {
             // happens if a reference to a class that no longer exists is there
         }
 
@@ -161,7 +162,8 @@ public class DomainClassArtefactHandler extends ArtefactHandlerAdapter implement
     }
 
     @Override
-    public int getOrder() {
+    int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE;
     }
+
 }

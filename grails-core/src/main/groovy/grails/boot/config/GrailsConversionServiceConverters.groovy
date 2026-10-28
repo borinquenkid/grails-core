@@ -16,19 +16,19 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.boot.config;
+package grails.boot.config
 
-import java.util.Collection;
-import java.util.Set;
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
+import org.springframework.context.ApplicationContext
+import org.springframework.core.convert.TypeDescriptor
+import org.springframework.core.convert.converter.ConditionalGenericConverter
+import org.springframework.core.convert.converter.GenericConverter.ConvertiblePair
+import org.springframework.core.convert.support.ConfigurableConversionService
+import org.springframework.core.io.Resource
+import org.springframework.core.io.support.ResourceArrayPropertyEditor
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalGenericConverter;
-import org.springframework.core.convert.support.ConfigurableConversionService;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.ResourceArrayPropertyEditor;
-
-import org.grails.config.NavigableMap;
+import org.grails.config.NavigableMap
 
 /**
  * The converters the Grails lifecycle adds to the environment's conversion service, shared by
@@ -47,6 +47,8 @@ import org.grails.config.NavigableMap;
  *
  * @since 8.0
  */
+@CompileStatic
+@PackageScope
 final class GrailsConversionServiceConverters {
 
     private GrailsConversionServiceConverters() {
@@ -54,18 +56,18 @@ final class GrailsConversionServiceConverters {
 
     static void register(ConfigurableConversionService conversionService, ApplicationContext applicationContext) {
         if (isRegistered(conversionService, applicationContext)) {
-            return;
+            return
         }
-        conversionService.addConverter(String.class, Resource.class, applicationContext::getResource);
-        conversionService.addConverter(new ResourceArrayConverter(applicationContext));
-        conversionService.addConverter(NavigableMap.NullSafeNavigator.class, String.class, source -> null);
-        conversionService.addConverter(NavigableMap.NullSafeNavigator.class, Object.class, source -> null);
-        conversionService.addConverter(RegistrationMarker.class, ApplicationContext.class, marker -> applicationContext);
+        conversionService.addConverter(String, Resource, applicationContext::getResource)
+        conversionService.addConverter(new ResourceArrayConverter(applicationContext))
+        conversionService.addConverter(NavigableMap.NullSafeNavigator, String, source -> null)
+        conversionService.addConverter(NavigableMap.NullSafeNavigator, Object, source -> null)
+        conversionService.addConverter(RegistrationMarker, ApplicationContext, marker -> applicationContext)
     }
 
     private static boolean isRegistered(ConfigurableConversionService conversionService, ApplicationContext applicationContext) {
-        return conversionService.canConvert(RegistrationMarker.class, ApplicationContext.class) &&
-                conversionService.convert(RegistrationMarker.INSTANCE, ApplicationContext.class) == applicationContext;
+        return conversionService.canConvert(RegistrationMarker, ApplicationContext) &&
+                conversionService.convert(RegistrationMarker.INSTANCE, ApplicationContext).is(applicationContext)
     }
 
     /**
@@ -85,46 +87,46 @@ final class GrailsConversionServiceConverters {
     private static final class ResourceArrayConverter implements ConditionalGenericConverter {
 
         private static final Set<ConvertiblePair> CONVERTIBLE_TYPES = Set.of(
-                new ConvertiblePair(String.class, Resource[].class),
-                new ConvertiblePair(Object[].class, Resource[].class),
-                new ConvertiblePair(Collection.class, Resource[].class));
+                new ConvertiblePair(String, Resource[]),
+                new ConvertiblePair(Object[], Resource[]),
+                new ConvertiblePair(Collection, Resource[]))
 
-        private final ApplicationContext applicationContext;
+        private final ApplicationContext applicationContext
 
         private ResourceArrayConverter(ApplicationContext applicationContext) {
-            this.applicationContext = applicationContext;
+            this.applicationContext = applicationContext
         }
 
         @Override
-        public Set<ConvertiblePair> getConvertibleTypes() {
-            return CONVERTIBLE_TYPES;
+        Set<ConvertiblePair> getConvertibleTypes() {
+            return CONVERTIBLE_TYPES
         }
 
         @Override
-        public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
+        boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
             // Elements other than locations and resources are left to the other converters.
-            TypeDescriptor elementType = sourceType.getElementTypeDescriptor();
+            TypeDescriptor elementType = sourceType.getElementTypeDescriptor()
             if (elementType == null) {
-                return true;
+                return true
             }
-            Class<?> type = elementType.getType();
-            return type == Object.class || type == String.class || Resource.class.isAssignableFrom(type);
+            Class<?> type = elementType.getType()
+            return type == Object || type == String || Resource.isAssignableFrom(type)
         }
 
         @Override
-        public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+        Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
             if (source == null) {
-                return null;
+                return null
             }
             ResourceArrayPropertyEditor editor =
-                    new ResourceArrayPropertyEditor(applicationContext, applicationContext.getEnvironment());
+                    new ResourceArrayPropertyEditor(applicationContext, applicationContext.getEnvironment())
             if (source instanceof String text) {
-                editor.setAsText(text);
+                editor.setAsText(text)
             }
             else {
-                editor.setValue(source);
+                editor.setValue(source)
             }
-            return editor.getValue();
+            return editor.getValue()
         }
     }
 }

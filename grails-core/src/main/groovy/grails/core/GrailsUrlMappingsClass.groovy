@@ -16,29 +16,26 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.core;
-
-import java.util.List;
-
-import groovy.lang.Closure;
+package grails.core
 
 /**
  * Loads the UrlMappings.
  */
-public interface GrailsUrlMappingsClass extends GrailsClass {
+interface GrailsUrlMappingsClass extends GrailsClass {
 
     /**
      * Returns the mappings closure which is called to evaluate the url mappings.
      *
      * @return A Closure instance
      */
-    @SuppressWarnings("rawtypes")
-    Closure getMappingsClosure();
+    @SuppressWarnings('rawtypes')
+    Closure getMappingsClosure()
 
     /**
      * Returns a List of URI patterns to exclude.
      * @return  the patterns (Strings)
      */
-    @SuppressWarnings("rawtypes")
-    List getExcludePatterns();
+    @SuppressWarnings('rawtypes')
+    List getExcludePatterns()
+
 }

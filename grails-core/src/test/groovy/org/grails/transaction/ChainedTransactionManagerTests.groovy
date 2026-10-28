@@ -16,11 +16,19 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.transaction;
 
 import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.*;
+import org.junit.jupiter.api.function.Executable;
+import org.springframework.transaction.HeuristicCompletionException;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import static org.grails.transaction.ChainedTransactionManagerTests.TestPlatformTransactionManager.createFailingTransactionManager;
@@ -29,24 +37,28 @@ import static org.grails.transaction.ChainedTransactionManagerTests.TransactionM
 import static org.grails.transaction.ChainedTransactionManagerTests.TransactionManagerMatcher.wasRolledback;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.transaction.HeuristicCompletionException.getStateString;
 
 /**
  * Integration tests for {@link ChainedTransactionManager}.
- * 
+ *
  * @author Michael Hunger
  * @author Oliver Gierke
  * @since 1.6
  */
-public class ChainedTransactionManagerTests {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+class ChainedTransactionManagerTests {
 
 	ChainedTransactionManager tm;
 
 	@Test
-	public void shouldCompleteSuccessfully() throws Exception {
+	void shouldCompleteSuccessfully() throws Exception {
 
-		PlatformTransactionManager transactionManager = createNonFailingTransactionManager("single");
+		PlatformTransactionManager transactionManager = createNonFailingTransactionManager('single');
 		setupTransactionManagers(transactionManager);
 
 		createAndCommitTransaction();
@@ -55,9 +67,9 @@ public class ChainedTransactionManagerTests {
 	}
 
 	@Test
-	public void shouldThrowRolledBackExceptionForSingleTMFailure() throws Exception {
+	void shouldThrowRolledBackExceptionForSingleTMFailure() throws Exception {
 
-		setupTransactionManagers(createFailingTransactionManager("single"));
+		setupTransactionManagers(createFailingTransactionManager('single'));
 
 		try {
 			createAndCommitTransaction();
@@ -68,10 +80,10 @@ public class ChainedTransactionManagerTests {
 	}
 
 	@Test
-	public void shouldCommitAllRegisteredTransactionManagers() {
+	void shouldCommitAllRegisteredTransactionManagers() {
 
-		PlatformTransactionManager first = createNonFailingTransactionManager("first");
-		PlatformTransactionManager second = createNonFailingTransactionManager("second");
+		PlatformTransactionManager first = createNonFailingTransactionManager('first');
+		PlatformTransactionManager second = createNonFailingTransactionManager('second');
 
 		setupTransactionManagers(first, second);
 		createAndCommitTransaction();
@@ -81,26 +93,26 @@ public class ChainedTransactionManagerTests {
 	}
 
 	@Test
-	public void shouldCommitInReverseOrder() {
+	void shouldCommitInReverseOrder() {
 
-		PlatformTransactionManager first = createNonFailingTransactionManager("first");
-		PlatformTransactionManager second = createNonFailingTransactionManager("second");
+		PlatformTransactionManager first = createNonFailingTransactionManager('first');
+		PlatformTransactionManager second = createNonFailingTransactionManager('second');
 
 		setupTransactionManagers(first, second);
 		createAndCommitTransaction();
 
-		assertThat("second tm commited before first ", commitTime(first) >= commitTime(second), is(true));
+		assertThat('second tm commited before first ', commitTime(first) >= commitTime(second), is(true));
 	}
 
 	@Test
-	public void shouldDeduplicateRepeatedTransactionManagerInstances() {
+	void shouldDeduplicateRepeatedTransactionManagerInstances() {
 
 		// The same PlatformTransactionManager instance can be supplied more than once when it is
 		// exposed under multiple bean names (for example the primary data source manager aliased by
 		// an additional transactionManager_<dataSource> bean). It must be registered - and therefore
 		// committed - only once, otherwise the second commit fails with
 		// "Transaction is already completed - do not call commit or rollback more than once".
-		PlatformTransactionManager single = createNonFailingTransactionManager("single");
+		PlatformTransactionManager single = createNonFailingTransactionManager('single');
 
 		setupTransactionManagers(single, single);
 
@@ -112,10 +124,10 @@ public class ChainedTransactionManagerTests {
 	}
 
 	@Test
-	public void shouldThrowMixedRolledBackExceptionForNonFirstTMFailure() throws Exception {
+	void shouldThrowMixedRolledBackExceptionForNonFirstTMFailure() throws Exception {
 
-		setupTransactionManagers(TestPlatformTransactionManager.createFailingTransactionManager("first"),
-				createNonFailingTransactionManager("second"));
+		setupTransactionManagers(TestPlatformTransactionManager.createFailingTransactionManager('first'),
+				createNonFailingTransactionManager('second'));
 
 		try {
 			createAndCommitTransaction();
@@ -126,10 +138,10 @@ public class ChainedTransactionManagerTests {
 	}
 
 	@Test
-	public void shouldRollbackAllTransactionManagers() throws Exception {
+	void shouldRollbackAllTransactionManagers() throws Exception {
 
-		PlatformTransactionManager first = createNonFailingTransactionManager("first");
-		PlatformTransactionManager second = createNonFailingTransactionManager("second");
+		PlatformTransactionManager first = createNonFailingTransactionManager('first');
+		PlatformTransactionManager second = createNonFailingTransactionManager('second');
 
 		setupTransactionManagers(first, second);
 		createAndRollbackTransaction();
@@ -140,12 +152,12 @@ public class ChainedTransactionManagerTests {
 	}
 
 	@Test
-	public void shouldThrowExceptionOnFailingRollback() throws Exception {
-		assertThrows(UnexpectedRollbackException.class, () -> {
-			PlatformTransactionManager first = createFailingTransactionManager("first");
+	void shouldThrowExceptionOnFailingRollback() throws Exception {
+		assertThrows(UnexpectedRollbackException, { ->
+			PlatformTransactionManager first = createFailingTransactionManager('first');
 			setupTransactionManagers(first);
 			createAndRollbackTransaction();
-		});
+		} as Executable);
 	}
 
 	private void setupTransactionManagers(PlatformTransactionManager... transactionManagers) {
@@ -174,20 +186,20 @@ public class ChainedTransactionManagerTests {
 
 		private boolean synchronizationActive;
 
-		public void initSynchronization() {
+		void initSynchronization() {
 			synchronizationActive = true;
 		}
 
-		public boolean isSynchronizationActive() {
+		boolean isSynchronizationActive() {
 			return synchronizationActive;
 		}
 
-		public void clearSynchronization() {
+		void clearSynchronization() {
 			synchronizationActive = false;
 		}
 	}
 
-	static class TestPlatformTransactionManager implements org.springframework.transaction.PlatformTransactionManager {
+	static class TestPlatformTransactionManager implements PlatformTransactionManager {
 
 		private final String name;
 		private Long commitTime;
@@ -198,101 +210,100 @@ public class ChainedTransactionManagerTests {
 		}
 
 		static PlatformTransactionManager createFailingTransactionManager(String name) {
-			return new TestPlatformTransactionManager(name + "-failing") {
+			return new TestPlatformTransactionManager(name + '-failing') {
 				@Override
-				public void commit(TransactionStatus status) throws TransactionException {
+				void commit(TransactionStatus status) throws TransactionException {
 					throw new RuntimeException();
 				}
 
 				@Override
-				public void rollback(TransactionStatus status) throws TransactionException {
+				void rollback(TransactionStatus status) throws TransactionException {
 					throw new RuntimeException();
 				}
 			};
 		}
 
 		static PlatformTransactionManager createNonFailingTransactionManager(String name) {
-			return new TestPlatformTransactionManager(name + "-non-failing");
+			return new TestPlatformTransactionManager(name + '-non-failing');
 		}
 
 		@Override
-		public String toString() {
-			return name + (isCommitted() ? " (committed) " : " (not committed)");
+		String toString() {
+			return name + (isCommitted() ? ' (committed) ' : ' (not committed)');
 		}
 
-		public TransactionStatus getTransaction(TransactionDefinition definition) throws TransactionException {
+		TransactionStatus getTransaction(TransactionDefinition definition) throws TransactionException {
 			return new TestTransactionStatus(definition);
 		}
 
-		public void commit(TransactionStatus status) throws TransactionException {
+		void commit(TransactionStatus status) throws TransactionException {
 			commitTime = System.currentTimeMillis();
 		}
 
-		public void rollback(TransactionStatus status) throws TransactionException {
+		void rollback(TransactionStatus status) throws TransactionException {
 			rollbackTime = System.currentTimeMillis();
 		}
 
-		public boolean isCommitted() {
+		boolean isCommitted() {
 			return commitTime != null;
 		}
 
-		public boolean wasRolledBack() {
+		boolean wasRolledBack() {
 			return rollbackTime != null;
 		}
 
-		public Long getCommitTime() {
+		Long getCommitTime() {
 			return commitTime;
 		}
 
-		static class TestTransactionStatus implements org.springframework.transaction.TransactionStatus {
+		static class TestTransactionStatus implements TransactionStatus {
 
 			public TestTransactionStatus(TransactionDefinition definition) {
 			}
 
-			public boolean isNewTransaction() {
+			boolean isNewTransaction() {
 				return false;
 			}
 
-			public boolean hasSavepoint() {
+			boolean hasSavepoint() {
 				return false;
 			}
 
-			public void setRollbackOnly() {
+			void setRollbackOnly() {
 
 			}
 
-			public boolean isRollbackOnly() {
+			boolean isRollbackOnly() {
 				return false;
 			}
 
-			public void flush() {
+			void flush() {
 
 			}
 
-			public boolean isCompleted() {
+			boolean isCompleted() {
 				return false;
 			}
 
-			public Object createSavepoint() throws TransactionException {
+			Object createSavepoint() throws TransactionException {
 				return null;
 			}
 
-			public void rollbackToSavepoint(Object savepoint) throws TransactionException {
+			void rollbackToSavepoint(Object savepoint) throws TransactionException {
 
 			}
 
-			public void releaseSavepoint(Object savepoint) throws TransactionException {
+			void releaseSavepoint(Object savepoint) throws TransactionException {
 
 			}
 		}
 
-        public String getName() {
-            return name;
-        }
+		String getName() {
+			return name;
+		}
 	}
 
-	static class TransactionManagerMatcher extends
-			org.hamcrest.TypeSafeMatcher<org.springframework.transaction.PlatformTransactionManager> {
+	static class TransactionManagerMatcher extends TypeSafeMatcher<PlatformTransactionManager> {
 
 		private final boolean commitCheck;
 
@@ -301,7 +312,7 @@ public class ChainedTransactionManagerTests {
 		}
 
 		@Override
-		public boolean matchesSafely(PlatformTransactionManager platformTransactionManager) {
+		boolean matchesSafely(PlatformTransactionManager platformTransactionManager) {
 			TestPlatformTransactionManager ptm = (TestPlatformTransactionManager) platformTransactionManager;
 			if (commitCheck) {
 				return ptm.isCommitted();
@@ -311,15 +322,15 @@ public class ChainedTransactionManagerTests {
 
 		}
 
-		public void describeTo(Description description) {
-			description.appendText("that a " + (commitCheck ? "committed" : "rolled-back") + " TransactionManager");
+		void describeTo(Description description) {
+			description.appendText('that a ' + (commitCheck ? 'committed' : 'rolled-back') + ' TransactionManager');
 		}
 
-		public static TransactionManagerMatcher isCommitted() {
+		static TransactionManagerMatcher isCommitted() {
 			return new TransactionManagerMatcher(true);
 		}
 
-		public static TransactionManagerMatcher wasRolledback() {
+		static TransactionManagerMatcher wasRolledback() {
 			return new TransactionManagerMatcher(false);
 		}
 	}

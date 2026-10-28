@@ -16,101 +16,100 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.plugins;
+package org.grails.plugins
 
-import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Map;
+import groovy.lang.GroovyClassLoader
+import groovy.transform.CompileStatic
 
-import groovy.lang.GroovyClassLoader;
-
-import grails.core.DefaultGrailsApplication;
-import grails.core.GrailsApplication;
-import grails.plugins.GrailsPlugin;
-import grails.plugins.exceptions.PluginException;
-import org.apache.grails.core.plugins.PluginDiscovery;
+import grails.core.DefaultGrailsApplication
+import grails.core.GrailsApplication
+import grails.plugins.GrailsPlugin
+import grails.plugins.exceptions.PluginException
+import org.apache.grails.core.plugins.PluginDiscovery
 
 /**
  * @author Graeme Rocher
  * @since 0.4
  */
-public class MockGrailsPluginManager extends AbstractGrailsPluginManager {
-    public MockGrailsPluginManager(GrailsApplication application) {
-        this(application, new MockPluginDiscovery());
+@CompileStatic
+class MockGrailsPluginManager extends AbstractGrailsPluginManager {
+
+    MockGrailsPluginManager(GrailsApplication application) {
+        this(application, new MockPluginDiscovery())
     }
 
-    public MockGrailsPluginManager(GrailsApplication application, PluginDiscovery pluginDiscovery) {
-        super(application, pluginDiscovery);
-        loadPlugins();
+    MockGrailsPluginManager(GrailsApplication application, PluginDiscovery pluginDiscovery) {
+        super(application, pluginDiscovery)
+        loadPlugins()
     }
 
-    public MockGrailsPluginManager() {
-        this(new DefaultGrailsApplication(new Class[0], new GroovyClassLoader()));
-    }
-
-    @Override
-    public GrailsPlugin getGrailsPlugin(String name) {
-        return plugins.get(name);
-    }
-
-    public GrailsPlugin getGrailsPlugin(String name, BigDecimal version) {
-        return plugins.get(name);
+    MockGrailsPluginManager() {
+        this(new DefaultGrailsApplication(new Class[0], new GroovyClassLoader()))
     }
 
     @Override
-    public boolean hasGrailsPlugin(String name) {
-        return plugins.containsKey(name);
+    GrailsPlugin getGrailsPlugin(String name) {
+        return plugins.get(name)
     }
 
-    public void registerMockPlugin(GrailsPlugin plugin) {
-        plugins.put(plugin.getName(), plugin);
-        ((MockPluginDiscovery) pluginDiscovery).registerMockPlugin(plugin);
+    GrailsPlugin getGrailsPlugin(String name, BigDecimal version) {
+        return plugins.get(name)
     }
 
-    public GrailsPlugin[] getUserPlugins() {
-        return getAllPlugins();
+    @Override
+    boolean hasGrailsPlugin(String name) {
+        return plugins.containsKey(name)
     }
 
-    public void loadPlugins() throws PluginException {
-        if (initialised) {
-            return;
+    void registerMockPlugin(GrailsPlugin plugin) {
+        plugins.put(plugin.getName(), plugin)
+        ((MockPluginDiscovery) pluginDiscovery).registerMockPlugin(plugin)
+    }
+
+    GrailsPlugin[] getUserPlugins() {
+        return getAllPlugins()
+    }
+
+    void loadPlugins() throws PluginException {
+        if (this.@initialised) {
+            return
         }
 
         pluginDiscovery.getPluginsInLoadOrder().forEach(pluginInfo -> {
-            GrailsPlugin plugin;
+            GrailsPlugin plugin
             if (pluginInfo.isDynamic()) {
-                plugin = new DefaultGrailsPlugin(pluginInfo.getPluginClass(), application);
+                plugin = new DefaultGrailsPlugin(pluginInfo.getPluginClass(), application)
             } else {
-                plugin = new BinaryGrailsPlugin(pluginInfo.getPluginClass(), pluginInfo.getPluginDescriptor(), application);
+                plugin = new BinaryGrailsPlugin(pluginInfo.getPluginClass(), pluginInfo.getPluginDescriptor(), application)
             }
 
-            plugin.setApplicationContext(applicationContext);
-            plugin.setManager(this);
-            plugins.put(plugin.getName(), plugin);
-        });
+            plugin.setApplicationContext(applicationContext)
+            plugin.setManager(this)
+            plugins.put(plugin.getName(), plugin)
+        })
 
-        initialised = true;
+        this.@initialised = true
     }
 
     @Override
-    public boolean isInitialised() {
-        return true;
+    boolean isInitialised() {
+        return true
     }
 
-    public void refreshPlugin(String name) {
-        GrailsPlugin plugin = plugins.get(name);
+    void refreshPlugin(String name) {
+        GrailsPlugin plugin = plugins.get(name)
         if (plugin != null) {
-            plugin.refresh();
+            plugin.refresh()
         }
     }
 
-    public Collection<?> getPluginObservers(GrailsPlugin plugin) {
+    Collection<?> getPluginObservers(GrailsPlugin plugin) {
         throw new UnsupportedOperationException(
-                "The class [MockGrailsPluginManager] doesn't support the method getPluginObservers");
+                'The class [MockGrailsPluginManager] doesn\'t support the method getPluginObservers')
     }
 
-    @SuppressWarnings("rawtypes")
-    public void informObservers(String pluginName, Map event) {
+    @SuppressWarnings('rawtypes')
+    void informObservers(String pluginName, Map event) {
         // do nothing
     }
 

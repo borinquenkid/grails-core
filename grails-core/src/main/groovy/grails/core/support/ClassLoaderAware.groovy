@@ -16,9 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.core.support;
+package grails.core.support
 
-import org.springframework.beans.factory.Aware;
+import org.springframework.beans.factory.Aware
 
 /**
  * Convenience interface that can be implemented by classes that are registered by plugins.
@@ -26,7 +26,7 @@ import org.springframework.beans.factory.Aware;
  * @author Steven Devijver
  * @since 0.2
  */
-public interface ClassLoaderAware extends Aware {
+interface ClassLoaderAware extends Aware {
 
     /**
      * This method is called by the {@link org.springframework.context.ApplicationContext} that
@@ -35,5 +35,6 @@ public interface ClassLoaderAware extends Aware {
      *
      * @param classLoader the {@link ClassLoader} that loads the Grails application code
      */
-    void setClassLoader(ClassLoader classLoader);
+    void setClassLoader(ClassLoader classLoader)
+
 }

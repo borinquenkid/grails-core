@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.exceptions;
+package org.grails.core.exceptions
+
+import groovy.transform.CompileStatic
 
 /**
  * Generic global runtime exception.
@@ -24,19 +26,21 @@ package org.grails.core.exceptions;
  * @author Graeme Rocher
  * @since 0.4
  */
-public class GrailsRuntimeException extends GrailsException {
+@CompileStatic
+class GrailsRuntimeException extends GrailsException {
 
-    private static final long serialVersionUID = -1335036736215845295L;
+    private static final long serialVersionUID = -1335036736215845295L
 
-    public GrailsRuntimeException(String message) {
-        super(message);
+    GrailsRuntimeException(String message) {
+        super(message)
     }
 
-    public GrailsRuntimeException(String message, Throwable cause) {
-        super(message, cause);
+    GrailsRuntimeException(String message, Throwable cause) {
+        super(message, cause)
     }
 
-    public GrailsRuntimeException(Throwable cause) {
-        super(cause);
+    GrailsRuntimeException(Throwable cause) {
+        super(cause)
     }
+
 }

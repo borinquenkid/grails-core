@@ -16,30 +16,34 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.exceptions;
+package org.grails.core.exceptions
+
+import groovy.transform.CompileStatic
 
 /**
  * Occurs when the creation of a new instance fails.
  *
  * @author Steven Devijver
  */
-public class NewInstanceCreationException extends GrailsException {
+@CompileStatic
+class NewInstanceCreationException extends GrailsException {
 
-    private static final long serialVersionUID = -877948309600522419L;
+    private static final long serialVersionUID = -877948309600522419L
 
-    public NewInstanceCreationException() {
-        super();
+    NewInstanceCreationException() {
+        super()
     }
 
-    public NewInstanceCreationException(String message) {
-        super(message);
+    NewInstanceCreationException(String message) {
+        super(message)
     }
 
-    public NewInstanceCreationException(String message, Throwable cause) {
-        super(message, cause);
+    NewInstanceCreationException(String message, Throwable cause) {
+        super(message, cause)
     }
 
-    public NewInstanceCreationException(Throwable cause) {
-        super(cause);
+    NewInstanceCreationException(Throwable cause) {
+        super(cause)
     }
+
 }

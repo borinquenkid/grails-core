@@ -16,7 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.core.util;
+
+import groovy.transform.CompileStatic;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -34,28 +37,32 @@ import org.springframework.context.event.ContextRefreshedEvent;
  * @author Graeme Rocher
  * @since 3.0.12
  */
-public class BeanCreationProfilingPostProcessor implements InstantiationAwareBeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class BeanCreationProfilingPostProcessor implements InstantiationAwareBeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
 
-    private final StopWatch stopWatch = new StopWatch("Bean Creation StopWatch");
-    private static final Logger LOG = LoggerFactory.getLogger("org.grails.startup");
+    private final StopWatch stopWatch = new StopWatch('Bean Creation StopWatch');
+    private static final Logger LOG = LoggerFactory.getLogger('org.grails.startup');
 
     @Override
-    public Object postProcessBeforeInstantiation(@Nullable Class<?> beanClass, @Nullable String beanName) throws BeansException {
-        stopWatch.start("Create Bean: " + beanName);
+    Object postProcessBeforeInstantiation(@Nullable Class<?> beanClass, @Nullable String beanName) throws BeansException {
+        stopWatch.start('Create Bean: ' + beanName);
         return null;
     }
 
     @Override
-    public Object postProcessAfterInitialization(@Nullable Object bean, @Nullable String beanName) throws BeansException {
+    Object postProcessAfterInitialization(@Nullable Object bean, @Nullable String beanName) throws BeansException {
         stopWatch.stop();
         return bean;
     }
 
     @Override
-    public void onApplicationEvent(@NonNull ContextRefreshedEvent event) {
+    void onApplicationEvent(@NonNull ContextRefreshedEvent event) {
         stopWatch.complete();
         if (LOG.isDebugEnabled()) {
             LOG.debug(stopWatch.prettyPrint());
         }
     }
+
 }

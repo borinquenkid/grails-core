@@ -16,15 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.compiler.injection;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import groovy.transform.CompileStatic;
+import groovy.transform.PackageScope;
+import groovy.transform.stc.POJO;
 import org.codehaus.groovy.ast.ClassCodeVisitorSupport;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.PropertyNode;
@@ -46,21 +45,27 @@ import org.grails.io.support.Resource;
  * @author Graeme Rocher
  * @since 3.0
  */
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+@PackageScope
 class PluginAstReader {
+
     private BasicGrailsPluginInfo pluginInfo;
 
     public PluginAstReader() {
         this.pluginInfo = new BasicGrailsPluginInfo();
     }
 
+    @PackageScope
     GrailsPluginInfo getPluginInfo() {
         return this.pluginInfo;
     }
 
-    public GrailsPluginInfo readPluginInfo(ClassNode classNode) throws CompilationFailedException {
+    GrailsPluginInfo readPluginInfo(ClassNode classNode) throws CompilationFailedException {
         String className = classNode.getNameWithoutPackage();
 
-        if (className.endsWith("GrailsPlugin")) {
+        if (className.endsWith('GrailsPlugin')) {
             visitContents(className, classNode);
         }
         return pluginInfo;
@@ -70,7 +75,7 @@ class PluginAstReader {
         ClassCodeVisitorSupport visitor = new ClassCodeVisitorSupport() {
 
             @Override
-            public void visitProperty(PropertyNode node) {
+            void visitProperty(PropertyNode node) {
                 String name = node.getName();
 
                 final Expression expr = node.getField().getInitialExpression();
@@ -112,7 +117,7 @@ class PluginAstReader {
 
         classNode.visitContents(visitor);
 
-        pluginInfo.setName(GrailsNameUtils.getPluginName(className + ".groovy"));
+        pluginInfo.setName(GrailsNameUtils.getPluginName(className + '.groovy'));
     }
 
     /**
@@ -121,53 +126,52 @@ class PluginAstReader {
      * @author Graeme Rocher
      * @since 1.3
      */
-    public class BasicGrailsPluginInfo implements GrailsPluginInfo {
+    @POJO
+    @CompileStatic
+    class BasicGrailsPluginInfo implements GrailsPluginInfo {
 
         private String name;
         private String version;
         private Map<String, Object> attributes = new ConcurrentHashMap<>();
 
-        public BasicGrailsPluginInfo() {
-        }
-
-        public String getName() {
+        String getName() {
             return name;
         }
 
-        public void setName(String name) {
+        void setName(String name) {
             this.name = name;
         }
 
-        public String getVersion() {
+        String getVersion() {
             return version;
         }
 
-        public void setVersion(String version) {
+        void setVersion(String version) {
             this.version = version;
         }
 
-        public void setProperty(String property, Object newValue) {
+        void setProperty(String property, Object newValue) {
             attributes.put(property, newValue);
         }
 
-        public Object getProperty(String property) {
+        Object getProperty(String property) {
             return attributes.get(property);
         }
 
-        public String getFullName() {
+        String getFullName() {
             return name + '-' + version;
         }
 
-        public Resource getDescriptor() {
+        Resource getDescriptor() {
             return null;
         }
 
-        public Resource getPluginDir() {
+        Resource getPluginDir() {
             return null;
         }
 
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        public Map getProperties() {
+        @SuppressWarnings(['unchecked', 'rawtypes'])
+        Map getProperties() {
             Map props = new HashMap();
             props.putAll(attributes);
             props.put(NAME, name);
@@ -176,4 +180,5 @@ class PluginAstReader {
         }
 
     }
+
 }

@@ -17,16 +17,16 @@
  *  under the License.
  */
 
-package org.grails.plugins;
+package org.grails.plugins
 
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Configuration
 
 @Configuration
 class ConfigBindingExampleConfiguration {
 
-    private final ConfigBindingExampleProperties configBindingExampleProperties;
+    private final ConfigBindingExampleProperties configBindingExampleProperties
 
     ConfigBindingExampleConfiguration(ConfigBindingExampleProperties configBindingExampleProperties) {
-        this.configBindingExampleProperties = configBindingExampleProperties;
+        this.configBindingExampleProperties = configBindingExampleProperties
     }
 }

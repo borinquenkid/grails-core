@@ -16,24 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package grails.plugins;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaClassRegistry;
-
+import groovy.transform.CompileStatic;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
@@ -57,14 +45,17 @@ import org.grails.spring.RuntimeSpringConfiguration;
  * @since 0.4
  * @see GrailsPluginManager
  */
-public class DefaultGrailsPluginManager extends AbstractGrailsPluginManager {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class DefaultGrailsPluginManager extends AbstractGrailsPluginManager {
 
-    protected static final Class<?>[] COMMON_CLASSES = {
-        Boolean.class, Byte.class, Character.class, Class.class, Double.class, Float.class,
-        Integer.class, Long.class, Number.class, Short.class, String.class, BigInteger.class,
-        BigDecimal.class, URL.class, URI.class
-    };
-    private static final Log LOG = LogFactory.getLog(DefaultGrailsPluginManager.class);
+    protected static final Class<?>[] COMMON_CLASSES = [
+        Boolean, Byte, Character, Class, Double, Float,
+        Integer, Long, Number, Short, String, BigInteger,
+        BigDecimal, URL, URI
+    ] as Class[];
+    private static final Log LOG = LogFactory.getLog(DefaultGrailsPluginManager);
 
     private ApplicationContext parentCtx;
 
@@ -101,14 +92,14 @@ public class DefaultGrailsPluginManager extends AbstractGrailsPluginManager {
     private static PluginDiscovery resolveAndResetDiscovery(GrailsApplication application) {
         ApplicationContext ctx = application.getMainContext();
         PluginDiscovery discovery = (PluginDiscovery) ctx.getBean(PluginDiscovery.BEAN_NAME);
-        LOG.warn("Using deprecated DefaultGrailsPluginManager constructor. " +
-                "Plugin discovery should be configured through the GrailsPluginDiscovery bean. " +
-                "Reinitializing plugin discovery.");
+        LOG.warn('Using deprecated DefaultGrailsPluginManager constructor. ' +
+                'Plugin discovery should be configured through the GrailsPluginDiscovery bean. ' +
+                'Reinitializing plugin discovery.');
         discovery.reset();
         return discovery;
     }
 
-    public GrailsPlugin[] getUserPlugins() {
+    GrailsPlugin[] getUserPlugins() {
         return pluginDiscovery.getDynamicPlugins().stream()
                 .map(PluginInfo::getName)
                 .map(plugins::get)
@@ -116,14 +107,14 @@ public class DefaultGrailsPluginManager extends AbstractGrailsPluginManager {
                 .toArray(GrailsPlugin[]::new);
     }
 
-    public void refreshPlugin(String name) {
+    void refreshPlugin(String name) {
         if (hasGrailsPlugin(name)) {
             getGrailsPlugin(name).refresh();
         }
     }
 
-    public Collection<GrailsPlugin> getPluginObservers(GrailsPlugin grailsPlugin) {
-        Objects.requireNonNull(grailsPlugin, "Argument [plugin] cannot be null");
+    Collection<GrailsPlugin> getPluginObservers(GrailsPlugin grailsPlugin) {
+        Objects.requireNonNull(grailsPlugin, 'Argument [plugin] cannot be null');
         PluginInfo pluginInfo = this.pluginDiscovery.findPlugin(grailsPlugin.getName());
         return pluginDiscovery.findPluginObservers(pluginInfo)
                 .stream()
@@ -133,8 +124,8 @@ public class DefaultGrailsPluginManager extends AbstractGrailsPluginManager {
                 .toList();
     }
 
-    @SuppressWarnings("rawtypes")
-    public void informObservers(String pluginName, Map event) {
+    @SuppressWarnings('rawtypes')
+    void informObservers(String pluginName, Map event) {
         GrailsPlugin plugin = getGrailsPlugin(pluginName);
         if (plugin == null) {
             return;
@@ -152,7 +143,7 @@ public class DefaultGrailsPluginManager extends AbstractGrailsPluginManager {
     /* (non-Javadoc)
      * @see grails.plugins.GrailsPluginManager#loadPlugins()
      */
-    public void loadPlugins() throws PluginException {
+    void loadPlugins() throws PluginException {
         if (initialised) {
             return;
         }
@@ -168,7 +159,7 @@ public class DefaultGrailsPluginManager extends AbstractGrailsPluginManager {
             }
 
             if (LOG.isDebugEnabled()) {
-                LOG.debug("Grails plug-in [" + plugin.getName() + "] with version [" + plugin.getVersion() + "] loaded successfully");
+                LOG.debug('Grails plug-in [' + plugin.getName() + '] with version [' + plugin.getVersion() + '] loaded successfully');
             }
 
             // plugin is always ApplicationContextAware
@@ -178,15 +169,15 @@ public class DefaultGrailsPluginManager extends AbstractGrailsPluginManager {
             }
             plugin.setManager(this);
             plugins.put(plugin.getName(), plugin);
-            loadedPlugins.add(plugin.getName() + " (" + plugin.getVersion() + ")");
+            loadedPlugins.add(plugin.getName() + ' (' + plugin.getVersion() + ')');
         });
 
         if (LOG.isInfoEnabled()) {
-            LOG.info("Loaded " + loadedPlugins.size() + " Grails plugins in load order: [" +
-                    String.join(", ", loadedPlugins) + "]");
+            LOG.info('Loaded ' + loadedPlugins.size() + ' Grails plugins in load order: [' +
+                    String.join(', ', loadedPlugins) + ']');
         }
 
-        initialised = true;
+        this.@initialised = true;
     }
 
     private GrailsPlugin createBinaryGrailsPlugin(Class<?> pluginClass, PluginDescriptor binaryDescriptor) {
@@ -198,18 +189,18 @@ public class DefaultGrailsPluginManager extends AbstractGrailsPluginManager {
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+    void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.@applicationContext = applicationContext;
         for (GrailsPlugin plugin : getOrderedPlugins()) {
             plugin.setApplicationContext(applicationContext);
         }
     }
 
-    public void setParentApplicationContext(ApplicationContext parent) {
+    void setParentApplicationContext(ApplicationContext parent) {
         parentCtx = parent;
     }
 
-    public void reloadPlugin(GrailsPlugin plugin) {
+    void reloadPlugin(GrailsPlugin plugin) {
         plugin.doArtefactConfiguration();
 
         RuntimeSpringConfiguration springConfig = new DefaultRuntimeSpringConfiguration(parentCtx);
@@ -222,7 +213,7 @@ public class DefaultGrailsPluginManager extends AbstractGrailsPluginManager {
     }
 
     @Override
-    public void doDynamicMethods() {
+    void doDynamicMethods() {
         checkInitialised();
         // remove common meta classes just to be sure
         MetaClassRegistry registry = GroovySystem.getMetaClassRegistry();
@@ -234,9 +225,10 @@ public class DefaultGrailsPluginManager extends AbstractGrailsPluginManager {
                 try {
                     plugin.doWithDynamicMethods(applicationContext);
                 } catch (Throwable t) {
-                    throw new GrailsConfigurationException("Error configuring dynamic methods for plugin " + plugin + ": " + t.getMessage(), t);
+                    throw new GrailsConfigurationException('Error configuring dynamic methods for plugin ' + plugin + ': ' + t.getMessage(), t);
                 }
             }
         }
     }
+
 }

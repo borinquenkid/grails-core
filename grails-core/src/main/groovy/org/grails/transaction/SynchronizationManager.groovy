@@ -17,21 +17,25 @@
  *  under the License.
  */
 
-package org.grails.transaction;
+package org.grails.transaction
+
+import groovy.transform.PackageScope
 
 /**
  * Strategy interface to allow providing a dedicated synchronization mechanism.
- * 
+ *
  * @author Michael Hunger
  * @author Oliver Gierke
  * @see SpringTransactionSynchronizationManager
  * @since 2.3.6
  */
+@PackageScope
 interface SynchronizationManager {
 
-    void initSynchronization();
+    void initSynchronization()
 
-    boolean isSynchronizationActive();
+    boolean isSynchronizationActive()
 
-    void clearSynchronization();
+    void clearSynchronization()
+
 }

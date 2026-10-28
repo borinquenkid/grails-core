@@ -16,11 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.artefact;
+package org.grails.core.artefact
 
-import grails.core.ArtefactHandlerAdapter;
-import grails.core.GrailsUrlMappingsClass;
-import org.grails.core.DefaultGrailsUrlMappingsClass;
+import groovy.transform.CompileStatic
+
+import grails.core.ArtefactHandlerAdapter
+import grails.core.GrailsUrlMappingsClass
+import org.grails.core.DefaultGrailsUrlMappingsClass
 
 /**
  * A handler for UrlMappings.
@@ -28,12 +30,14 @@ import org.grails.core.DefaultGrailsUrlMappingsClass;
  * @author Graeme Rocher
  * @since 0.5
  */
-public class UrlMappingsArtefactHandler extends ArtefactHandlerAdapter {
+@CompileStatic
+class UrlMappingsArtefactHandler extends ArtefactHandlerAdapter {
 
-    public static final String TYPE = "UrlMappings";
+    public static final String TYPE = 'UrlMappings'
 
-    public UrlMappingsArtefactHandler() {
-        super(TYPE, GrailsUrlMappingsClass.class, DefaultGrailsUrlMappingsClass.class,
-                DefaultGrailsUrlMappingsClass.URL_MAPPINGS);
+    UrlMappingsArtefactHandler() {
+        super(TYPE, GrailsUrlMappingsClass, DefaultGrailsUrlMappingsClass,
+                DefaultGrailsUrlMappingsClass.URL_MAPPINGS)
     }
+
 }

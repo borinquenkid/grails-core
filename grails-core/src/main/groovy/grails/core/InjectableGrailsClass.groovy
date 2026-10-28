@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.core;
+package grails.core
 
 /**
  * Represents a Grails class that is to be configured in Spring and as such is injectable.
@@ -25,26 +25,27 @@ package grails.core;
  * @author Graeme Rocher
  * @since 1.0
  */
-public interface InjectableGrailsClass extends GrailsClass {
+interface InjectableGrailsClass extends GrailsClass {
 
     /**
      * If autowiring by name is enabled.
      *
      * @return autowiring by name
      */
-    boolean byName();
+    boolean byName()
 
     /**
      * If autowiring by type is enabled.
      *
      * @return autowiring by type
      */
-    boolean byType();
+    boolean byType()
 
     /**
      * If class should be configured for dependency injection.
      *
      * @return available for dependency injection
      */
-    boolean getAvailable();
+    boolean getAvailable()
+
 }

@@ -16,26 +16,24 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core;
+package org.grails.core
 
-import java.util.Collections;
-import java.util.Map;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.POJO
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.util.ClassUtils
+import org.springframework.validation.Validator
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.util.ClassUtils;
-import org.springframework.validation.Validator;
-
-import grails.core.GrailsDomainClass;
-import grails.util.GrailsNameUtils;
-import grails.validation.Constrained;
-import org.grails.core.exceptions.GrailsConfigurationException;
-import org.grails.core.io.support.GrailsFactoriesLoader;
-import org.grails.datastore.mapping.keyvalue.mapping.config.KeyValueMappingContext;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.validation.discovery.ConstrainedDiscovery;
+import grails.core.GrailsDomainClass
+import grails.util.GrailsNameUtils
+import grails.validation.Constrained
+import org.grails.core.exceptions.GrailsConfigurationException
+import org.grails.core.io.support.GrailsFactoriesLoader
+import org.grails.datastore.mapping.keyvalue.mapping.config.KeyValueMappingContext
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.validation.discovery.ConstrainedDiscovery
 
 /**
  * Default implementation of the {@link GrailsDomainClass} interface
@@ -43,20 +41,22 @@ import org.grails.validation.discovery.ConstrainedDiscovery;
  * @author Graeme Rocher
  * @since 0.1
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings('rawtypes')
 @Deprecated
-public class DefaultGrailsDomainClass extends AbstractGrailsClass implements GrailsDomainClass {
+@CompileStatic
+@POJO
+class DefaultGrailsDomainClass extends AbstractGrailsClass implements GrailsDomainClass {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultGrailsDomainClass.class);
+    private static final Logger log = LoggerFactory.getLogger(DefaultGrailsDomainClass)
 
-    private PersistentEntity persistentEntity;
-    private MappingContext mappingContext;
-    private Map<String, Constrained> constrainedProperties;
-    private Boolean autowire = null;
+    private PersistentEntity persistentEntity
+    private MappingContext mappingContext
+    private Map<String, Constrained> constrainedProperties
+    private Boolean autowire = null
 
-    public DefaultGrailsDomainClass(Class<?> clazz, MappingContext mappingContext) {
-        this(clazz);
-        this.mappingContext = mappingContext;
+    DefaultGrailsDomainClass(Class<?> clazz, MappingContext mappingContext) {
+        this(clazz)
+        this.mappingContext = mappingContext
     }
 
     /**
@@ -64,27 +64,27 @@ public class DefaultGrailsDomainClass extends AbstractGrailsClass implements Gra
      *
      * @param clazz
      */
-    public DefaultGrailsDomainClass(Class<?> clazz) {
-        super(clazz, "");
+    DefaultGrailsDomainClass(Class<?> clazz) {
+        super(clazz, '')
     }
 
     private void verifyContextIsInitialized() {
         if (mappingContext == null) {
-            throw new GrailsConfigurationException("That API cannot be accessed before the spring context is initialized");
+            throw new GrailsConfigurationException('That API cannot be accessed before the spring context is initialized')
         } else {
             if (log.isWarnEnabled()) {
-                log.warn("The GrailsDomainClass API should no longer be used to retrieve data about domain classes. Use the mapping context API instead");
+                log.warn('The GrailsDomainClass API should no longer be used to retrieve data about domain classes. Use the mapping context API instead')
             }
             if (persistentEntity == null) {
-                persistentEntity = mappingContext.getPersistentEntity(this.getFullName());
+                persistentEntity = mappingContext.getPersistentEntity(this.getFullName())
                 if (persistentEntity == null) {
-                    MappingContext concreteMappingContext = getApplication().getMappingContext();
-                    if (concreteMappingContext.getClass() == KeyValueMappingContext.class) {
+                    MappingContext concreteMappingContext = getApplication().getMappingContext()
+                    if (concreteMappingContext.getClass() == KeyValueMappingContext) {
                         // In a unit testing context, allow
-                        persistentEntity = concreteMappingContext.addPersistentEntity(getClazz());
+                        persistentEntity = concreteMappingContext.addPersistentEntity(getClazz())
                     }
                     else {
-                        throw new GrailsConfigurationException("Could not retrieve the respective entity for domain " + this.getName() + " in the mapping context API");
+                        throw new GrailsConfigurationException('Could not retrieve the respective entity for domain ' + this.getName() + ' in the mapping context API')
                     }
                 }
             }
@@ -92,69 +92,69 @@ public class DefaultGrailsDomainClass extends AbstractGrailsClass implements Gra
     }
 
     @Override
-    public boolean isAutowire() {
+    boolean isAutowire() {
         if (autowire == null) {
-            verifyContextIsInitialized();
-            autowire = persistentEntity.getMapping().getMappedForm().isAutowire();
+            verifyContextIsInitialized()
+            autowire = persistentEntity.getMapping().getMappedForm().isAutowire()
         }
-        return autowire;
+        return autowire
     }
 
     @Override
-    public boolean isOwningClass(Class domainClass) {
-        verifyContextIsInitialized();
-        return persistentEntity.isOwningEntity(mappingContext.getPersistentEntity(domainClass.getName()));
+    boolean isOwningClass(Class domainClass) {
+        verifyContextIsInitialized()
+        return persistentEntity.isOwningEntity(mappingContext.getPersistentEntity(domainClass.getName()))
     }
 
     /* (non-Javadoc)
      * @see org.grails.core.AbstractGrailsClass#getName()
      */
     @Override
-    public String getName() {
-        return ClassUtils.getShortName(super.getName());
+    String getName() {
+        return ClassUtils.getShortName(super.getName())
     }
 
     /* (non-Javadoc)
      * @see grails.core.GrailsDomainClass#getPropertyName()
      */
     @Override
-    public String getPropertyName() {
-        return GrailsNameUtils.getPropertyNameRepresentation(getClazz());
+    String getPropertyName() {
+        return GrailsNameUtils.getPropertyNameRepresentation(getClazz())
     }
 
     /* (non-Javadoc)
      * @see grails.core.GrailsDomainClass#getConstraints()
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     @Override
-    public Map getConstrainedProperties() {
-        verifyContextIsInitialized();
+    Map getConstrainedProperties() {
+        verifyContextIsInitialized()
         if (constrainedProperties == null) {
-            ConstrainedDiscovery constrainedDiscovery = GrailsFactoriesLoader.loadFactory(ConstrainedDiscovery.class);
+            ConstrainedDiscovery constrainedDiscovery = GrailsFactoriesLoader.loadFactory(ConstrainedDiscovery)
             if (constrainedDiscovery == null) {
-                constrainedProperties = Collections.emptyMap();
+                constrainedProperties = Collections.emptyMap()
             }
             else {
-                constrainedProperties = constrainedDiscovery.findConstrainedProperties(persistentEntity);
+                constrainedProperties = constrainedDiscovery.findConstrainedProperties(persistentEntity)
             }
         }
-        return constrainedProperties;
+        return constrainedProperties
     }
 
     /* (non-Javadoc)
      * @see grails.core.GrailsDomainClass#getValidator()
      */
-    public Validator getValidator() {
-        verifyContextIsInitialized();
-        return mappingContext.getEntityValidator(persistentEntity);
+    Validator getValidator() {
+        verifyContextIsInitialized()
+        return mappingContext.getEntityValidator(persistentEntity)
     }
 
     /* (non-Javadoc)
      * @see grails.core.GrailsDomainClass#setValidator(Validator validator)
      */
-    public void setValidator(Validator validator) {
-        verifyContextIsInitialized();
-        mappingContext.addEntityValidator(persistentEntity, validator);
+    void setValidator(Validator validator) {
+        verifyContextIsInitialized()
+        mappingContext.addEntityValidator(persistentEntity, validator)
     }
 
 }

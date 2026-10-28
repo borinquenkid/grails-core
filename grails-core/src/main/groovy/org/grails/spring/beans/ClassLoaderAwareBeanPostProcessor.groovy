@@ -16,25 +16,29 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.spring.beans;
+package org.grails.spring.beans
 
-import org.springframework.beans.BeansException;
+import groovy.transform.CompileStatic
 
-import grails.core.support.ClassLoaderAware;
+import org.springframework.beans.BeansException
 
-public class ClassLoaderAwareBeanPostProcessor extends BeanPostProcessorAdapter {
+import grails.core.support.ClassLoaderAware
 
-    private ClassLoader classLoader;
+@CompileStatic
+class ClassLoaderAwareBeanPostProcessor extends BeanPostProcessorAdapter {
 
-    public ClassLoaderAwareBeanPostProcessor(ClassLoader classLoader) {
-        this.classLoader = classLoader;
+    private ClassLoader classLoader
+
+    ClassLoaderAwareBeanPostProcessor(ClassLoader classLoader) {
+        this.classLoader = classLoader
     }
 
     @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+    Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         if (bean instanceof ClassLoaderAware) {
-            ((ClassLoaderAware) bean).setClassLoader(classLoader);
+            ((ClassLoaderAware) bean).setClassLoader(classLoader)
         }
-        return bean;
+        bean
     }
+
 }

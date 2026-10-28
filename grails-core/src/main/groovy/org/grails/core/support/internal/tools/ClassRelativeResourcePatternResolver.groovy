@@ -17,12 +17,11 @@
  *  under the License.
  */
 
-package org.grails.core.support.internal.tools;
+package org.grails.core.support.internal.tools
 
-import java.util.Set;
-
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import groovy.transform.CompileStatic
+import org.springframework.core.io.Resource
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 
 /**
  * Attempts to limit classpath searching to only locations relative to the given class
@@ -30,14 +29,16 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
  * @author Graeme Rocher
  * @since 3.1.13
  */
-public class ClassRelativeResourcePatternResolver extends PathMatchingResourcePatternResolver {
+@CompileStatic
+class ClassRelativeResourcePatternResolver extends PathMatchingResourcePatternResolver {
 
-    public ClassRelativeResourcePatternResolver(Class clazz) {
-        super(new ClassRelativeClassLoader(clazz));
+    ClassRelativeResourcePatternResolver(Class clazz) {
+        super(new ClassRelativeClassLoader(clazz))
     }
 
     @Override
     protected void addAllClassLoaderJarRoots(ClassLoader classLoader, Set<Resource> result) {
         // no-op - don't search jar roots
     }
+
 }

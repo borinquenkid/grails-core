@@ -16,11 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.compiler.ast;
+package grails.compiler.ast
 
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.classgen.GeneratorContext;
-import org.codehaus.groovy.control.SourceUnit;
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.classgen.GeneratorContext
+import org.codehaus.groovy.control.SourceUnit
 
 /**
  * Injector applied to annotated (local transform) entities
@@ -28,13 +28,13 @@ import org.codehaus.groovy.control.SourceUnit;
  * @author Graeme Rocher
  * @since 2.2.3
  */
-public interface AnnotatedClassInjector {
+interface AnnotatedClassInjector {
 
     /**
      * Performs injection on an annotated entity
      * @param source The source unit
      * @param classNode The class node
      */
-    void performInjectionOnAnnotatedClass(SourceUnit source, GeneratorContext context, ClassNode classNode);
+    void performInjectionOnAnnotatedClass(SourceUnit source, GeneratorContext context, ClassNode classNode)
 
 }
