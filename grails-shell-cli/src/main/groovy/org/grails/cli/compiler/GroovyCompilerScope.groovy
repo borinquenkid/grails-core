@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
+
+import groovy.transform.CompileStatic
 
 /**
  * The scope in which a groovy compiler operates.
@@ -24,7 +26,8 @@ package org.grails.cli.compiler;
  * @author Phillip Webb
  * @since 1.0.0
  */
-public enum GroovyCompilerScope {
+@CompileStatic
+enum GroovyCompilerScope {
 
     /**
      * Default scope, exposes groovy.jar (loaded from the parent) and the shared cli

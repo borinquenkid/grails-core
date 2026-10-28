@@ -18,13 +18,7 @@
  */
 package org.grails.cli.interactive.completers;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
+import groovy.transform.CompileStatic;
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
 import org.jline.reader.LineReader;
@@ -36,37 +30,40 @@ import org.jline.reader.ParsedLine;
  * @author Graeme Rocher
  * @since 3.0
  */
-public class StringsCompleter implements Completer {
-    
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class StringsCompleter implements Completer {
+
     private SortedSet<String> strings = new TreeSet<>();
 
-    public StringsCompleter() {
+    StringsCompleter() {
         // empty
     }
 
-    public StringsCompleter(final Collection<String> strings) {
+    StringsCompleter(final Collection<String> strings) {
         Objects.requireNonNull(strings);
         getStrings().addAll(strings);
     }
 
-    public StringsCompleter(final String... strings) {
+    StringsCompleter(final String... strings) {
         this(Arrays.asList(strings));
     }
 
-    public SortedSet<String> getStrings() {
+    SortedSet<String> getStrings() {
         return strings;
     }
 
-    public void setStrings(SortedSet<String> strings) {
+    void setStrings(SortedSet<String> strings) {
         this.strings = strings;
     }
 
     @Override
-    public void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
+    void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
         Objects.requireNonNull(candidates);
 
         String buffer = line.word();
-        
+
         if (buffer == null || buffer.isEmpty()) {
             for (String string : getStrings()) {
                 candidates.add(new Candidate(string));

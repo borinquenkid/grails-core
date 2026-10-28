@@ -18,17 +18,8 @@
  */
 package org.grails.cli.compiler.grape;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import groovy.grape.GrapeEngine;
-import groovy.lang.GroovyClassLoader;
+import groovy.transform.CompileStatic;
 
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -53,14 +44,16 @@ import org.eclipse.aether.util.filter.DependencyFilterUtils;
  * @author Phillip Webb
  * @since 2.5.9
  */
-@SuppressWarnings("rawtypes")
-public class MavenResolverGrapeEngine implements GrapeEngine {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'UnnecessarySemicolon'])
+@CompileStatic
+class MavenResolverGrapeEngine implements GrapeEngine {
 
     private static final Collection<Exclusion> WILDCARD_EXCLUSION;
 
     static {
         List<Exclusion> exclusions = new ArrayList<>();
-        exclusions.add(new Exclusion("*", "*", "*", "*"));
+        exclusions.add(new Exclusion('*', '*', '*', '*'));
         WILDCARD_EXCLUSION = Collections.unmodifiableList(exclusions);
     }
 
@@ -76,7 +69,7 @@ public class MavenResolverGrapeEngine implements GrapeEngine {
 
     private final List<RemoteRepository> repositories;
 
-    public MavenResolverGrapeEngine(GroovyClassLoader classLoader, RepositorySystem repositorySystem,
+    MavenResolverGrapeEngine(GroovyClassLoader classLoader, RepositorySystem repositorySystem,
             DefaultRepositorySystemSession repositorySystemSession, List<RemoteRepository> remoteRepositories,
             DependencyResolutionContext resolutionContext, boolean quiet) {
         this.classLoader = classLoader;
@@ -93,25 +86,24 @@ public class MavenResolverGrapeEngine implements GrapeEngine {
     }
 
     private ProgressReporter getProgressReporter(DefaultRepositorySystemSession session, boolean quiet) {
-        String progressReporter = (quiet ? "none" :
-                System.getProperty("org.springframework.boot.cli.compiler.grape.ProgressReporter"));
-        if ("detail".equals(progressReporter) || Boolean.getBoolean("groovy.grape.report.downloads")) {
+        String progressReporter = (quiet ? 'none' :
+                System.getProperty('org.springframework.boot.cli.compiler.grape.ProgressReporter'));
+        if ('detail'.equals(progressReporter) || Boolean.getBoolean('groovy.grape.report.downloads')) {
             return new DetailedProgressReporter(session, System.out);
         }
-        if ("none".equals(progressReporter)) {
-            return () -> {
-            };
+        if ('none'.equals(progressReporter)) {
+            return { -> } as ProgressReporter;
         }
         return new SummaryProgressReporter(session, System.out);
     }
 
     @Override
-    public Object grab(Map args) {
+    Object grab(Map args) {
         return grab(args, args);
     }
 
     @Override
-    public Object grab(Map args, Map... dependencyMaps) {
+    Object grab(Map args, Map... dependencyMaps) {
         List<Exclusion> exclusions = createExclusions(args);
         List<Dependency> dependencies = createDependencies(dependencyMaps, exclusions);
         try {
@@ -127,11 +119,11 @@ public class MavenResolverGrapeEngine implements GrapeEngine {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     private List<Exclusion> createExclusions(Map<?, ?> args) {
         List<Exclusion> exclusions = new ArrayList<>();
         if (args != null) {
-            List<Map<String, Object>> exclusionMaps = (List<Map<String, Object>>) args.get("excludes");
+            List<Map<String, Object>> exclusionMaps = (List<Map<String, Object>>) args.get('excludes');
             if (exclusionMaps != null) {
                 for (Map<String, Object> exclusionMap : exclusionMaps) {
                     exclusions.add(createExclusion(exclusionMap));
@@ -142,9 +134,9 @@ public class MavenResolverGrapeEngine implements GrapeEngine {
     }
 
     private Exclusion createExclusion(Map<String, Object> exclusionMap) {
-        String group = (String) exclusionMap.get("group");
-        String module = (String) exclusionMap.get("module");
-        return new Exclusion(group, module, "*", "*");
+        String group = (String) exclusionMap.get('group');
+        String module = (String) exclusionMap.get('module');
+        return new Exclusion(group, module, '*', '*');
     }
 
     private List<Dependency> createDependencies(Map<?, ?>[] dependencyMaps, List<Exclusion> exclusions) {
@@ -164,34 +156,34 @@ public class MavenResolverGrapeEngine implements GrapeEngine {
     }
 
     private Artifact createArtifact(Map<?, ?> dependencyMap) {
-        String group = (String) dependencyMap.get("group");
-        String module = (String) dependencyMap.get("module");
-        String version = (String) dependencyMap.get("version");
+        String group = (String) dependencyMap.get('group');
+        String module = (String) dependencyMap.get('module');
+        String version = (String) dependencyMap.get('version');
         if (version == null) {
             version = this.resolutionContext.getManagedVersion(group, module);
         }
-        String classifier = (String) dependencyMap.get("classifier");
+        String classifier = (String) dependencyMap.get('classifier');
         String type = determineType(dependencyMap);
         return new DefaultArtifact(group, module, classifier, type, version);
     }
 
     private String determineType(Map<?, ?> dependencyMap) {
-        String type = (String) dependencyMap.get("type");
-        String ext = (String) dependencyMap.get("ext");
+        String type = (String) dependencyMap.get('type');
+        String ext = (String) dependencyMap.get('ext');
         if (type == null) {
             type = ext;
             if (type == null) {
-                type = "jar";
+                type = 'jar';
             }
         }
         else if (ext != null && !type.equals(ext)) {
-            throw new IllegalArgumentException("If both type and ext are specified they must have the same value");
+            throw new IllegalArgumentException('If both type and ext are specified they must have the same value');
         }
         return type;
     }
 
     private boolean isTransitive(Map<?, ?> dependencyMap) {
-        Boolean transitive = (Boolean) dependencyMap.get("transitive");
+        Boolean transitive = (Boolean) dependencyMap.get('transitive');
         return (transitive != null) ? transitive : true;
     }
 
@@ -212,15 +204,15 @@ public class MavenResolverGrapeEngine implements GrapeEngine {
     }
 
     private GroovyClassLoader getClassLoader(Map args) {
-        GroovyClassLoader classLoader = (GroovyClassLoader) args.get("classLoader");
+        GroovyClassLoader classLoader = (GroovyClassLoader) args.get('classLoader');
         return (classLoader != null) ? classLoader : this.classLoader;
     }
 
     @Override
-    public void addResolver(Map<String, Object> args) {
-        String name = (String) args.get("name");
-        String root = (String) args.get("root");
-        RemoteRepository.Builder builder = new RemoteRepository.Builder(name, "default", root);
+    void addResolver(Map<String, Object> args) {
+        String name = (String) args.get('name');
+        String root = (String) args.get('root');
+        RemoteRepository.Builder builder = new RemoteRepository.Builder(name, 'default', root);
         RemoteRepository repository = builder.build();
         addRepository(repository);
     }
@@ -262,17 +254,17 @@ public class MavenResolverGrapeEngine implements GrapeEngine {
     }
 
     @Override
-    public Map<String, Map<String, List<String>>> enumerateGrapes() {
-        throw new UnsupportedOperationException("Grape enumeration is not supported");
+    Map<String, Map<String, List<String>>> enumerateGrapes() {
+        throw new UnsupportedOperationException('Grape enumeration is not supported');
     }
 
     @Override
-    public URI[] resolve(Map args, Map... dependencyMaps) {
+    URI[] resolve(Map args, Map... dependencyMaps) {
         return resolve(args, null, dependencyMaps);
     }
 
     @Override
-    public URI[] resolve(Map args, List depsInfo, Map... dependencyMaps) {
+    URI[] resolve(Map args, List depsInfo, Map... dependencyMaps) {
         List<Exclusion> exclusions = createExclusions(args);
         List<Dependency> dependencies = createDependencies(dependencyMaps, exclusions);
         try {
@@ -321,13 +313,13 @@ public class MavenResolverGrapeEngine implements GrapeEngine {
     }
 
     @Override
-    public Map[] listDependencies(ClassLoader classLoader) {
-        throw new UnsupportedOperationException("Listing dependencies is not supported");
+    Map[] listDependencies(ClassLoader classLoader) {
+        throw new UnsupportedOperationException('Listing dependencies is not supported');
     }
 
     @Override
-    public Object grab(String endorsedModule) {
-        throw new UnsupportedOperationException("Grabbing an endorsed module is not supported");
+    Object grab(String endorsedModule) {
+        throw new UnsupportedOperationException('Grabbing an endorsed module is not supported');
     }
 
 }

@@ -16,9 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import org.codehaus.groovy.transform.ASTTransformation;
+import org.codehaus.groovy.transform.ASTTransformation
 
 /**
  * Marker interface for AST transformations that should be installed automatically from
@@ -28,6 +28,6 @@ import org.codehaus.groovy.transform.ASTTransformation;
  * @since 1.0.0
  */
 @FunctionalInterface
-public interface SpringBootAstTransformation extends ASTTransformation {
+interface SpringBootAstTransformation extends ASTTransformation {
 
 }

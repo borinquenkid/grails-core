@@ -16,30 +16,25 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.AnnotatedNode
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.ClassHelper
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.ModuleNode
+import org.codehaus.groovy.ast.PackageNode
+import org.codehaus.groovy.ast.expr.ConstantExpression
+import org.codehaus.groovy.ast.expr.Expression
+import org.codehaus.groovy.ast.expr.ListExpression
+import org.codehaus.groovy.control.CompilePhase
+import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.transform.GroovyASTTransformation
+import org.springframework.core.Ordered
 
-import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.AnnotatedNode;
-import org.codehaus.groovy.ast.AnnotationNode;
-import org.codehaus.groovy.ast.ClassHelper;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.ModuleNode;
-import org.codehaus.groovy.ast.PackageNode;
-import org.codehaus.groovy.ast.expr.ConstantExpression;
-import org.codehaus.groovy.ast.expr.Expression;
-import org.codehaus.groovy.ast.expr.ListExpression;
-import org.codehaus.groovy.control.CompilePhase;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.transform.GroovyASTTransformation;
-
-import org.springframework.core.Ordered;
-
-import org.grails.cli.groovy.DependencyManagementBom;
+import org.grails.cli.groovy.DependencyManagementBom
 
 /**
  * A base class that lets plugin authors easily add additional BOMs to all apps. All the
@@ -54,15 +49,16 @@ import org.grails.cli.groovy.DependencyManagementBom;
  * @since 1.3.0
  */
 @GroovyASTTransformation(phase = CompilePhase.CONVERSION)
-public abstract class GenericBomAstTransformation implements SpringBootAstTransformation, Ordered {
+@CompileStatic
+abstract class GenericBomAstTransformation implements SpringBootAstTransformation, Ordered {
 
-    private static final ClassNode BOM = ClassHelper.make(DependencyManagementBom.class);
+    private static final ClassNode BOM = ClassHelper.make(DependencyManagementBom)
 
     @Override
-    public void visit(ASTNode[] nodes, SourceUnit source) {
-        for (ASTNode astNode : nodes) {
+    void visit(ASTNode[] nodes, SourceUnit source) {
+        for (ASTNode astNode in nodes) {
             if (astNode instanceof ModuleNode) {
-                visitModule((ModuleNode) astNode, getBomModule());
+                visitModule((ModuleNode) astNode, getBomModule())
             }
         }
     }
@@ -72,63 +68,63 @@ public abstract class GenericBomAstTransformation implements SpringBootAstTransf
      * {@code "<groupId>:<artifactId>:<version>"} (like in a {@code @Grab}).
      * @return the maven co-ordinates of the BOM to add
      */
-    protected abstract String getBomModule();
+    protected abstract String getBomModule()
 
     private void visitModule(ModuleNode node, String module) {
-        addDependencyManagementBom(node, module);
+        addDependencyManagementBom(node, module)
     }
 
     private void addDependencyManagementBom(ModuleNode node, String module) {
-        AnnotatedNode annotated = getAnnotatedNode(node);
+        AnnotatedNode annotated = getAnnotatedNode(node)
         if (annotated != null) {
-            AnnotationNode bom = getAnnotation(annotated);
-            List<Expression> expressions = new ArrayList<>(getConstantExpressions(bom.getMember("value")));
-            expressions.add(new ConstantExpression(module));
-            bom.setMember("value", new ListExpression(expressions));
+            AnnotationNode bom = getAnnotation(annotated)
+            List<Expression> expressions = new ArrayList<>(getConstantExpressions(bom.getMember('value')))
+            expressions.add(new ConstantExpression(module))
+            bom.setMember('value', new ListExpression(expressions))
         }
     }
 
     private AnnotationNode getAnnotation(AnnotatedNode annotated) {
-        List<AnnotationNode> annotations = annotated.getAnnotations(BOM);
+        List<AnnotationNode> annotations = annotated.getAnnotations(BOM)
         if (!annotations.isEmpty()) {
-            return annotations.get(0);
+            return annotations.get(0)
         }
-        AnnotationNode annotation = new AnnotationNode(BOM);
-        annotated.addAnnotation(annotation);
-        return annotation;
+        AnnotationNode annotation = new AnnotationNode(BOM)
+        annotated.addAnnotation(annotation)
+        return annotation
     }
 
     private AnnotatedNode getAnnotatedNode(ModuleNode node) {
-        PackageNode packageNode = node.getPackage();
+        PackageNode packageNode = node.getPackage()
         if (packageNode != null && !packageNode.getAnnotations(BOM).isEmpty()) {
-            return packageNode;
+            return packageNode
         }
         if (!node.getClasses().isEmpty()) {
-            return node.getClasses().get(0);
+            return node.getClasses().get(0)
         }
-        return packageNode;
+        return packageNode
     }
 
     private List<ConstantExpression> getConstantExpressions(Expression valueExpression) {
         if (valueExpression instanceof ListExpression) {
-            return getConstantExpressions((ListExpression) valueExpression);
+            return getConstantExpressions((ListExpression) valueExpression)
         }
         if (valueExpression instanceof ConstantExpression &&
                 ((ConstantExpression) valueExpression).getValue() instanceof String) {
-            return Arrays.asList((ConstantExpression) valueExpression);
+            return Arrays.asList((ConstantExpression) valueExpression)
         }
-        return Collections.emptyList();
+        return Collections.emptyList()
     }
 
     private List<ConstantExpression> getConstantExpressions(ListExpression valueExpression) {
-        List<ConstantExpression> expressions = new ArrayList<>();
-        for (Expression expression : valueExpression.getExpressions()) {
+        List<ConstantExpression> expressions = new ArrayList<>()
+        for (Expression expression in valueExpression.getExpressions()) {
             if (expression instanceof ConstantExpression &&
                     ((ConstantExpression) expression).getValue() instanceof String) {
-                expressions.add((ConstantExpression) expression);
+                expressions.add((ConstantExpression) expression)
             }
         }
-        return expressions;
+        return expressions
     }
 
 }

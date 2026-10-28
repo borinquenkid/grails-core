@@ -18,7 +18,7 @@
  */
 package org.grails.cli.compiler.autoconfigure;
 
-import groovy.lang.GroovyClassLoader;
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
@@ -39,38 +39,41 @@ import org.grails.cli.compiler.GroovyCompilerConfiguration;
  * @author Dave Syer
  * @since 1.1.0
  */
-public class SpringTestCompilerAutoConfiguration extends CompilerAutoConfiguration {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class SpringTestCompilerAutoConfiguration extends CompilerAutoConfiguration {
 
     @Override
-    public boolean matches(ClassNode classNode) {
-        return AstUtils.hasAtLeastOneAnnotation(classNode, "SpringBootTest");
+    boolean matches(ClassNode classNode) {
+        return AstUtils.hasAtLeastOneAnnotation(classNode, 'SpringBootTest');
     }
 
     @Override
-    public void applyDependencies(DependencyCustomizer dependencies) {
-        dependencies.ifAnyMissingClasses("org.springframework.http.HttpHeaders").add("spring-boot-starter-webmvc");
+    void applyDependencies(DependencyCustomizer dependencies) {
+        dependencies.ifAnyMissingClasses('org.springframework.http.HttpHeaders').add('spring-boot-starter-webmvc');
     }
 
     @Override
-    public void apply(GroovyClassLoader loader, GroovyCompilerConfiguration configuration,
+    void apply(GroovyClassLoader loader, GroovyCompilerConfiguration configuration,
             GeneratorContext generatorContext, SourceUnit source, ClassNode classNode)
             throws CompilationFailedException {
-        if (!AstUtils.hasAtLeastOneAnnotation(classNode, "RunWith")) {
-            AnnotationNode runWith = new AnnotationNode(ClassHelper.make("RunWith"));
-            runWith.addMember("value", new ClassExpression(ClassHelper.make("SpringRunner")));
+        if (!AstUtils.hasAtLeastOneAnnotation(classNode, 'RunWith')) {
+            AnnotationNode runWith = new AnnotationNode(ClassHelper.make('RunWith'));
+            runWith.addMember('value', new ClassExpression(ClassHelper.make('SpringRunner')));
             classNode.addAnnotation(runWith);
         }
     }
 
     @Override
-    public void applyImports(ImportCustomizer imports) throws CompilationFailedException {
+    void applyImports(ImportCustomizer imports) throws CompilationFailedException {
         imports
-            .addStarImports("org.junit.runner", "org.springframework.boot.test",
-                    "org.springframework.boot.test.context", "org.springframework.boot.test.web.client",
-                    "org.springframework.http", "org.springframework.test.context.junit4",
-                    "org.springframework.test.annotation")
-            .addImports("org.springframework.boot.test.context.SpringBootTest.WebEnvironment",
-                    "org.springframework.boot.test.web.client.TestRestTemplate");
+            .addStarImports('org.junit.runner', 'org.springframework.boot.test',
+                    'org.springframework.boot.test.context', 'org.springframework.boot.test.web.client',
+                    'org.springframework.http', 'org.springframework.test.context.junit4',
+                    'org.springframework.test.annotation')
+            .addImports('org.springframework.boot.test.context.SpringBootTest.WebEnvironment',
+                    'org.springframework.boot.test.web.client.TestRestTemplate');
     }
 
 }

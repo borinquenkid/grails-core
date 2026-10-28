@@ -16,19 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.cli.command.archive;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
+import groovy.transform.CompileStatic;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -41,24 +32,27 @@ import org.springframework.util.StringUtils;
  *
  * @author Andy Wilkinson
  */
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
 class ResourceMatcher {
 
-    private static final String[] DEFAULT_INCLUDES = {
-        "public/**",
-        "resources/**",
-        "static/**",
-        "templates/**",
-        "META-INF/**",
-        "*"
+    private static final String[] DEFAULT_INCLUDES = new String[] {
+        'public/**',
+        'resources/**',
+        'static/**',
+        'templates/**',
+        'META-INF/**',
+        '*'
     };
 
-    private static final String[] DEFAULT_EXCLUDES = {
-        ".*",
-        "repository/**",
-        "build/**",
-        "target/**",
-        "**/*.jar",
-        "**/*.groovy"
+    private static final String[] DEFAULT_EXCLUDES = new String[] {
+        '.*',
+        'repository/**',
+        'build/**',
+        'target/**',
+        '**/*.jar',
+        '**/*.groovy'
     };
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
@@ -120,12 +114,12 @@ class ResourceMatcher {
         Set<String> minus = new LinkedHashSet<>();
         boolean deltasFound = false;
         for (String value : values) {
-            if (value.startsWith("+")) {
+            if (value.startsWith('+')) {
                 deltasFound = true;
                 value = value.substring(1);
                 result.add(value);
             }
-            else if (value.startsWith("-")) {
+            else if (value.startsWith('-')) {
                 deltasFound = true;
                 value = value.substring(1);
                 minus.add(value);
@@ -145,6 +139,7 @@ class ResourceMatcher {
     /**
      * {@link org.springframework.core.io.ResourceLoader} to get load resource from a directory.
      */
+    @SuppressWarnings('UnnecessarySemicolon')
     private static class DirectoryResourceLoader extends DefaultResourceLoader {
 
         private final File rootDirectory;
@@ -164,6 +159,7 @@ class ResourceMatcher {
     /**
      * {@link ClassLoader} backed by a directory.
      */
+    @SuppressWarnings('UnnecessarySemicolon')
     private static class DirectoryClassLoader extends URLClassLoader {
 
         DirectoryClassLoader(File rootDirectory) throws MalformedURLException {
@@ -171,12 +167,12 @@ class ResourceMatcher {
         }
 
         @Override
-        public Enumeration<URL> getResources(String name) throws IOException {
+        Enumeration<URL> getResources(String name) throws IOException {
             return findResources(name);
         }
 
         @Override
-        public URL getResource(String name) {
+        URL getResource(String name) {
             return findResource(name);
         }
 
@@ -185,7 +181,8 @@ class ResourceMatcher {
     /**
      * A single matched resource.
      */
-    public static final class MatchedResource {
+    @SuppressWarnings('UnnecessarySemicolon')
+    static final class MatchedResource {
 
         private final File file;
 
@@ -196,7 +193,7 @@ class ResourceMatcher {
         private MatchedResource(File file) {
             this.name = file.getName();
             this.file = file;
-            this.root = this.name.endsWith(".jar");
+            this.root = this.name.endsWith('.jar');
         }
 
         private MatchedResource(File rootDirectory, File file) {
@@ -213,20 +210,20 @@ class ResourceMatcher {
             this.root = root;
         }
 
-        public String getName() {
+        String getName() {
             return this.name;
         }
 
-        public File getFile() {
+        File getFile() {
             return this.file;
         }
 
-        public boolean isRoot() {
+        boolean isRoot() {
             return this.root;
         }
 
         @Override
-        public String toString() {
+        String toString() {
             return this.file.getAbsolutePath();
         }
 

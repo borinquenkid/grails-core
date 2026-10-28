@@ -16,15 +16,16 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler.autoconfigure;
+package org.grails.cli.compiler.autoconfigure
 
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.customizers.ImportCustomizer;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.control.CompilationFailedException
+import org.codehaus.groovy.control.customizers.ImportCustomizer
 
-import org.grails.cli.compiler.AstUtils;
-import org.grails.cli.compiler.CompilerAutoConfiguration;
-import org.grails.cli.compiler.DependencyCustomizer;
+import org.grails.cli.compiler.AstUtils
+import org.grails.cli.compiler.CompilerAutoConfiguration
+import org.grails.cli.compiler.DependencyCustomizer
 
 /**
  * {@link CompilerAutoConfiguration} for the caching infrastructure.
@@ -32,22 +33,23 @@ import org.grails.cli.compiler.DependencyCustomizer;
  * @author Stephane Nicoll
  * @since 1.2.0
  */
-public class CachingCompilerAutoConfiguration extends CompilerAutoConfiguration {
+@CompileStatic
+class CachingCompilerAutoConfiguration extends CompilerAutoConfiguration {
 
     @Override
-    public boolean matches(ClassNode classNode) {
-        return AstUtils.hasAtLeastOneAnnotation(classNode, "EnableCaching");
+    boolean matches(ClassNode classNode) {
+        return AstUtils.hasAtLeastOneAnnotation(classNode, 'EnableCaching')
     }
 
     @Override
-    public void applyDependencies(DependencyCustomizer dependencies) throws CompilationFailedException {
-        dependencies.add("spring-context-support");
+    void applyDependencies(DependencyCustomizer dependencies) throws CompilationFailedException {
+        dependencies.add('spring-context-support')
     }
 
     @Override
-    public void applyImports(ImportCustomizer imports) throws CompilationFailedException {
-        imports.addStarImports("org.springframework.cache", "org.springframework.cache.annotation",
-                "org.springframework.cache.concurrent");
+    void applyImports(ImportCustomizer imports) throws CompilationFailedException {
+        imports.addStarImports('org.springframework.cache', 'org.springframework.cache.annotation',
+                'org.springframework.cache.concurrent')
     }
 
 }

@@ -16,23 +16,22 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
+import java.lang.reflect.Modifier
 
-import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.ClassCodeVisitorSupport;
-import org.codehaus.groovy.ast.ClassHelper;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.ModuleNode;
-import org.codehaus.groovy.ast.PropertyNode;
-import org.codehaus.groovy.ast.expr.ClosureExpression;
-import org.codehaus.groovy.ast.stmt.BlockStatement;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.transform.ASTTransformation;
-
-import org.springframework.core.annotation.Order;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.ClassCodeVisitorSupport
+import org.codehaus.groovy.ast.ClassHelper
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.ModuleNode
+import org.codehaus.groovy.ast.PropertyNode
+import org.codehaus.groovy.ast.expr.ClosureExpression
+import org.codehaus.groovy.ast.stmt.BlockStatement
+import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.transform.ASTTransformation
+import org.springframework.core.annotation.Order
 
 /**
  * {@link ASTTransformation} to resolve beans declarations inside application source
@@ -44,21 +43,22 @@ import org.springframework.core.annotation.Order;
  * @since 1.0.0
  */
 @Order(GroovyBeansTransformation.ORDER)
-public class GroovyBeansTransformation implements ASTTransformation {
+@CompileStatic
+class GroovyBeansTransformation implements ASTTransformation {
 
     /**
      * The order of the transformation.
      */
-    public static final int ORDER = DependencyManagementBomTransformation.ORDER + 200;
+    public static final int ORDER = DependencyManagementBomTransformation.ORDER + 200
 
     @Override
-    public void visit(ASTNode[] nodes, SourceUnit source) {
-        for (ASTNode node : nodes) {
+    void visit(ASTNode[] nodes, SourceUnit source) {
+        for (ASTNode node in nodes) {
             if (node instanceof ModuleNode) {
-                ModuleNode module = (ModuleNode) node;
-                for (ClassNode classNode : new ArrayList<>(module.getClasses())) {
+                ModuleNode module = (ModuleNode) node
+                for (ClassNode classNode in new ArrayList<ClassNode>(module.getClasses())) {
                     if (classNode.isScript()) {
-                        classNode.visitContents(new ClassVisitor(source, classNode));
+                        classNode.visitContents(new ClassVisitor(source, classNode))
                     }
                 }
             }
@@ -67,42 +67,42 @@ public class GroovyBeansTransformation implements ASTTransformation {
 
     private class ClassVisitor extends ClassCodeVisitorSupport {
 
-        private static final String SOURCE_INTERFACE = "org.springframework.boot.BeanDefinitionLoader.GroovyBeanDefinitionSource";
+        private static final String SOURCE_INTERFACE = 'org.springframework.boot.BeanDefinitionLoader.GroovyBeanDefinitionSource'
 
-        private static final String BEANS = "beans";
+        private static final String BEANS = 'beans'
 
-        private final SourceUnit source;
+        private final SourceUnit source
 
-        private final ClassNode classNode;
+        private final ClassNode classNode
 
-        private boolean xformed = false;
+        private boolean xformed = false
 
         ClassVisitor(SourceUnit source, ClassNode classNode) {
-            this.source = source;
-            this.classNode = classNode;
+            this.source = source
+            this.classNode = classNode
         }
 
         @Override
         protected SourceUnit getSourceUnit() {
-            return this.source;
+            return this.source
         }
 
         @Override
-        public void visitBlockStatement(BlockStatement block) {
+        void visitBlockStatement(BlockStatement block) {
             if (block.isEmpty() || this.xformed) {
-                return;
+                return
             }
-            ClosureExpression closure = beans(block);
+            ClosureExpression closure = beans(block)
             if (closure != null) {
                 // Add a marker interface to the current script
-                this.classNode.addInterface(ClassHelper.make(SOURCE_INTERFACE));
+                this.classNode.addInterface(ClassHelper.make(SOURCE_INTERFACE))
                 // Implement the interface by adding a public read-only property with the
                 // same name as the method in the interface (getBeans). Make it return the
                 // closure.
                 this.classNode.addProperty(new PropertyNode(BEANS, Modifier.PUBLIC | Modifier.FINAL,
-                        ClassHelper.CLOSURE_TYPE.getPlainNodeReference(), this.classNode, closure, null, null));
+                        ClassHelper.CLOSURE_TYPE.getPlainNodeReference(), this.classNode, closure, null, null))
                 // Only do this once per class
-                this.xformed = true;
+                this.xformed = true
             }
         }
 
@@ -113,7 +113,7 @@ public class GroovyBeansTransformation implements ASTTransformation {
          * @return a beans Closure if one can be found, null otherwise
          */
         private ClosureExpression beans(BlockStatement block) {
-            return AstUtils.getClosure(block, BEANS, true);
+            return AstUtils.getClosure(block, BEANS, true)
         }
 
     }

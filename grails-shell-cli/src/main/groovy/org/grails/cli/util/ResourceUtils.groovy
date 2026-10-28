@@ -16,26 +16,18 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.util;
+package org.grails.cli.util
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.FileSystemResourceLoader;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
+import groovy.transform.CompileStatic
+import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.DefaultResourceLoader
+import org.springframework.core.io.FileSystemResourceLoader
+import org.springframework.core.io.Resource
+import org.springframework.core.io.UrlResource
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver
+import org.springframework.util.Assert
+import org.springframework.util.ClassUtils
+import org.springframework.util.StringUtils
 
 /**
  * Utilities for manipulating resource paths and URLs.
@@ -44,22 +36,23 @@ import org.springframework.util.StringUtils;
  * @author Phillip Webb
  * @since 1.0.0
  */
-public abstract class ResourceUtils {
+@CompileStatic
+abstract class ResourceUtils {
 
     /**
      * Pseudo URL prefix for loading from the class path: "classpath:".
      */
-    public static final String CLASSPATH_URL_PREFIX = "classpath:";
+    public static final String CLASSPATH_URL_PREFIX = 'classpath:'
 
     /**
      * Pseudo URL prefix for loading all resources from the class path: "classpath*:".
      */
-    public static final String ALL_CLASSPATH_URL_PREFIX = "classpath*:";
+    public static final String ALL_CLASSPATH_URL_PREFIX = 'classpath*:'
 
     /**
      * URL prefix for loading from the file system: "file:".
      */
-    public static final String FILE_URL_PREFIX = "file:";
+    public static final String FILE_URL_PREFIX = 'file:'
 
     /**
      * Return URLs from a given source path. Source paths can be simple file locations
@@ -69,103 +62,103 @@ public abstract class ResourceUtils {
      * @param classLoader the class loader or {@code null} to use the default
      * @return a list of URLs
      */
-    public static List<String> getUrls(String path, ClassLoader classLoader) {
+    static List<String> getUrls(String path, ClassLoader classLoader) {
         if (classLoader == null) {
-            classLoader = ClassUtils.getDefaultClassLoader();
+            classLoader = ClassUtils.getDefaultClassLoader()
         }
-        path = StringUtils.cleanPath(path);
+        path = StringUtils.cleanPath(path)
         try {
-            return getUrlsFromWildcardPath(path, classLoader);
+            return getUrlsFromWildcardPath(path, classLoader)
         }
         catch (Exception ex) {
-            throw new IllegalArgumentException("Cannot create URL from path [" + path + "]", ex);
+            throw new IllegalArgumentException('Cannot create URL from path [' + path + ']', ex)
         }
     }
 
     private static List<String> getUrlsFromWildcardPath(String path, ClassLoader classLoader) throws IOException {
-        if (path.contains(":")) {
-            return getUrlsFromPrefixedWildcardPath(path, classLoader);
+        if (path.contains(':')) {
+            return getUrlsFromPrefixedWildcardPath(path, classLoader)
         }
-        Set<String> result = new LinkedHashSet<>();
+        Set<String> result = new LinkedHashSet<>()
         try {
-            result.addAll(getUrls(FILE_URL_PREFIX + path, classLoader));
+            result.addAll(getUrls(FILE_URL_PREFIX + path, classLoader))
         }
-        catch (IllegalArgumentException ex) {
+        catch (IllegalArgumentException ignored) {
             // ignore
         }
-        path = stripLeadingSlashes(path);
-        result.addAll(getUrls(ALL_CLASSPATH_URL_PREFIX + path, classLoader));
-        return new ArrayList<>(result);
+        path = stripLeadingSlashes(path)
+        result.addAll(getUrls(ALL_CLASSPATH_URL_PREFIX + path, classLoader))
+        return new ArrayList<>(result)
     }
 
     private static List<String> getUrlsFromPrefixedWildcardPath(String path, ClassLoader classLoader)
             throws IOException {
         Resource[] resources = new PathMatchingResourcePatternResolver(new FileSearchResourceLoader(classLoader))
-            .getResources(path);
-        List<String> result = new ArrayList<>();
-        for (Resource resource : resources) {
+            .getResources(path)
+        List<String> result = new ArrayList<>()
+        for (Resource resource in resources) {
             if (resource.exists()) {
-                if ("file".equals(resource.getURI().getScheme()) && resource.getFile().isDirectory()) {
-                    result.addAll(getChildFiles(resource));
-                    continue;
+                if ('file'.equals(resource.getURI().getScheme()) && resource.getFile().isDirectory()) {
+                    result.addAll(getChildFiles(resource))
+                    continue
                 }
-                result.add(absolutePath(resource));
+                result.add(absolutePath(resource))
             }
         }
-        return result;
+        return result
     }
 
     private static List<String> getChildFiles(Resource resource) throws IOException {
-        Resource[] children = new PathMatchingResourcePatternResolver().getResources(resource.getURL() + "/**");
-        List<String> childFiles = new ArrayList<>();
-        for (Resource child : children) {
+        Resource[] children = new PathMatchingResourcePatternResolver().getResources(resource.getURL().toString() + '/**')
+        List<String> childFiles = new ArrayList<>()
+        for (Resource child in children) {
             if (!child.getFile().isDirectory()) {
-                childFiles.add(absolutePath(child));
+                childFiles.add(absolutePath(child))
             }
         }
-        return childFiles;
+        return childFiles
     }
 
     private static String absolutePath(Resource resource) throws IOException {
-        if (!"file".equals(resource.getURI().getScheme())) {
-            return resource.getURL().toExternalForm();
+        if (!'file'.equals(resource.getURI().getScheme())) {
+            return resource.getURL().toExternalForm()
         }
-        return resource.getFile().getAbsoluteFile().toURI().toString();
+        return resource.getFile().getAbsoluteFile().toURI().toString()
     }
 
     private static String stripLeadingSlashes(String path) {
-        while (path.startsWith("/")) {
-            path = path.substring(1);
+        while (path.startsWith('/')) {
+            path = path.substring(1)
         }
-        return path;
+        return path
     }
 
     private static class FileSearchResourceLoader extends DefaultResourceLoader {
 
-        private final FileSystemResourceLoader files;
+        private final FileSystemResourceLoader files
 
         FileSearchResourceLoader(ClassLoader classLoader) {
-            super(classLoader);
-            this.files = new FileSystemResourceLoader();
+            super(classLoader)
+            this.files = new FileSystemResourceLoader()
         }
 
         @Override
-        public Resource getResource(String location) {
-            Assert.notNull(location, "Location must not be null");
+        Resource getResource(String location) {
+            Assert.notNull(location, 'Location must not be null')
             if (location.startsWith(CLASSPATH_URL_PREFIX)) {
-                return new ClassPathResource(location.substring(CLASSPATH_URL_PREFIX.length()), getClassLoader());
+                return new ClassPathResource(location.substring(CLASSPATH_URL_PREFIX.length()), getClassLoader())
             }
             if (location.startsWith(FILE_URL_PREFIX)) {
-                return this.files.getResource(location);
+                return this.files.getResource(location)
             }
             try {
                 // Try to parse the location as a URL...
-                URL url = URI.create(location).toURL();
-                return new UrlResource(url);
+                URL url = URI.create(location).toURL()
+                return new UrlResource(url)
             }
             catch (MalformedURLException | IllegalArgumentException ex) {
                 // No URL -> resolve as resource path.
-                return getResourceByPath(location);
+                return getResourceByPath(location)
             }
         }
 

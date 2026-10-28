@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler.grape;
+package org.grails.cli.compiler.grape
+
+import groovy.transform.CompileStatic
 
 /**
  * Thrown to indicate a failure during dependency resolution.
@@ -24,16 +26,17 @@ package org.grails.cli.compiler.grape;
  * @author Andy Wilkinson
  * @since 1.0.0
  */
-@SuppressWarnings("serial")
-public class DependencyResolutionFailedException extends RuntimeException {
+@SuppressWarnings('serial')
+@CompileStatic
+class DependencyResolutionFailedException extends RuntimeException {
 
     /**
      * Creates a new {@code DependencyResolutionFailedException} with the given
      * {@code cause}.
      * @param cause the cause of the resolution failure
      */
-    public DependencyResolutionFailedException(Throwable cause) {
-        super(cause);
+    DependencyResolutionFailedException(Throwable cause) {
+        super(cause)
     }
 
 }

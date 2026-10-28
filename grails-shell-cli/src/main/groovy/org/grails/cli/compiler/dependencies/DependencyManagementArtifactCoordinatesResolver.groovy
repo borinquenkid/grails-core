@@ -16,9 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler.dependencies;
+package org.grails.cli.compiler.dependencies
 
-import org.springframework.util.StringUtils;
+import groovy.transform.CompileStatic
+import org.springframework.util.StringUtils
 
 /**
  * {@link ArtifactCoordinatesResolver} backed by
@@ -28,48 +29,49 @@ import org.springframework.util.StringUtils;
  * @author Andy Wilkinson
  * @since 1.0.0
  */
-public class DependencyManagementArtifactCoordinatesResolver implements ArtifactCoordinatesResolver {
+@CompileStatic
+class DependencyManagementArtifactCoordinatesResolver implements ArtifactCoordinatesResolver {
 
-    private final DependencyManagement dependencyManagement;
+    private final DependencyManagement dependencyManagement
 
-    public DependencyManagementArtifactCoordinatesResolver() {
-        this(new SpringBootDependenciesDependencyManagement());
+    DependencyManagementArtifactCoordinatesResolver() {
+        this(new SpringBootDependenciesDependencyManagement())
     }
 
-    public DependencyManagementArtifactCoordinatesResolver(DependencyManagement dependencyManagement) {
-        this.dependencyManagement = dependencyManagement;
-    }
-
-    @Override
-    public String getGroupId(String artifactId) {
-        Dependency dependency = find(artifactId);
-        return (dependency != null) ? dependency.getGroupId() : null;
+    DependencyManagementArtifactCoordinatesResolver(DependencyManagement dependencyManagement) {
+        this.dependencyManagement = dependencyManagement
     }
 
     @Override
-    public String getArtifactId(String id) {
-        Dependency dependency = find(id);
-        return (dependency != null) ? dependency.getArtifactId() : null;
+    String getGroupId(String artifactId) {
+        Dependency dependency = find(artifactId)
+        return (dependency != null) ? dependency.getGroupId() : null
+    }
+
+    @Override
+    String getArtifactId(String id) {
+        Dependency dependency = find(id)
+        return (dependency != null) ? dependency.getArtifactId() : null
     }
 
     private Dependency find(String id) {
-        if (StringUtils.countOccurrencesOf(id, ":") == 2) {
-            String[] tokens = id.split(":");
-            return new Dependency(tokens[0], tokens[1], tokens[2]);
+        if (StringUtils.countOccurrencesOf(id, ':') == 2) {
+            String[] tokens = id.split(':')
+            return new Dependency(tokens[0], tokens[1], tokens[2])
         }
         if (id != null) {
-            if (id.startsWith("spring-boot")) {
-                return new Dependency("org.springframework.boot", id, this.dependencyManagement.getSpringBootVersion());
+            if (id.startsWith('spring-boot')) {
+                return new Dependency('org.springframework.boot', id, this.dependencyManagement.getSpringBootVersion())
             }
-            return this.dependencyManagement.find(id);
+            return this.dependencyManagement.find(id)
         }
-        return null;
+        return null
     }
 
     @Override
-    public String getVersion(String module) {
-        Dependency dependency = find(module);
-        return (dependency != null) ? dependency.getVersion() : null;
+    String getVersion(String module) {
+        Dependency dependency = find(module)
+        return (dependency != null) ? dependency.getVersion() : null
     }
 
 }

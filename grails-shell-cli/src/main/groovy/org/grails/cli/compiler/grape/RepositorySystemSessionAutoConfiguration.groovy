@@ -16,10 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler.grape;
+package org.grails.cli.compiler.grape
 
-import org.eclipse.aether.DefaultRepositorySystemSession;
-import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.DefaultRepositorySystemSession
+import org.eclipse.aether.RepositorySystem
 
 /**
  * Strategy that can be used to apply some auto-configuration during the installation of a
@@ -29,13 +29,13 @@ import org.eclipse.aether.RepositorySystem;
  * @since 1.0.0
  */
 @FunctionalInterface
-public interface RepositorySystemSessionAutoConfiguration {
+interface RepositorySystemSessionAutoConfiguration {
 
     /**
      * Apply the configuration.
      * @param session the repository system session
      * @param repositorySystem the repository system
      */
-    void apply(DefaultRepositorySystemSession session, RepositorySystem repositorySystem);
+    void apply(DefaultRepositorySystemSession session, RepositorySystem repositorySystem)
 
 }

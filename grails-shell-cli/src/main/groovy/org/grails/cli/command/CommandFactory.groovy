@@ -16,11 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.command;
+package org.grails.cli.command
 
-import java.util.Collection;
-
-import org.springframework.boot.cli.command.Command;
+import org.springframework.boot.cli.command.Command
 
 /**
  * Factory used to create CLI {@link org.springframework.boot.cli.command.Command}s. Intended for use with a Java
@@ -30,12 +28,12 @@ import org.springframework.boot.cli.command.Command;
  * @since 1.0.0
  */
 @FunctionalInterface
-public interface CommandFactory {
+interface CommandFactory {
 
     /**
      * Returns the CLI {@link org.springframework.boot.cli.command.Command}s.
      * @return the commands
      */
-    Collection<Command> getCommands();
+    Collection<Command> getCommands()
 
 }

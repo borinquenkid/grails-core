@@ -16,11 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import org.codehaus.groovy.ast.ClassHelper;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.control.customizers.ImportCustomizer;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ClassHelper
+import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.control.customizers.ImportCustomizer
 
 /**
  * Smart extension of {@link ImportCustomizer} that will only add a specific import if a
@@ -28,30 +29,31 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
  *
  * @author Dave Syer
  */
+@CompileStatic
 class SmartImportCustomizer extends ImportCustomizer {
 
-    private SourceUnit source;
+    private SourceUnit source
 
     SmartImportCustomizer(SourceUnit source) {
-        this.source = source;
+        this.source = source
     }
 
     @Override
-    public ImportCustomizer addImport(String alias, String className) {
+    ImportCustomizer addImport(String alias, String className) {
         if (this.source.getAST().getImport(ClassHelper.make(className).getNameWithoutPackage()) == null) {
-            super.addImport(alias, className);
+            super.addImport(alias, className)
         }
-        return this;
+        return this
     }
 
     @Override
-    public ImportCustomizer addImports(String... imports) {
-        for (String alias : imports) {
+    ImportCustomizer addImports(String... imports) {
+        for (String alias in imports) {
             if (this.source.getAST().getImport(ClassHelper.make(alias).getNameWithoutPackage()) == null) {
-                super.addImports(alias);
+                super.addImports(alias)
             }
         }
-        return this;
+        return this
     }
 
 }

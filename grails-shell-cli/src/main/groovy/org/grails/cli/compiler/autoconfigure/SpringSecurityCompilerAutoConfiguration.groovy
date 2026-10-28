@@ -18,6 +18,7 @@
  */
 package org.grails.cli.compiler.autoconfigure;
 
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 
@@ -31,30 +32,33 @@ import org.grails.cli.compiler.DependencyCustomizer;
  * @author Dave Syer
  * @since 1.0.0
  */
-public class SpringSecurityCompilerAutoConfiguration extends CompilerAutoConfiguration {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class SpringSecurityCompilerAutoConfiguration extends CompilerAutoConfiguration {
 
     @Override
-    public boolean matches(ClassNode classNode) {
-        return AstUtils.hasAtLeastOneAnnotation(classNode, "EnableWebSecurity", "EnableGlobalMethodSecurity");
+    boolean matches(ClassNode classNode) {
+        return AstUtils.hasAtLeastOneAnnotation(classNode, 'EnableWebSecurity', 'EnableGlobalMethodSecurity');
     }
 
     @Override
-    public void applyDependencies(DependencyCustomizer dependencies) {
+    void applyDependencies(DependencyCustomizer dependencies) {
         dependencies
             .ifAnyMissingClasses(
-                    "org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity")
-            .add("spring-boot-starter-security");
+                    'org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity')
+            .add('spring-boot-starter-security');
     }
 
     @Override
-    public void applyImports(ImportCustomizer imports) {
+    void applyImports(ImportCustomizer imports) {
         imports
-            .addImports("org.springframework.security.core.Authentication",
-                    "org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity",
-                    "org.springframework.security.core.authority.AuthorityUtils")
-            .addStarImports("org.springframework.security.config.annotation.web.configuration",
-                    "org.springframework.security.authentication", "org.springframework.security.config.annotation.web",
-                    "org.springframework.security.config.annotation.web.builders");
+            .addImports('org.springframework.security.core.Authentication',
+                    'org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity',
+                    'org.springframework.security.core.authority.AuthorityUtils')
+            .addStarImports('org.springframework.security.config.annotation.web.configuration',
+                    'org.springframework.security.authentication', 'org.springframework.security.config.annotation.web',
+                    'org.springframework.security.config.annotation.web.builders');
     }
 
 }

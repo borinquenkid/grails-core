@@ -16,12 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler.grape;
+package org.grails.cli.compiler.grape
 
-import java.lang.reflect.Field;
+import java.lang.reflect.Field
 
-import groovy.grape.Grape;
-import groovy.grape.GrapeEngine;
+import groovy.grape.Grape
+import groovy.grape.GrapeEngine
+import groovy.transform.CompileStatic
 
 /**
  * Utility to install a specific {@link Grape} engine with Groovy.
@@ -29,17 +30,18 @@ import groovy.grape.GrapeEngine;
  * @author Andy Wilkinson
  * @since 1.0.0
  */
-public abstract class GrapeEngineInstaller {
+@CompileStatic
+abstract class GrapeEngineInstaller {
 
-    public static void install(GrapeEngine engine) {
-        synchronized (Grape.class) {
+    static void install(GrapeEngine engine) {
+        synchronized (Grape) {
             try {
-                Field field = Grape.class.getDeclaredField("instance");
-                field.setAccessible(true);
-                field.set(null, engine);
+                Field field = Grape.getDeclaredField('instance')
+                field.setAccessible(true)
+                field.set(null, engine)
             }
             catch (Exception ex) {
-                throw new IllegalStateException("Failed to install GrapeEngine", ex);
+                throw new IllegalStateException('Failed to install GrapeEngine', ex)
             }
         }
     }

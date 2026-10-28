@@ -16,29 +16,23 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.codehaus.groovy.ast.AnnotatedNode;
-import org.codehaus.groovy.ast.AnnotationNode;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.FieldNode;
-import org.codehaus.groovy.ast.MethodNode;
-import org.codehaus.groovy.ast.expr.ArgumentListExpression;
-import org.codehaus.groovy.ast.expr.ClosureExpression;
-import org.codehaus.groovy.ast.expr.ConstantExpression;
-import org.codehaus.groovy.ast.expr.Expression;
-import org.codehaus.groovy.ast.expr.MethodCallExpression;
-import org.codehaus.groovy.ast.stmt.BlockStatement;
-import org.codehaus.groovy.ast.stmt.ExpressionStatement;
-import org.codehaus.groovy.ast.stmt.Statement;
-
-import org.springframework.util.PatternMatchUtils;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.AnnotatedNode
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.FieldNode
+import org.codehaus.groovy.ast.MethodNode
+import org.codehaus.groovy.ast.expr.ArgumentListExpression
+import org.codehaus.groovy.ast.expr.ClosureExpression
+import org.codehaus.groovy.ast.expr.ConstantExpression
+import org.codehaus.groovy.ast.expr.Expression
+import org.codehaus.groovy.ast.expr.MethodCallExpression
+import org.codehaus.groovy.ast.stmt.BlockStatement
+import org.codehaus.groovy.ast.stmt.ExpressionStatement
+import org.codehaus.groovy.ast.stmt.Statement
+import org.springframework.util.PatternMatchUtils
 
 /**
  * General purpose AST utilities.
@@ -48,7 +42,8 @@ import org.springframework.util.PatternMatchUtils;
  * @author Greg Turnquist
  * @since 1.0.0
  */
-public abstract class AstUtils {
+@CompileStatic
+abstract class AstUtils {
 
     /**
      * Determine if a {@link ClassNode} has one or more of the specified annotations on
@@ -59,16 +54,16 @@ public abstract class AstUtils {
      * @return {@code true} if at least one of the annotations is found, otherwise
      * {@code false}
      */
-    public static boolean hasAtLeastOneAnnotation(ClassNode node, String... annotations) {
+    static boolean hasAtLeastOneAnnotation(ClassNode node, String... annotations) {
         if (hasAtLeastOneAnnotation((AnnotatedNode) node, annotations)) {
-            return true;
+            return true
         }
-        for (MethodNode method : node.getMethods()) {
+        for (MethodNode method in node.getMethods()) {
             if (hasAtLeastOneAnnotation(method, annotations)) {
-                return true;
+                return true
             }
         }
-        return false;
+        return false
     }
 
     /**
@@ -79,15 +74,15 @@ public abstract class AstUtils {
      * @return {@code true} if at least one of the annotations is found, otherwise
      * {@code false}
      */
-    public static boolean hasAtLeastOneAnnotation(AnnotatedNode node, String... annotations) {
-        for (AnnotationNode annotationNode : node.getAnnotations()) {
-            for (String annotation : annotations) {
+    static boolean hasAtLeastOneAnnotation(AnnotatedNode node, String... annotations) {
+        for (AnnotationNode annotationNode in node.getAnnotations()) {
+            for (String annotation in annotations) {
                 if (PatternMatchUtils.simpleMatch(annotation, annotationNode.getClassNode().getName())) {
-                    return true;
+                    return true
                 }
             }
         }
-        return false;
+        return false
     }
 
     /**
@@ -98,19 +93,19 @@ public abstract class AstUtils {
      * @param types the types to look for
      * @return {@code true} if at least one of the types is found, otherwise {@code false}
      */
-    public static boolean hasAtLeastOneFieldOrMethod(ClassNode node, String... types) {
-        Set<String> typesSet = new HashSet<>(Arrays.asList(types));
-        for (FieldNode field : node.getFields()) {
+    static boolean hasAtLeastOneFieldOrMethod(ClassNode node, String... types) {
+        Set<String> typesSet = new HashSet<>(Arrays.asList(types))
+        for (FieldNode field in node.getFields()) {
             if (typesSet.contains(field.getType().getName())) {
-                return true;
+                return true
             }
         }
-        for (MethodNode method : node.getMethods()) {
+        for (MethodNode method in node.getMethods()) {
             if (typesSet.contains(method.getReturnType().getName())) {
-                return true;
+                return true
             }
         }
-        return false;
+        return false
     }
 
     /**
@@ -121,23 +116,23 @@ public abstract class AstUtils {
      * @return {@code true} if the class subclasses any of the specified types, otherwise
      * {@code false}
      */
-    public static boolean subclasses(ClassNode node, String... types) {
-        for (String type : types) {
+    static boolean subclasses(ClassNode node, String... types) {
+        for (String type in types) {
             if (node.getSuperClass().getName().equals(type)) {
-                return true;
+                return true
             }
         }
-        return false;
+        return false
     }
 
-    public static boolean hasAtLeastOneInterface(ClassNode classNode, String... types) {
-        Set<String> typesSet = new HashSet<>(Arrays.asList(types));
-        for (ClassNode inter : classNode.getInterfaces()) {
+    static boolean hasAtLeastOneInterface(ClassNode classNode, String... types) {
+        Set<String> typesSet = new HashSet<>(Arrays.asList(types))
+        for (ClassNode inter in classNode.getInterfaces()) {
             if (typesSet.contains(inter.getName())) {
-                return true;
+                return true
             }
         }
-        return false;
+        return false
     }
 
     /**
@@ -148,42 +143,42 @@ public abstract class AstUtils {
      * @param remove whether the extracted closure should be removed
      * @return a beans Closure if one can be found, null otherwise
      */
-    public static ClosureExpression getClosure(BlockStatement block, String name, boolean remove) {
-        for (ExpressionStatement statement : getExpressionStatements(block)) {
-            Expression expression = statement.getExpression();
+    static ClosureExpression getClosure(BlockStatement block, String name, boolean remove) {
+        for (ExpressionStatement statement in getExpressionStatements(block)) {
+            Expression expression = statement.getExpression()
             if (expression instanceof MethodCallExpression) {
-                ClosureExpression closure = getClosure(name, (MethodCallExpression) expression);
+                ClosureExpression closure = getClosure(name, (MethodCallExpression) expression)
                 if (closure != null) {
                     if (remove) {
-                        block.getStatements().remove(statement);
+                        block.getStatements().remove(statement)
                     }
-                    return closure;
+                    return closure
                 }
             }
         }
-        return null;
+        return null
     }
 
     private static List<ExpressionStatement> getExpressionStatements(BlockStatement block) {
-        List<ExpressionStatement> statements = new ArrayList<>();
-        for (Statement statement : block.getStatements()) {
+        List<ExpressionStatement> statements = new ArrayList<>()
+        for (Statement statement in block.getStatements()) {
             if (statement instanceof ExpressionStatement) {
-                statements.add((ExpressionStatement) statement);
+                statements.add((ExpressionStatement) statement)
             }
         }
-        return statements;
+        return statements
     }
 
     private static ClosureExpression getClosure(String name, MethodCallExpression expression) {
-        Expression method = expression.getMethod();
+        Expression method = expression.getMethod()
         if (method instanceof ConstantExpression && name.equals(((ConstantExpression) method).getValue())) {
-            return (ClosureExpression) ((ArgumentListExpression) expression.getArguments()).getExpression(0);
+            return (ClosureExpression) ((ArgumentListExpression) expression.getArguments()).getExpression(0)
         }
-        return null;
+        return null
     }
 
-    public static ClosureExpression getClosure(BlockStatement block, String name) {
-        return getClosure(block, name, false);
+    static ClosureExpression getClosure(BlockStatement block, String name) {
+        return getClosure(block, name, false)
     }
 
 }

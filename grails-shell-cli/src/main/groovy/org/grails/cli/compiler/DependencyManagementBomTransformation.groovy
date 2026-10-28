@@ -16,46 +16,34 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import groovy.grape.Grape
+import groovy.transform.CompileStatic
+import org.apache.maven.model.Dependency
+import org.apache.maven.model.Model
+import org.apache.maven.model.Parent
+import org.apache.maven.model.Repository
+import org.apache.maven.model.building.DefaultModelBuilder
+import org.apache.maven.model.building.DefaultModelBuilderFactory
+import org.apache.maven.model.building.DefaultModelBuildingRequest
+import org.apache.maven.model.resolution.InvalidRepositoryException
+import org.apache.maven.model.resolution.ModelResolver
+import org.apache.maven.model.resolution.UnresolvableModelException
+import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.expr.ConstantExpression
+import org.codehaus.groovy.ast.expr.Expression
+import org.codehaus.groovy.ast.expr.ListExpression
+import org.codehaus.groovy.control.messages.Message
+import org.codehaus.groovy.control.messages.SyntaxErrorMessage
+import org.codehaus.groovy.syntax.SyntaxException
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 
-import groovy.grape.Grape;
-import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.AnnotationNode;
-import org.codehaus.groovy.ast.expr.ConstantExpression;
-import org.codehaus.groovy.ast.expr.Expression;
-import org.codehaus.groovy.ast.expr.ListExpression;
-import org.codehaus.groovy.control.messages.Message;
-import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
-import org.codehaus.groovy.syntax.SyntaxException;
-
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.Parent;
-import org.apache.maven.model.Repository;
-import org.apache.maven.model.building.DefaultModelBuilder;
-import org.apache.maven.model.building.DefaultModelBuilderFactory;
-import org.apache.maven.model.building.DefaultModelBuildingRequest;
-import org.apache.maven.model.resolution.InvalidRepositoryException;
-import org.apache.maven.model.resolution.ModelResolver;
-import org.apache.maven.model.resolution.UnresolvableModelException;
-
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-
-import org.grails.cli.compiler.dependencies.MavenModelDependencyManagement;
-import org.grails.cli.compiler.grape.DependencyResolutionContext;
-import org.grails.cli.groovy.DependencyManagementBom;
+import org.grails.cli.compiler.dependencies.MavenModelDependencyManagement
+import org.grails.cli.compiler.grape.DependencyResolutionContext
+import org.grails.cli.groovy.DependencyManagementBom
 
 /**
  * {@link org.codehaus.groovy.transform.ASTTransformation} for processing
@@ -65,178 +53,179 @@ import org.grails.cli.groovy.DependencyManagementBom;
  * @since 1.3.0
  */
 @Order(DependencyManagementBomTransformation.ORDER)
-@SuppressWarnings("deprecation")
-public class DependencyManagementBomTransformation extends AnnotatedNodeASTTransformation {
+@SuppressWarnings('deprecation')
+@CompileStatic
+class DependencyManagementBomTransformation extends AnnotatedNodeASTTransformation {
 
     /**
      * The order of the transformation.
      */
-    public static final int ORDER = Ordered.HIGHEST_PRECEDENCE + 100;
+    public static final int ORDER = Ordered.HIGHEST_PRECEDENCE + 100
 
     private static final Set<String> DEPENDENCY_MANAGEMENT_BOM_ANNOTATION_NAMES = Collections
         .unmodifiableSet(new HashSet<>(
-                Arrays.asList(DependencyManagementBom.class.getName(), DependencyManagementBom.class.getSimpleName())));
+                Arrays.asList(DependencyManagementBom.getName(), DependencyManagementBom.getSimpleName())))
 
-    private final DependencyResolutionContext resolutionContext;
+    private final DependencyResolutionContext resolutionContext
 
-    public DependencyManagementBomTransformation(DependencyResolutionContext resolutionContext) {
-        super(DEPENDENCY_MANAGEMENT_BOM_ANNOTATION_NAMES, true);
-        this.resolutionContext = resolutionContext;
+    DependencyManagementBomTransformation(DependencyResolutionContext resolutionContext) {
+        super(DEPENDENCY_MANAGEMENT_BOM_ANNOTATION_NAMES, true)
+        this.resolutionContext = resolutionContext
     }
 
     @Override
     protected void processAnnotationNodes(List<AnnotationNode> annotationNodes) {
         if (!annotationNodes.isEmpty()) {
             if (annotationNodes.size() > 1) {
-                for (AnnotationNode annotationNode : annotationNodes) {
-                    handleDuplicateDependencyManagementBomAnnotation(annotationNode);
+                for (AnnotationNode annotationNode in annotationNodes) {
+                    handleDuplicateDependencyManagementBomAnnotation(annotationNode)
                 }
             }
             else {
-                processDependencyManagementBomAnnotation(annotationNodes.get(0));
+                processDependencyManagementBomAnnotation(annotationNodes.get(0))
             }
         }
     }
 
     private void processDependencyManagementBomAnnotation(AnnotationNode annotationNode) {
-        Expression valueExpression = annotationNode.getMember("value");
-        List<Map<String, String>> bomDependencies = createDependencyMaps(valueExpression);
-        updateDependencyResolutionContext(bomDependencies);
+        Expression valueExpression = annotationNode.getMember('value')
+        List<Map<String, String>> bomDependencies = createDependencyMaps(valueExpression)
+        updateDependencyResolutionContext(bomDependencies)
     }
 
     private List<Map<String, String>> createDependencyMaps(Expression valueExpression) {
-        Map<String, String> dependency = null;
-        List<ConstantExpression> constantExpressions = getConstantExpressions(valueExpression);
-        List<Map<String, String>> dependencies = new ArrayList<>(constantExpressions.size());
-        for (ConstantExpression expression : constantExpressions) {
-            Object value = expression.getValue();
+        Map<String, String> dependency = null
+        List<ConstantExpression> constantExpressions = getConstantExpressions(valueExpression)
+        List<Map<String, String>> dependencies = new ArrayList<>(constantExpressions.size())
+        for (ConstantExpression expression in constantExpressions) {
+            Object value = expression.getValue()
             if (value instanceof String) {
-                String[] components = ((String) expression.getValue()).split(":");
+                String[] components = ((String) expression.getValue()).split(':')
                 if (components.length == 3) {
-                    dependency = new HashMap<>();
-                    dependency.put("group", components[0]);
-                    dependency.put("module", components[1]);
-                    dependency.put("version", components[2]);
-                    dependency.put("type", "pom");
-                    dependencies.add(dependency);
+                    dependency = new HashMap<>()
+                    dependency.put('group', components[0])
+                    dependency.put('module', components[1])
+                    dependency.put('version', components[2])
+                    dependency.put('type', 'pom')
+                    dependencies.add(dependency)
                 }
                 else {
-                    handleMalformedDependency(expression);
+                    handleMalformedDependency(expression)
                 }
             }
         }
-        return dependencies;
+        return dependencies
     }
 
     private List<ConstantExpression> getConstantExpressions(Expression valueExpression) {
         if (valueExpression instanceof ListExpression) {
-            return getConstantExpressions((ListExpression) valueExpression);
+            return getConstantExpressions((ListExpression) valueExpression)
         }
         if (valueExpression instanceof ConstantExpression &&
                 ((ConstantExpression) valueExpression).getValue() instanceof String) {
-            return Arrays.asList((ConstantExpression) valueExpression);
+            return Arrays.asList((ConstantExpression) valueExpression)
         }
-        reportError("@DependencyManagementBom requires an inline constant that is a string or a string array",
-                valueExpression);
-        return Collections.emptyList();
+        reportError('@DependencyManagementBom requires an inline constant that is a string or a string array',
+                valueExpression)
+        return Collections.emptyList()
     }
 
     private List<ConstantExpression> getConstantExpressions(ListExpression valueExpression) {
-        List<ConstantExpression> expressions = new ArrayList<>();
-        for (Expression expression : valueExpression.getExpressions()) {
+        List<ConstantExpression> expressions = new ArrayList<>()
+        for (Expression expression in valueExpression.getExpressions()) {
             if (expression instanceof ConstantExpression &&
                     ((ConstantExpression) expression).getValue() instanceof String) {
-                expressions.add((ConstantExpression) expression);
+                expressions.add((ConstantExpression) expression)
             }
             else {
-                reportError("Each entry in the array must be an inline string constant", expression);
+                reportError('Each entry in the array must be an inline string constant', expression)
             }
         }
-        return expressions;
+        return expressions
     }
 
     private void handleMalformedDependency(Expression expression) {
         Message message = createSyntaxErrorMessage(
-                String.format("The string must be of the form \"group:module:version\"%n"), expression);
-        getSourceUnit().getErrorCollector().addErrorAndContinue(message);
+                String.format('The string must be of the form "group:module:version"%n'), expression)
+        getSourceUnit().getErrorCollector().addErrorAndContinue(message)
     }
 
     private void updateDependencyResolutionContext(List<Map<String, String>> bomDependencies) {
-        URI[] uris = Grape.getInstance().resolve(null, bomDependencies.toArray(new Map<?, ?>[0]));
-        DefaultModelBuilder modelBuilder = new DefaultModelBuilderFactory().newInstance();
-        for (URI uri : uris) {
+        URI[] uris = Grape.getInstance().resolve(null, bomDependencies.toArray(new Map<?, ?>[0]))
+        DefaultModelBuilder modelBuilder = new DefaultModelBuilderFactory().newInstance()
+        for (URI uri in uris) {
             try {
-                DefaultModelBuildingRequest request = new DefaultModelBuildingRequest();
-                request.setModelResolver(new GrapeModelResolver());
-                request.setModelSource(new org.apache.maven.model.building.UrlModelSource(uri.toURL()));
-                request.setSystemProperties(System.getProperties());
-                Model model = modelBuilder.build(request).getEffectiveModel();
-                this.resolutionContext.addDependencyManagement(new MavenModelDependencyManagement(model));
+                DefaultModelBuildingRequest request = new DefaultModelBuildingRequest()
+                request.setModelResolver(new GrapeModelResolver())
+                request.setModelSource(new org.apache.maven.model.building.UrlModelSource(uri.toURL()))
+                request.setSystemProperties(System.getProperties())
+                Model model = modelBuilder.build(request).getEffectiveModel()
+                this.resolutionContext.addDependencyManagement(new MavenModelDependencyManagement(model))
             }
             catch (Exception ex) {
                 throw new IllegalStateException("Failed to build model for '" + uri + "'. Is it a valid Maven bom?",
-                        ex);
+                        ex)
             }
         }
     }
 
     private void handleDuplicateDependencyManagementBomAnnotation(AnnotationNode annotationNode) {
         Message message = createSyntaxErrorMessage(
-                "Duplicate @DependencyManagementBom annotation. It must be declared at most once.", annotationNode);
-        getSourceUnit().getErrorCollector().addErrorAndContinue(message);
+                'Duplicate @DependencyManagementBom annotation. It must be declared at most once.', annotationNode)
+        getSourceUnit().getErrorCollector().addErrorAndContinue(message)
     }
 
     private void reportError(String message, ASTNode node) {
-        getSourceUnit().getErrorCollector().addErrorAndContinue(createSyntaxErrorMessage(message, node));
+        getSourceUnit().getErrorCollector().addErrorAndContinue(createSyntaxErrorMessage(message, node))
     }
 
     private Message createSyntaxErrorMessage(String message, ASTNode node) {
         return new SyntaxErrorMessage(new SyntaxException(message, node.getLineNumber(), node.getColumnNumber(),
-                node.getLastLineNumber(), node.getLastColumnNumber()), getSourceUnit());
+                node.getLastLineNumber(), node.getLastColumnNumber()), getSourceUnit())
     }
 
     private static class GrapeModelResolver implements ModelResolver {
 
         @Override
-        public org.apache.maven.model.building.ModelSource resolveModel(Parent parent)
+        org.apache.maven.model.building.ModelSource resolveModel(Parent parent)
                 throws UnresolvableModelException {
-            return resolveModel(parent.getGroupId(), parent.getArtifactId(), parent.getVersion());
+            return resolveModel(parent.getGroupId(), parent.getArtifactId(), parent.getVersion())
         }
 
         @Override
-        public org.apache.maven.model.building.ModelSource resolveModel(Dependency dependency)
+        org.apache.maven.model.building.ModelSource resolveModel(Dependency dependency)
                 throws UnresolvableModelException {
-            return resolveModel(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion());
+            return resolveModel(dependency.getGroupId(), dependency.getArtifactId(), dependency.getVersion())
         }
 
         @Override
-        public org.apache.maven.model.building.ModelSource resolveModel(String groupId, String artifactId,
+        org.apache.maven.model.building.ModelSource resolveModel(String groupId, String artifactId,
                 String version) throws UnresolvableModelException {
-            Map<String, String> dependency = new HashMap<>();
-            dependency.put("group", groupId);
-            dependency.put("module", artifactId);
-            dependency.put("version", version);
-            dependency.put("type", "pom");
+            Map<String, String> dependency = new HashMap<>()
+            dependency.put('group', groupId)
+            dependency.put('module', artifactId)
+            dependency.put('version', version)
+            dependency.put('type', 'pom')
             try {
                 return new org.apache.maven.model.building.UrlModelSource(
-                        Grape.getInstance().resolve(null, dependency)[0].toURL());
+                        Grape.getInstance().resolve(null, dependency)[0].toURL())
             }
             catch (MalformedURLException ex) {
-                throw new UnresolvableModelException(ex.getMessage(), groupId, artifactId, version);
+                throw new UnresolvableModelException(ex.getMessage(), groupId, artifactId, version)
             }
         }
 
         @Override
-        public void addRepository(Repository repository) throws InvalidRepositoryException {
+        void addRepository(Repository repository) throws InvalidRepositoryException {
         }
 
         @Override
-        public void addRepository(Repository repository, boolean replace) throws InvalidRepositoryException {
+        void addRepository(Repository repository, boolean replace) throws InvalidRepositoryException {
         }
 
         @Override
-        public ModelResolver newCopy() {
-            return this;
+        ModelResolver newCopy() {
+            return this
         }
 
     }

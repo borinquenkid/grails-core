@@ -16,18 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import groovy.lang.GroovyClassLoader;
-import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.ModuleNode;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.transform.ASTTransformation;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.ModuleNode
+import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.transform.ASTTransformation
+import org.springframework.core.annotation.Order
 
-import org.springframework.core.annotation.Order;
-
-import org.grails.cli.compiler.grape.DependencyResolutionContext;
+import org.grails.cli.compiler.grape.DependencyResolutionContext
 
 /**
  * {@link ASTTransformation} to apply
@@ -40,44 +39,45 @@ import org.grails.cli.compiler.grape.DependencyResolutionContext;
  * @since 1.0.0
  */
 @Order(DependencyAutoConfigurationTransformation.ORDER)
-public class DependencyAutoConfigurationTransformation implements ASTTransformation {
+@CompileStatic
+class DependencyAutoConfigurationTransformation implements ASTTransformation {
 
     /**
      * The order of the transformation.
      */
-    public static final int ORDER = DependencyManagementBomTransformation.ORDER + 100;
+    public static final int ORDER = DependencyManagementBomTransformation.ORDER + 100
 
-    private final GroovyClassLoader loader;
+    private final GroovyClassLoader loader
 
-    private final DependencyResolutionContext dependencyResolutionContext;
+    private final DependencyResolutionContext dependencyResolutionContext
 
-    private final Iterable<CompilerAutoConfiguration> compilerAutoConfigurations;
+    private final Iterable<CompilerAutoConfiguration> compilerAutoConfigurations
 
-    public DependencyAutoConfigurationTransformation(GroovyClassLoader loader,
+    DependencyAutoConfigurationTransformation(GroovyClassLoader loader,
             DependencyResolutionContext dependencyResolutionContext,
             Iterable<CompilerAutoConfiguration> compilerAutoConfigurations) {
-        this.loader = loader;
-        this.dependencyResolutionContext = dependencyResolutionContext;
-        this.compilerAutoConfigurations = compilerAutoConfigurations;
+        this.loader = loader
+        this.dependencyResolutionContext = dependencyResolutionContext
+        this.compilerAutoConfigurations = compilerAutoConfigurations
 
     }
 
     @Override
-    public void visit(ASTNode[] nodes, SourceUnit source) {
-        for (ASTNode astNode : nodes) {
+    void visit(ASTNode[] nodes, SourceUnit source) {
+        for (ASTNode astNode in nodes) {
             if (astNode instanceof ModuleNode) {
-                visitModule((ModuleNode) astNode);
+                visitModule((ModuleNode) astNode)
             }
         }
     }
 
     private void visitModule(ModuleNode module) {
         DependencyCustomizer dependencies = new DependencyCustomizer(this.loader, module,
-                this.dependencyResolutionContext);
-        for (ClassNode classNode : module.getClasses()) {
-            for (CompilerAutoConfiguration autoConfiguration : this.compilerAutoConfigurations) {
+                this.dependencyResolutionContext)
+        for (ClassNode classNode in module.getClasses()) {
+            for (CompilerAutoConfiguration autoConfiguration in this.compilerAutoConfigurations) {
                 if (autoConfiguration.matches(classNode)) {
-                    autoConfiguration.applyDependencies(dependencies);
+                    autoConfiguration.applyDependencies(dependencies)
                 }
             }
         }

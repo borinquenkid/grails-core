@@ -16,13 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler.grape;
+package org.grails.cli.compiler.grape
 
-import java.util.List;
-
-import org.eclipse.aether.repository.Proxy;
-import org.eclipse.aether.repository.ProxySelector;
-import org.eclipse.aether.repository.RemoteRepository;
+import groovy.transform.CompileStatic
+import org.eclipse.aether.repository.Proxy
+import org.eclipse.aether.repository.ProxySelector
+import org.eclipse.aether.repository.RemoteRepository
 
 /**
  * Composite {@link ProxySelector}.
@@ -30,23 +29,24 @@ import org.eclipse.aether.repository.RemoteRepository;
  * @author Dave Syer
  * @since 1.1.0
  */
-public class CompositeProxySelector implements ProxySelector {
+@CompileStatic
+class CompositeProxySelector implements ProxySelector {
 
-    private final List<ProxySelector> selectors;
+    private final List<ProxySelector> selectors
 
-    public CompositeProxySelector(List<ProxySelector> selectors) {
-        this.selectors = selectors;
+    CompositeProxySelector(List<ProxySelector> selectors) {
+        this.selectors = selectors
     }
 
     @Override
-    public Proxy getProxy(RemoteRepository repository) {
-        for (ProxySelector selector : this.selectors) {
-            Proxy proxy = selector.getProxy(repository);
+    Proxy getProxy(RemoteRepository repository) {
+        for (ProxySelector selector in this.selectors) {
+            Proxy proxy = selector.getProxy(repository)
             if (proxy != null) {
-                return proxy;
+                return proxy
             }
         }
-        return null;
+        return null
     }
 
 }

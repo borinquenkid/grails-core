@@ -18,6 +18,7 @@
  */
 package org.grails.cli.compiler.autoconfigure;
 
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 
@@ -33,27 +34,30 @@ import org.grails.cli.groovy.GroovyTemplate;
  * @author Phillip Webb
  * @since 1.0.0
  */
-public class SpringMvcCompilerAutoConfiguration extends CompilerAutoConfiguration {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class SpringMvcCompilerAutoConfiguration extends CompilerAutoConfiguration {
 
     @Override
-    public boolean matches(ClassNode classNode) {
-        return AstUtils.hasAtLeastOneAnnotation(classNode, "Controller", "RestController", "EnableWebMvc");
+    boolean matches(ClassNode classNode) {
+        return AstUtils.hasAtLeastOneAnnotation(classNode, 'Controller', 'RestController', 'EnableWebMvc');
     }
 
     @Override
-    public void applyDependencies(DependencyCustomizer dependencies) {
-        dependencies.ifAnyMissingClasses("org.springframework.web.servlet.mvc.Controller")
-            .add("spring-boot-starter-webmvc");
-        dependencies.ifAnyMissingClasses("groovy.text.TemplateEngine").add("groovy-templates");
+    void applyDependencies(DependencyCustomizer dependencies) {
+        dependencies.ifAnyMissingClasses('org.springframework.web.servlet.mvc.Controller')
+            .add('spring-boot-starter-webmvc');
+        dependencies.ifAnyMissingClasses('groovy.text.TemplateEngine').add('groovy-templates');
     }
 
     @Override
-    public void applyImports(ImportCustomizer imports) {
-        imports.addStarImports("org.springframework.web.bind.annotation",
-                "org.springframework.web.servlet.config.annotation", "org.springframework.web.servlet",
-                "org.springframework.http", "org.springframework.web.servlet.handler", "org.springframework.http",
-                "org.springframework.ui", "groovy.text");
-        imports.addStaticImport(GroovyTemplate.class.getName(), "template");
+    void applyImports(ImportCustomizer imports) {
+        imports.addStarImports('org.springframework.web.bind.annotation',
+                'org.springframework.web.servlet.config.annotation', 'org.springframework.web.servlet',
+                'org.springframework.http', 'org.springframework.web.servlet.handler', 'org.springframework.http',
+                'org.springframework.ui', 'groovy.text');
+        imports.addStaticImport(GroovyTemplate.getName(), 'template');
     }
 
 }

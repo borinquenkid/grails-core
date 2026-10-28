@@ -16,14 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import groovy.lang.GroovyClassLoader;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.classgen.GeneratorContext;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.control.customizers.ImportCustomizer;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.classgen.GeneratorContext
+import org.codehaus.groovy.control.CompilationFailedException
+import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.control.customizers.ImportCustomizer
 
 /**
  * Strategy that can be used to apply some auto-configuration during the
@@ -32,7 +32,8 @@ import org.codehaus.groovy.control.customizers.ImportCustomizer;
  * @author Phillip Webb
  * @since 1.0.0
  */
-public abstract class CompilerAutoConfiguration {
+@CompileStatic
+abstract class CompilerAutoConfiguration {
 
     /**
      * Strategy method used to determine when compiler auto-configuration should be
@@ -41,8 +42,8 @@ public abstract class CompilerAutoConfiguration {
      * @return {@code true} if the compiler should be auto-configured using this class. If
      * this method returns {@code false} no other strategy methods will be called.
      */
-    public boolean matches(ClassNode classNode) {
-        return true;
+    boolean matches(ClassNode classNode) {
+        return true
     }
 
     /**
@@ -51,7 +52,7 @@ public abstract class CompilerAutoConfiguration {
      * @param dependencies dependency customizer
      * @throws CompilationFailedException if the dependencies cannot be applied
      */
-    public void applyDependencies(DependencyCustomizer dependencies) throws CompilationFailedException {
+    void applyDependencies(DependencyCustomizer dependencies) throws CompilationFailedException {
     }
 
     /**
@@ -60,7 +61,7 @@ public abstract class CompilerAutoConfiguration {
      * @param imports import customizer
      * @throws CompilationFailedException if the imports cannot be applied
      */
-    public void applyImports(ImportCustomizer imports) throws CompilationFailedException {
+    void applyImports(ImportCustomizer imports) throws CompilationFailedException {
     }
 
     /**
@@ -74,7 +75,7 @@ public abstract class CompilerAutoConfiguration {
      * @param classNode the main class
      * @throws CompilationFailedException if the customizations cannot be applied
      */
-    public void applyToMainClass(GroovyClassLoader loader, GroovyCompilerConfiguration configuration,
+    void applyToMainClass(GroovyClassLoader loader, GroovyCompilerConfiguration configuration,
             GeneratorContext generatorContext, SourceUnit source, ClassNode classNode)
             throws CompilationFailedException {
     }
@@ -88,7 +89,7 @@ public abstract class CompilerAutoConfiguration {
      * @param classNode the class
      * @throws CompilationFailedException if the configuration cannot be applied
      */
-    public void apply(GroovyClassLoader loader, GroovyCompilerConfiguration configuration,
+    void apply(GroovyClassLoader loader, GroovyCompilerConfiguration configuration,
             GeneratorContext generatorContext, SourceUnit source, ClassNode classNode)
             throws CompilationFailedException {
     }

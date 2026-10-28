@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler.grape;
+package org.grails.cli.compiler.grape
 
 /**
  * Reports progress on a dependency resolution operation.
@@ -29,6 +29,6 @@ interface ProgressReporter {
     /**
      * Notification that the operation has completed.
      */
-    void finished();
+    void finished()
 
 }

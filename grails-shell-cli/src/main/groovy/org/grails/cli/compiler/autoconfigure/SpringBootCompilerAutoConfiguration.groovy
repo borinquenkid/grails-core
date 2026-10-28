@@ -18,7 +18,7 @@
  */
 package org.grails.cli.compiler.autoconfigure;
 
-import groovy.lang.GroovyClassLoader;
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
@@ -38,15 +38,18 @@ import org.grails.cli.compiler.GroovyCompilerConfiguration;
  * @author Phillip Webb
  * @since 1.0.0
  */
-public class SpringBootCompilerAutoConfiguration extends CompilerAutoConfiguration {
+// TODO(groovyism-cleanup): semicolons and double-quoted strings kept to clear the 50% rename-similarity threshold against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'UnnecessaryGString'])
+@CompileStatic
+class SpringBootCompilerAutoConfiguration extends CompilerAutoConfiguration {
 
     @Override
-    public void applyDependencies(DependencyCustomizer dependencies) {
+    void applyDependencies(DependencyCustomizer dependencies) {
         dependencies.ifAnyMissingClasses("org.springframework.boot.SpringApplication").add("spring-boot-starter");
     }
 
     @Override
-    public void applyImports(ImportCustomizer imports) {
+    void applyImports(ImportCustomizer imports) {
         imports.addImports("jakarta.annotation.PostConstruct", "jakarta.annotation.PreDestroy", "groovy.util.logging.Log",
                 "org.springframework.stereotype.Controller", "org.springframework.stereotype.Service",
                 "org.springframework.stereotype.Component", "org.springframework.beans.factory.annotation.Autowired",
@@ -69,7 +72,7 @@ public class SpringBootCompilerAutoConfiguration extends CompilerAutoConfigurati
     }
 
     @Override
-    public void applyToMainClass(GroovyClassLoader loader, GroovyCompilerConfiguration configuration,
+    void applyToMainClass(GroovyClassLoader loader, GroovyCompilerConfiguration configuration,
             GeneratorContext generatorContext, SourceUnit source, ClassNode classNode)
             throws CompilationFailedException {
         addEnableAutoConfigurationAnnotation(classNode);

@@ -18,6 +18,7 @@
  */
 package org.grails.cli.compiler.autoconfigure;
 
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 
@@ -31,23 +32,26 @@ import org.grails.cli.compiler.DependencyCustomizer;
  * @author Dave Syer
  * @since 1.0.0
  */
-public class JdbcCompilerAutoConfiguration extends CompilerAutoConfiguration {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class JdbcCompilerAutoConfiguration extends CompilerAutoConfiguration {
 
     @Override
-    public boolean matches(ClassNode classNode) {
-        return AstUtils.hasAtLeastOneFieldOrMethod(classNode, "JdbcTemplate", "NamedParameterJdbcTemplate",
-                "DataSource");
+    boolean matches(ClassNode classNode) {
+        return AstUtils.hasAtLeastOneFieldOrMethod(classNode, 'JdbcTemplate', 'NamedParameterJdbcTemplate',
+                'DataSource');
     }
 
     @Override
-    public void applyDependencies(DependencyCustomizer dependencies) {
-        dependencies.ifAnyMissingClasses("org.springframework.jdbc.core.JdbcTemplate").add("spring-boot-starter-jdbc");
+    void applyDependencies(DependencyCustomizer dependencies) {
+        dependencies.ifAnyMissingClasses('org.springframework.jdbc.core.JdbcTemplate').add('spring-boot-starter-jdbc');
     }
 
     @Override
-    public void applyImports(ImportCustomizer imports) {
-        imports.addStarImports("org.springframework.jdbc.core", "org.springframework.jdbc.core.namedparam");
-        imports.addImports("javax.sql.DataSource");
+    void applyImports(ImportCustomizer imports) {
+        imports.addStarImports('org.springframework.jdbc.core', 'org.springframework.jdbc.core.namedparam');
+        imports.addImports('javax.sql.DataSource');
     }
 
 }

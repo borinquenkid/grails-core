@@ -16,16 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.cli.gradle;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
+import groovy.transform.CompileStatic;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.Task;
@@ -42,15 +36,19 @@ import org.grails.cli.gradle.FetchAllTaskSelectorsBuildAction.AllTasksModel;
  * @since 3.0
  *
  */
-public class FetchAllTaskSelectorsBuildAction implements BuildAction<AllTasksModel> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class FetchAllTaskSelectorsBuildAction implements BuildAction<AllTasksModel> {
+
     private static final long serialVersionUID = 1L;
     private final String currentProjectPath;
 
-    public FetchAllTaskSelectorsBuildAction(File currentProjectDir) {
+    FetchAllTaskSelectorsBuildAction(File currentProjectDir) {
         this.currentProjectPath = currentProjectDir.getAbsolutePath();
     }
 
-    public AllTasksModel execute(BuildController controller) {
+    AllTasksModel execute(BuildController controller) {
         AllTasksModel model = new AllTasksModel();
         Map<String, Set<String>> allTaskSelectors = new LinkedHashMap<>();
         model.allTaskSelectors = allTaskSelectors;
@@ -59,7 +57,7 @@ public class FetchAllTaskSelectorsBuildAction implements BuildAction<AllTasksMod
         Map<String, String> projectPaths = new HashMap<>();
         model.projectPaths = projectPaths;
         for (BasicGradleProject project: controller.getBuildModel().getProjects()) {
-            BuildInvocations entryPointsForProject = controller.getModel(project, BuildInvocations.class);
+            BuildInvocations entryPointsForProject = controller.getModel(project, BuildInvocations);
             Set<String> selectorNames = new LinkedHashSet<>();
             for (TaskSelector selector : entryPointsForProject.getTaskSelectors()) {
                 selectorNames.add(selector.getName());
@@ -80,7 +78,9 @@ public class FetchAllTaskSelectorsBuildAction implements BuildAction<AllTasksMod
         return model;
     }
 
-    public static class AllTasksModel implements Serializable {
+    @SuppressWarnings('UnnecessarySemicolon')
+    static class AllTasksModel implements Serializable {
+
         private static final long serialVersionUID = 1L;
         public Map<String, Set<String>> allTasks;
         public Map<String, Set<String>> allTaskSelectors;

@@ -16,43 +16,34 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ServiceLoader;
+import java.lang.reflect.Field
 
-import groovy.grape.GrapeEngine;
-import groovy.lang.GroovyClassLoader.ClassCollector;
-import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.classgen.GeneratorContext;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.CompilePhase;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.Phases;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.control.customizers.CompilationCustomizer;
-import org.codehaus.groovy.control.customizers.ImportCustomizer;
-import org.codehaus.groovy.transform.ASTTransformation;
-import org.codehaus.groovy.transform.ASTTransformationVisitor;
+import groovy.grape.GrapeEngine
+import groovy.lang.GroovyClassLoader.ClassCollector
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.classgen.GeneratorContext
+import org.codehaus.groovy.control.CompilationFailedException
+import org.codehaus.groovy.control.CompilationUnit
+import org.codehaus.groovy.control.CompilePhase
+import org.codehaus.groovy.control.CompilerConfiguration
+import org.codehaus.groovy.control.Phases
+import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.control.customizers.CompilationCustomizer
+import org.codehaus.groovy.control.customizers.ImportCustomizer
+import org.codehaus.groovy.transform.ASTTransformation
+import org.codehaus.groovy.transform.ASTTransformationVisitor
+import org.springframework.core.annotation.AnnotationAwareOrderComparator
+import org.springframework.util.ClassUtils
 
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.util.ClassUtils;
-
-import org.grails.cli.compiler.dependencies.SpringBootDependenciesDependencyManagement;
-import org.grails.cli.compiler.grape.DependencyResolutionContext;
-import org.grails.cli.compiler.grape.GrapeEngineInstaller;
-import org.grails.cli.compiler.grape.MavenResolverGrapeEngineFactory;
-import org.grails.cli.util.ResourceUtils;
+import org.grails.cli.compiler.dependencies.SpringBootDependenciesDependencyManagement
+import org.grails.cli.compiler.grape.DependencyResolutionContext
+import org.grails.cli.compiler.grape.GrapeEngineInstaller
+import org.grails.cli.compiler.grape.MavenResolverGrapeEngineFactory
+import org.grails.cli.util.ResourceUtils
 
 /**
  * Compiler for Groovy sources. Primarily a simple Facade for
@@ -76,53 +67,54 @@ import org.grails.cli.util.ResourceUtils;
  * @author Andy Wilkinson
  * @since 1.0.0
  */
-public class GroovyCompiler {
+@CompileStatic
+class GroovyCompiler {
 
-    private final GroovyCompilerConfiguration configuration;
+    private final GroovyCompilerConfiguration configuration
 
-    private final ExtendedGroovyClassLoader loader;
+    private final ExtendedGroovyClassLoader loader
 
-    private final Iterable<CompilerAutoConfiguration> compilerAutoConfigurations;
+    private final Iterable<CompilerAutoConfiguration> compilerAutoConfigurations
 
-    private final List<ASTTransformation> transformations;
+    private final List<ASTTransformation> transformations
 
     /**
      * Create a new {@link GroovyCompiler} instance.
      * @param configuration the compiler configuration
      */
-    public GroovyCompiler(GroovyCompilerConfiguration configuration) {
+    GroovyCompiler(GroovyCompilerConfiguration configuration) {
 
-        this.configuration = configuration;
-        this.loader = createLoader(configuration);
+        this.configuration = configuration
+        this.loader = createLoader(configuration)
 
-        DependencyResolutionContext resolutionContext = new DependencyResolutionContext();
-        resolutionContext.addDependencyManagement(new SpringBootDependenciesDependencyManagement());
+        DependencyResolutionContext resolutionContext = new DependencyResolutionContext()
+        resolutionContext.addDependencyManagement(new SpringBootDependenciesDependencyManagement())
 
         GrapeEngine grapeEngine = MavenResolverGrapeEngineFactory.create(this.loader,
-                configuration.getRepositoryConfiguration(), resolutionContext, configuration.isQuiet());
+                configuration.getRepositoryConfiguration(), resolutionContext, configuration.isQuiet())
 
-        GrapeEngineInstaller.install(grapeEngine);
+        GrapeEngineInstaller.install(grapeEngine)
 
-        this.loader.getConfiguration().addCompilationCustomizers(new CompilerAutoConfigureCustomizer());
+        this.loader.getConfiguration().addCompilationCustomizers(new CompilerAutoConfigureCustomizer())
         if (configuration.isAutoconfigure()) {
-            this.compilerAutoConfigurations = ServiceLoader.load(CompilerAutoConfiguration.class);
+            this.compilerAutoConfigurations = ServiceLoader.load(CompilerAutoConfiguration)
         }
         else {
-            this.compilerAutoConfigurations = Collections.emptySet();
+            this.compilerAutoConfigurations = Collections.emptySet()
         }
 
-        this.transformations = new ArrayList<>();
-        this.transformations.add(new DependencyManagementBomTransformation(resolutionContext));
+        this.transformations = new ArrayList<>()
+        this.transformations.add(new DependencyManagementBomTransformation(resolutionContext))
         this.transformations.add(new DependencyAutoConfigurationTransformation(this.loader, resolutionContext,
-                this.compilerAutoConfigurations));
-        this.transformations.add(new GroovyBeansTransformation());
+                this.compilerAutoConfigurations))
+        this.transformations.add(new GroovyBeansTransformation())
         if (this.configuration.isGuessDependencies()) {
-            this.transformations.add(new ResolveDependencyCoordinatesTransformation(resolutionContext));
+            this.transformations.add(new ResolveDependencyCoordinatesTransformation(resolutionContext))
         }
-        for (ASTTransformation transformation : ServiceLoader.load(SpringBootAstTransformation.class)) {
-            this.transformations.add(transformation);
+        for (ASTTransformation transformation in ServiceLoader.load(SpringBootAstTransformation)) {
+            this.transformations.add(transformation)
         }
-        this.transformations.sort(AnnotationAwareOrderComparator.INSTANCE);
+        this.transformations.sort(AnnotationAwareOrderComparator.INSTANCE)
     }
 
     /**
@@ -130,41 +122,41 @@ public class GroovyCompiler {
      * {@link #compile(String...)}.
      * @return the AST transformations to apply
      */
-    public List<ASTTransformation> getAstTransformations() {
-        return this.transformations;
+    List<ASTTransformation> getAstTransformations() {
+        return this.transformations
     }
 
-    public ExtendedGroovyClassLoader getLoader() {
-        return this.loader;
+    ExtendedGroovyClassLoader getLoader() {
+        return this.loader
     }
 
     private ExtendedGroovyClassLoader createLoader(GroovyCompilerConfiguration configuration) {
 
-        ExtendedGroovyClassLoader loader = new ExtendedGroovyClassLoader(configuration.getScope());
+        ExtendedGroovyClassLoader loader = new ExtendedGroovyClassLoader(configuration.getScope())
 
-        for (URL url : getExistingUrls()) {
-            loader.addURL(url);
+        for (URL url in getExistingUrls()) {
+            loader.addURL(url)
         }
 
-        for (String classpath : configuration.getClasspath()) {
-            loader.addClasspath(classpath);
+        for (String classpath in configuration.getClasspath()) {
+            loader.addClasspath(classpath)
         }
 
-        return loader;
+        return loader
     }
 
     private URL[] getExistingUrls() {
-        ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+        ClassLoader tccl = Thread.currentThread().getContextClassLoader()
         if (tccl instanceof ExtendedGroovyClassLoader) {
-            return ((ExtendedGroovyClassLoader) tccl).getURLs();
+            return ((ExtendedGroovyClassLoader) tccl).getURLs()
         }
         else {
-            return new URL[0];
+            return new URL[0]
         }
     }
 
-    public void addCompilationCustomizers(CompilationCustomizer... customizers) {
-        this.loader.getConfiguration().addCompilationCustomizers(customizers);
+    void addCompilationCustomizers(CompilationCustomizer... customizers) {
+        this.loader.getConfiguration().addCompilationCustomizers(customizers)
     }
 
     /**
@@ -177,76 +169,76 @@ public class GroovyCompiler {
      * @throws IOException in case of I/O errors
      * @throws CompilationFailedException in case of compilation errors
      */
-    public Class<?>[] compile(String... sources) throws CompilationFailedException, IOException {
+    Class<?>[] compile(String... sources) throws CompilationFailedException, IOException {
 
-        this.loader.clearCache();
-        List<Class<?>> classes = new ArrayList<>();
+        this.loader.clearCache()
+        List<Class<?>> classes = new ArrayList<>()
 
-        CompilerConfiguration configuration = this.loader.getConfiguration();
+        CompilerConfiguration configuration = this.loader.getConfiguration()
 
-        CompilationUnit compilationUnit = new CompilationUnit(configuration, null, this.loader);
-        ClassCollector collector = this.loader.createCollector(compilationUnit, null);
-        compilationUnit.setClassgenCallback(collector);
+        CompilationUnit compilationUnit = new CompilationUnit(configuration, null, this.loader)
+        ClassCollector collector = this.loader.createCollector(compilationUnit, null)
+        compilationUnit.setClassgenCallback(collector)
 
-        for (String source : sources) {
-            List<String> paths = ResourceUtils.getUrls(source, this.loader);
-            for (String path : paths) {
-                compilationUnit.addSource(URI.create(path).toURL());
+        for (String source in sources) {
+            List<String> paths = ResourceUtils.getUrls(source, this.loader)
+            for (String path in paths) {
+                compilationUnit.addSource(URI.create(path).toURL())
             }
         }
 
-        addAstTransformations(compilationUnit);
+        addAstTransformations(compilationUnit)
 
-        compilationUnit.compile(Phases.CLASS_GENERATION);
-        for (Object loadedClass : collector.getLoadedClasses()) {
-            classes.add((Class<?>) loadedClass);
+        compilationUnit.compile(Phases.CLASS_GENERATION)
+        for (Object loadedClass in collector.getLoadedClasses()) {
+            classes.add((Class<?>) loadedClass)
         }
-        ClassNode mainClassNode = MainClass.get(compilationUnit);
+        ClassNode mainClassNode = MainClass.get(compilationUnit)
 
-        Class<?> mainClass = null;
-        for (Class<?> loadedClass : classes) {
+        Class<?> mainClass = null
+        for (Class<?> loadedClass in classes) {
             if (mainClassNode.getName().equals(loadedClass.getName())) {
-                mainClass = loadedClass;
+                mainClass = loadedClass
             }
         }
         if (mainClass != null) {
-            classes.remove(mainClass);
-            classes.add(0, mainClass);
+            classes.remove(mainClass)
+            classes.add(0, mainClass)
         }
 
-        return ClassUtils.toClassArray(classes);
+        return ClassUtils.toClassArray(classes)
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings('rawtypes')
     private void addAstTransformations(CompilationUnit compilationUnit) {
-        Deque[] phaseOperations = getPhaseOperations(compilationUnit);
-        processConversionOperations((LinkedList) phaseOperations[Phases.CONVERSION]);
+        Deque[] phaseOperations = getPhaseOperations(compilationUnit)
+        processConversionOperations((LinkedList) phaseOperations[Phases.CONVERSION])
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings('rawtypes')
     private Deque[] getPhaseOperations(CompilationUnit compilationUnit) {
         try {
-            Field field = CompilationUnit.class.getDeclaredField("phaseOperations");
-            field.setAccessible(true);
-            return (Deque[]) field.get(compilationUnit);
+            Field field = CompilationUnit.getDeclaredField('phaseOperations')
+            field.setAccessible(true)
+            return (Deque[]) field.get(compilationUnit)
         }
         catch (Exception ex) {
-            throw new IllegalStateException("Phase operations not available from compilation unit");
+            throw new IllegalStateException('Phase operations not available from compilation unit')
         }
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings([ 'rawtypes', 'unchecked' ])
     private void processConversionOperations(LinkedList conversionOperations) {
-        int index = getIndexOfASTTransformationVisitor(conversionOperations);
+        int index = getIndexOfASTTransformationVisitor(conversionOperations)
         conversionOperations.add(index, new CompilationUnit.ISourceUnitOperation() {
             @Override
-            public void call(SourceUnit source) throws CompilationFailedException {
-                ASTNode[] nodes = new ASTNode[] { source.getAST() };
-                for (ASTTransformation transformation : GroovyCompiler.this.transformations) {
-                    transformation.visit(nodes, source);
+            void call(SourceUnit source) throws CompilationFailedException {
+                ASTNode[] nodes = [source.getAST()] as ASTNode[]
+                for (ASTTransformation transformation in GroovyCompiler.this.transformations) {
+                    transformation.visit(nodes, source)
                 }
             }
-        });
+        })
     }
 
     private int getIndexOfASTTransformationVisitor(List<?> conversionOperations) {
@@ -254,11 +246,11 @@ public class GroovyCompiler {
             if (conversionOperations.get(index)
                 .getClass()
                 .getName()
-                .startsWith(ASTTransformationVisitor.class.getName())) {
-                return index;
+                .startsWith(ASTTransformationVisitor.getName())) {
+                return index
             }
         }
-        return conversionOperations.size();
+        return conversionOperations.size()
     }
 
     /**
@@ -267,33 +259,33 @@ public class GroovyCompiler {
     private class CompilerAutoConfigureCustomizer extends CompilationCustomizer {
 
         CompilerAutoConfigureCustomizer() {
-            super(CompilePhase.CONVERSION);
+            super(CompilePhase.CONVERSION)
         }
 
         @Override
-        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode)
+        void call(SourceUnit source, GeneratorContext context, ClassNode classNode)
                 throws CompilationFailedException {
 
-            ImportCustomizer importCustomizer = new SmartImportCustomizer(source);
-            List<ClassNode> classNodes = source.getAST().getClasses();
-            ClassNode mainClassNode = MainClass.get(classNodes);
+            ImportCustomizer importCustomizer = new SmartImportCustomizer(source)
+            List<ClassNode> classNodes = source.getAST().getClasses()
+            ClassNode mainClassNode = MainClass.get(classNodes)
 
             // Additional auto configuration
-            for (CompilerAutoConfiguration autoConfiguration : GroovyCompiler.this.compilerAutoConfigurations) {
+            for (CompilerAutoConfiguration autoConfiguration in GroovyCompiler.this.compilerAutoConfigurations) {
                 if (classNodes.stream().anyMatch(autoConfiguration::matches)) {
                     if (GroovyCompiler.this.configuration.isGuessImports()) {
-                        autoConfiguration.applyImports(importCustomizer);
-                        importCustomizer.call(source, context, classNode);
+                        autoConfiguration.applyImports(importCustomizer)
+                        importCustomizer.call(source, context, classNode)
                     }
                     if (classNode.equals(mainClassNode)) {
                         autoConfiguration.applyToMainClass(GroovyCompiler.this.loader,
-                                GroovyCompiler.this.configuration, context, source, classNode);
+                                GroovyCompiler.this.configuration, context, source, classNode)
                     }
                     autoConfiguration.apply(GroovyCompiler.this.loader, GroovyCompiler.this.configuration, context,
-                            source, classNode);
+                            source, classNode)
                 }
             }
-            importCustomizer.call(source, context, classNode);
+            importCustomizer.call(source, context, classNode)
         }
 
     }
@@ -301,20 +293,20 @@ public class GroovyCompiler {
     private static class MainClass {
 
         static ClassNode get(CompilationUnit source) {
-            return get(source.getAST().getClasses());
+            return get(source.getAST().getClasses())
         }
 
         static ClassNode get(List<ClassNode> classes) {
-            for (ClassNode node : classes) {
-                if (AstUtils.hasAtLeastOneAnnotation(node, "Enable*AutoConfiguration")) {
-                    return null; // No need to enhance this
+            for (ClassNode node in classes) {
+                if (AstUtils.hasAtLeastOneAnnotation(node, 'Enable*AutoConfiguration')) {
+                    return null // No need to enhance this
                 }
-                if (AstUtils.hasAtLeastOneAnnotation(node, "*Controller", "Configuration", "Component", "*Service",
-                        "Repository", "Enable*")) {
-                    return node;
+                if (AstUtils.hasAtLeastOneAnnotation(node, '*Controller', 'Configuration', 'Component', '*Service',
+                        'Repository', 'Enable*')) {
+                    return node
                 }
             }
-            return classes.isEmpty() ? null : classes.get(0);
+            return classes.isEmpty() ? null : classes.get(0)
         }
 
     }

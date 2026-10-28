@@ -18,8 +18,7 @@
  */
 package org.grails.cli.command.options;
 
-import java.util.Arrays;
-
+import groovy.transform.CompileStatic;
 import joptsimple.OptionSpec;
 
 import org.springframework.boot.cli.command.options.OptionHandler;
@@ -32,7 +31,10 @@ import org.springframework.boot.cli.command.options.OptionHandler;
  * @author Dave Syer
  * @since 1.0.0
  */
-public class CompilerOptionHandler extends OptionHandler {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class CompilerOptionHandler extends OptionHandler {
 
     private OptionSpec<Void> noGuessImportsOption;
 
@@ -44,13 +46,13 @@ public class CompilerOptionHandler extends OptionHandler {
 
     @Override
     protected final void options() {
-        this.noGuessImportsOption = option("no-guess-imports", "Do not attempt to guess imports");
-        this.noGuessDependenciesOption = option("no-guess-dependencies", "Do not attempt to guess dependencies");
-        this.autoconfigureOption = option("autoconfigure", "Add autoconfigure compiler transformations")
+        this.noGuessImportsOption = option('no-guess-imports', 'Do not attempt to guess imports');
+        this.noGuessDependenciesOption = option('no-guess-dependencies', 'Do not attempt to guess dependencies');
+        this.autoconfigureOption = option('autoconfigure', 'Add autoconfigure compiler transformations')
             .withOptionalArg()
-            .ofType(Boolean.class)
+            .ofType(Boolean)
             .defaultsTo(true);
-        this.classpathOption = option(Arrays.asList("classpath", "cp"), "Additional classpath entries")
+        this.classpathOption = option(Arrays.asList('classpath', 'cp'), 'Additional classpath entries')
             .withRequiredArg();
         doOptions();
     }
@@ -58,19 +60,19 @@ public class CompilerOptionHandler extends OptionHandler {
     protected void doOptions() {
     }
 
-    public OptionSpec<Void> getNoGuessImportsOption() {
+    OptionSpec<Void> getNoGuessImportsOption() {
         return this.noGuessImportsOption;
     }
 
-    public OptionSpec<Void> getNoGuessDependenciesOption() {
+    OptionSpec<Void> getNoGuessDependenciesOption() {
         return this.noGuessDependenciesOption;
     }
 
-    public OptionSpec<String> getClasspathOption() {
+    OptionSpec<String> getClasspathOption() {
         return this.classpathOption;
     }
 
-    public OptionSpec<Boolean> getAutoconfigureOption() {
+    OptionSpec<Boolean> getAutoconfigureOption() {
         return this.autoconfigureOption;
     }
 

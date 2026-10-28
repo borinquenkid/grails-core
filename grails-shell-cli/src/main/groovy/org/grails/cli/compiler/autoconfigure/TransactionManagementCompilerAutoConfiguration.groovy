@@ -18,6 +18,7 @@
  */
 package org.grails.cli.compiler.autoconfigure;
 
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 
@@ -32,24 +33,27 @@ import org.grails.cli.compiler.DependencyCustomizer;
  * @author Phillip Webb
  * @since 1.0.0
  */
-public class TransactionManagementCompilerAutoConfiguration extends CompilerAutoConfiguration {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class TransactionManagementCompilerAutoConfiguration extends CompilerAutoConfiguration {
 
     @Override
-    public boolean matches(ClassNode classNode) {
-        return AstUtils.hasAtLeastOneAnnotation(classNode, "EnableTransactionManagement");
+    boolean matches(ClassNode classNode) {
+        return AstUtils.hasAtLeastOneAnnotation(classNode, 'EnableTransactionManagement');
     }
 
     @Override
-    public void applyDependencies(DependencyCustomizer dependencies) {
-        dependencies.ifAnyMissingClasses("org.springframework.transaction.annotation.Transactional")
-            .add("spring-tx", "spring-boot-starter-aspectj");
+    void applyDependencies(DependencyCustomizer dependencies) {
+        dependencies.ifAnyMissingClasses('org.springframework.transaction.annotation.Transactional')
+            .add('spring-tx', 'spring-boot-starter-aspectj');
     }
 
     @Override
-    public void applyImports(ImportCustomizer imports) {
-        imports.addStarImports("org.springframework.transaction.annotation", "org.springframework.transaction.support");
-        imports.addImports("org.springframework.transaction.PlatformTransactionManager",
-                "org.springframework.transaction.support.AbstractPlatformTransactionManager");
+    void applyImports(ImportCustomizer imports) {
+        imports.addStarImports('org.springframework.transaction.annotation', 'org.springframework.transaction.support');
+        imports.addImports('org.springframework.transaction.PlatformTransactionManager',
+                'org.springframework.transaction.support.AbstractPlatformTransactionManager');
     }
 
 }

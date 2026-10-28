@@ -16,10 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.command.install;
-
-import java.io.File;
-import java.util.List;
+package org.grails.cli.command.install
 
 /**
  * Resolve artifact identifiers (typically in the form {@literal group:artifact:version})
@@ -37,6 +34,6 @@ interface DependencyResolver {
      * @return the {@code File}s for the resolved artifacts
      * @throws Exception if dependency resolution fails
      */
-    List<File> resolve(List<String> artifactIdentifiers) throws Exception;
+    List<File> resolve(List<String> artifactIdentifiers) throws Exception
 
 }

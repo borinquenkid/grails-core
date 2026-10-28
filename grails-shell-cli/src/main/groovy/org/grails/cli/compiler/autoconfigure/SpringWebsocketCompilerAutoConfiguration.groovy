@@ -18,6 +18,7 @@
  */
 package org.grails.cli.compiler.autoconfigure;
 
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 
@@ -31,28 +32,31 @@ import org.grails.cli.compiler.DependencyCustomizer;
  * @author Dave Syer
  * @since 1.0.0
  */
-public class SpringWebsocketCompilerAutoConfiguration extends CompilerAutoConfiguration {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class SpringWebsocketCompilerAutoConfiguration extends CompilerAutoConfiguration {
 
     @Override
-    public boolean matches(ClassNode classNode) {
-        return AstUtils.hasAtLeastOneAnnotation(classNode, "EnableWebSocket", "EnableWebSocketMessageBroker");
+    boolean matches(ClassNode classNode) {
+        return AstUtils.hasAtLeastOneAnnotation(classNode, 'EnableWebSocket', 'EnableWebSocketMessageBroker');
     }
 
     @Override
-    public void applyDependencies(DependencyCustomizer dependencies) {
-        dependencies.ifAnyMissingClasses("org.springframework.web.socket.config.annotation.EnableWebSocket")
-            .add("spring-boot-starter-websocket")
-            .add("spring-messaging");
+    void applyDependencies(DependencyCustomizer dependencies) {
+        dependencies.ifAnyMissingClasses('org.springframework.web.socket.config.annotation.EnableWebSocket')
+            .add('spring-boot-starter-websocket')
+            .add('spring-messaging');
     }
 
     @Override
-    public void applyImports(ImportCustomizer imports) {
+    void applyImports(ImportCustomizer imports) {
         imports
-            .addStarImports("org.springframework.messaging.handler.annotation",
-                    "org.springframework.messaging.simp.config", "org.springframework.web.socket.handler",
-                    "org.springframework.web.socket.sockjs.transport.handler",
-                    "org.springframework.web.socket.config.annotation")
-            .addImports("org.springframework.web.socket.WebSocketHandler");
+            .addStarImports('org.springframework.messaging.handler.annotation',
+                    'org.springframework.messaging.simp.config', 'org.springframework.web.socket.handler',
+                    'org.springframework.web.socket.sockjs.transport.handler',
+                    'org.springframework.web.socket.config.annotation')
+            .addImports('org.springframework.web.socket.WebSocketHandler');
     }
 
 }

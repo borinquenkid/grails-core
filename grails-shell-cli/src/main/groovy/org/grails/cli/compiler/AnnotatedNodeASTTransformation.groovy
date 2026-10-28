@@ -16,22 +16,18 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.AnnotatedNode;
-import org.codehaus.groovy.ast.AnnotationNode;
-import org.codehaus.groovy.ast.ClassCodeVisitorSupport;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.ImportNode;
-import org.codehaus.groovy.ast.ModuleNode;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.transform.ASTTransformation;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.AnnotatedNode
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.ClassCodeVisitorSupport
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.ImportNode
+import org.codehaus.groovy.ast.ModuleNode
+import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.transform.ASTTransformation
 
 /**
  * A base class for {@link ASTTransformation AST transformations} that are solely
@@ -40,62 +36,63 @@ import org.codehaus.groovy.transform.ASTTransformation;
  * @author Andy Wilkinson
  * @since 1.1.0
  */
-public abstract class AnnotatedNodeASTTransformation implements ASTTransformation {
+@CompileStatic
+abstract class AnnotatedNodeASTTransformation implements ASTTransformation {
 
-    private final Set<String> interestingAnnotationNames;
+    private final Set<String> interestingAnnotationNames
 
-    private final boolean removeAnnotations;
+    private final boolean removeAnnotations
 
-    private SourceUnit sourceUnit;
+    private SourceUnit sourceUnit
 
     protected AnnotatedNodeASTTransformation(Set<String> interestingAnnotationNames, boolean removeAnnotations) {
-        this.interestingAnnotationNames = interestingAnnotationNames;
-        this.removeAnnotations = removeAnnotations;
+        this.interestingAnnotationNames = interestingAnnotationNames
+        this.removeAnnotations = removeAnnotations
     }
 
     @Override
-    public void visit(ASTNode[] nodes, SourceUnit source) {
-        this.sourceUnit = source;
-        List<AnnotationNode> annotationNodes = new ArrayList<>();
-        ClassVisitor classVisitor = new ClassVisitor(source, annotationNodes);
-        for (ASTNode node : nodes) {
+    void visit(ASTNode[] nodes, SourceUnit source) {
+        this.sourceUnit = source
+        List<AnnotationNode> annotationNodes = new ArrayList<>()
+        ClassVisitor classVisitor = new ClassVisitor(source, annotationNodes)
+        for (ASTNode node in nodes) {
             if (node instanceof ModuleNode) {
-                ModuleNode module = (ModuleNode) node;
-                visitAnnotatedNode(module.getPackage(), annotationNodes);
-                for (ImportNode importNode : module.getImports()) {
-                    visitAnnotatedNode(importNode, annotationNodes);
+                ModuleNode module = (ModuleNode) node
+                visitAnnotatedNode(module.getPackage(), annotationNodes)
+                for (ImportNode importNode in module.getImports()) {
+                    visitAnnotatedNode(importNode, annotationNodes)
                 }
-                for (ImportNode importNode : module.getStarImports()) {
-                    visitAnnotatedNode(importNode, annotationNodes);
+                for (ImportNode importNode in module.getStarImports()) {
+                    visitAnnotatedNode(importNode, annotationNodes)
                 }
                 module.getStaticImports()
-                    .forEach((name, importNode) -> visitAnnotatedNode(importNode, annotationNodes));
+                    .forEach((name, importNode) -> visitAnnotatedNode(importNode, annotationNodes))
                 module.getStaticStarImports()
-                    .forEach((name, importNode) -> visitAnnotatedNode(importNode, annotationNodes));
-                for (ClassNode classNode : module.getClasses()) {
-                    visitAnnotatedNode(classNode, annotationNodes);
-                    classNode.visitContents(classVisitor);
+                    .forEach((name, importNode) -> visitAnnotatedNode(importNode, annotationNodes))
+                for (ClassNode classNode in module.getClasses()) {
+                    visitAnnotatedNode(classNode, annotationNodes)
+                    classNode.visitContents(classVisitor)
                 }
             }
         }
-        processAnnotationNodes(annotationNodes);
+        processAnnotationNodes(annotationNodes)
     }
 
     protected SourceUnit getSourceUnit() {
-        return this.sourceUnit;
+        return this.sourceUnit
     }
 
-    protected abstract void processAnnotationNodes(List<AnnotationNode> annotationNodes);
+    protected abstract void processAnnotationNodes(List<AnnotationNode> annotationNodes)
 
     private void visitAnnotatedNode(AnnotatedNode annotatedNode, List<AnnotationNode> annotatedNodes) {
         if (annotatedNode != null) {
-            Iterator<AnnotationNode> annotationNodes = annotatedNode.getAnnotations().iterator();
+            Iterator<AnnotationNode> annotationNodes = annotatedNode.getAnnotations().iterator()
             while (annotationNodes.hasNext()) {
-                AnnotationNode annotationNode = annotationNodes.next();
+                AnnotationNode annotationNode = annotationNodes.next()
                 if (this.interestingAnnotationNames.contains(annotationNode.getClassNode().getName())) {
-                    annotatedNodes.add(annotationNode);
+                    annotatedNodes.add(annotationNode)
                     if (this.removeAnnotations) {
-                        annotationNodes.remove();
+                        annotationNodes.remove()
                     }
                 }
             }
@@ -104,23 +101,23 @@ public abstract class AnnotatedNodeASTTransformation implements ASTTransformatio
 
     private class ClassVisitor extends ClassCodeVisitorSupport {
 
-        private final SourceUnit source;
+        private final SourceUnit source
 
-        private final List<AnnotationNode> annotationNodes;
+        private final List<AnnotationNode> annotationNodes
 
         ClassVisitor(SourceUnit source, List<AnnotationNode> annotationNodes) {
-            this.source = source;
-            this.annotationNodes = annotationNodes;
+            this.source = source
+            this.annotationNodes = annotationNodes
         }
 
         @Override
         protected SourceUnit getSourceUnit() {
-            return this.source;
+            return this.source
         }
 
         @Override
-        public void visitAnnotations(AnnotatedNode node) {
-            visitAnnotatedNode(node, this.annotationNodes);
+        void visitAnnotations(AnnotatedNode node) {
+            visitAnnotatedNode(node, this.annotationNodes)
         }
 
     }

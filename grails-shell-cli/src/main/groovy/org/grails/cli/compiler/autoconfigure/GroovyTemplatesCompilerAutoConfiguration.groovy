@@ -18,6 +18,7 @@
  */
 package org.grails.cli.compiler.autoconfigure;
 
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 
@@ -33,23 +34,26 @@ import org.grails.cli.groovy.GroovyTemplate;
  * @author Dave Syer
  * @since 1.1.0
  */
-public class GroovyTemplatesCompilerAutoConfiguration extends CompilerAutoConfiguration {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class GroovyTemplatesCompilerAutoConfiguration extends CompilerAutoConfiguration {
 
     @Override
-    public boolean matches(ClassNode classNode) {
-        return AstUtils.hasAtLeastOneAnnotation(classNode, "EnableGroovyTemplates");
+    boolean matches(ClassNode classNode) {
+        return AstUtils.hasAtLeastOneAnnotation(classNode, 'EnableGroovyTemplates');
     }
 
     @Override
-    public void applyDependencies(DependencyCustomizer dependencies) {
-        dependencies.ifAnyMissingClasses("groovy.text.TemplateEngine").add("groovy-templates");
+    void applyDependencies(DependencyCustomizer dependencies) {
+        dependencies.ifAnyMissingClasses('groovy.text.TemplateEngine').add('groovy-templates');
     }
 
     @Override
-    public void applyImports(ImportCustomizer imports) {
-        imports.addStarImports("groovy.text");
-        imports.addImports(EnableGroovyTemplates.class.getCanonicalName());
-        imports.addStaticImport(GroovyTemplate.class.getName(), "template");
+    void applyImports(ImportCustomizer imports) {
+        imports.addStarImports('groovy.text');
+        imports.addImports(EnableGroovyTemplates.getCanonicalName());
+        imports.addStaticImport(GroovyTemplate.getName(), 'template');
     }
 
 }

@@ -16,11 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.cli.command.run;
 
-import java.io.File;
-import java.util.List;
 import java.util.logging.Level;
+
+import groovy.transform.CompileStatic;
 
 import org.grails.cli.compiler.GroovyCompilerScope;
 import org.grails.cli.compiler.RepositoryConfigurationFactory;
@@ -38,39 +39,39 @@ import org.grails.cli.profile.ExecutionContext;
  * @since 1.0.0
  * @see SpringApplicationRunner
  */
-public class RunCommand implements Command {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class RunCommand implements Command {
 
-    public static final String NAME = "run";
+    public static final String NAME = 'run';
 
     private final Object monitor = new Object();
 
     private SpringApplicationRunner runner;
 
-    public RunCommand() {
-    }
-
     @Override
-    public String getName() {
+    String getName() {
         return NAME;
     }
 
     @Override
-    public CommandDescription getDescription() {
+    CommandDescription getDescription() {
         CommandDescription description = new CommandDescription();
         description.setName(NAME);
-        description.setDescription("Run a grails groovy script");
-        description.setUsage("run [SCRIPT NAME]");
+        description.setDescription('Run a grails groovy script');
+        description.setUsage('run [SCRIPT NAME]');
         return description;
     }
 
     @Override
-    public synchronized boolean handle(ExecutionContext executionContext) {
+    synchronized boolean handle(ExecutionContext executionContext) {
         synchronized (this.monitor) {
             String[] sources = executionContext.getCommandLine().getRemainingArgs().toArray(new String[0]);
             List<RepositoryConfiguration> repositoryConfiguration = RepositoryConfigurationFactory
                     .createDefaultRepositoryConfiguration();
             repositoryConfiguration.add(0,
-                    new RepositoryConfiguration("local", new File("repository").toURI(), true));
+                    new RepositoryConfiguration('local', new File('repository').toURI(), true));
 
             SpringApplicationRunnerConfiguration configuration = new SpringApplicationRunnerConfigurationAdapter(
                     repositoryConfiguration);
@@ -87,56 +88,57 @@ public class RunCommand implements Command {
         }
     }
 
+    @SuppressWarnings('UnnecessarySemicolon')
     static class SpringApplicationRunnerConfigurationAdapter implements SpringApplicationRunnerConfiguration {
 
         private final List<RepositoryConfiguration> repositoryConfiguration;
 
-        public SpringApplicationRunnerConfigurationAdapter(List<RepositoryConfiguration> repositoryConfiguration) {
+        SpringApplicationRunnerConfigurationAdapter(List<RepositoryConfiguration> repositoryConfiguration) {
             this.repositoryConfiguration = repositoryConfiguration;
         }
 
         @Override
-        public boolean isWatchForFileChanges() {
+        boolean isWatchForFileChanges() {
             return true;
         }
 
         @Override
-        public Level getLogLevel() {
+        Level getLogLevel() {
             return Level.INFO;
         }
 
         @Override
-        public GroovyCompilerScope getScope() {
+        GroovyCompilerScope getScope() {
             return GroovyCompilerScope.DEFAULT;
         }
 
         @Override
-        public boolean isGuessImports() {
+        boolean isGuessImports() {
             return true;
         }
 
         @Override
-        public boolean isGuessDependencies() {
+        boolean isGuessDependencies() {
             return true;
         }
 
         @Override
-        public boolean isAutoconfigure() {
+        boolean isAutoconfigure() {
             return true;
         }
 
         @Override
-        public String[] getClasspath() {
+        String[] getClasspath() {
             return new String[0];
         }
 
         @Override
-        public List<RepositoryConfiguration> getRepositoryConfiguration() {
+        List<RepositoryConfiguration> getRepositoryConfiguration() {
             return this.repositoryConfiguration;
         }
 
         @Override
-        public boolean isQuiet() {
+        boolean isQuiet() {
             return false;
         }
 

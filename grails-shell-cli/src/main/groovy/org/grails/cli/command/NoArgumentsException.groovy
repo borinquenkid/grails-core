@@ -16,17 +16,27 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.command;
+package org.grails.cli.command
 
-import org.springframework.boot.cli.command.CommandException;
+import groovy.transform.CompileStatic
+import org.springframework.boot.cli.command.CommandException
 
 /**
  * Exception used to indicate that no arguments were specified.
  *
  * @author Phillip Webb
  */
+@CompileStatic
 class NoArgumentsException extends CommandException {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L
+
+    // CommandException has no no-arg constructor, only varargs ones; Groovy's compiler
+    // (unlike Java's) does not resolve an implicit generated default constructor against a
+    // varargs-only superclass constructor, so this explicit super() call is required.
+    @SuppressWarnings('UnnecessaryConstructor')
+    NoArgumentsException() {
+        super()
+    }
 
 }

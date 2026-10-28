@@ -16,9 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.command;
+package org.grails.cli.command
 
-import org.springframework.boot.cli.command.CommandException;
+import groovy.transform.CompileStatic
+import org.springframework.boot.cli.command.CommandException
 
 /**
  * Exception used to when the help command is called without arguments.
@@ -26,12 +27,13 @@ import org.springframework.boot.cli.command.CommandException;
  * @author Phillip Webb
  * @since 1.0.0
  */
-public class NoHelpCommandArgumentsException extends CommandException {
+@CompileStatic
+class NoHelpCommandArgumentsException extends CommandException {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L
 
-    public NoHelpCommandArgumentsException() {
-        super(Option.SHOW_USAGE, Option.HIDE_MESSAGE);
+    NoHelpCommandArgumentsException() {
+        super(Option.SHOW_USAGE, Option.HIDE_MESSAGE)
     }
 
 }

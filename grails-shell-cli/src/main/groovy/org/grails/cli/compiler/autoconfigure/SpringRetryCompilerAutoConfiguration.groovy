@@ -16,14 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler.autoconfigure;
+package org.grails.cli.compiler.autoconfigure
 
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.control.customizers.ImportCustomizer;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.control.customizers.ImportCustomizer
 
-import org.grails.cli.compiler.AstUtils;
-import org.grails.cli.compiler.CompilerAutoConfiguration;
-import org.grails.cli.compiler.DependencyCustomizer;
+import org.grails.cli.compiler.AstUtils
+import org.grails.cli.compiler.CompilerAutoConfiguration
+import org.grails.cli.compiler.DependencyCustomizer
 
 /**
  * {@link CompilerAutoConfiguration} for Spring Retry.
@@ -31,22 +32,23 @@ import org.grails.cli.compiler.DependencyCustomizer;
  * @author Dave Syer
  * @since 1.3.0
  */
-public class SpringRetryCompilerAutoConfiguration extends CompilerAutoConfiguration {
+@CompileStatic
+class SpringRetryCompilerAutoConfiguration extends CompilerAutoConfiguration {
 
     @Override
-    public boolean matches(ClassNode classNode) {
-        return AstUtils.hasAtLeastOneAnnotation(classNode, "EnableRetry", "Retryable", "Recover");
+    boolean matches(ClassNode classNode) {
+        return AstUtils.hasAtLeastOneAnnotation(classNode, 'EnableRetry', 'Retryable', 'Recover')
     }
 
     @Override
-    public void applyDependencies(DependencyCustomizer dependencies) {
-        dependencies.ifAnyMissingClasses("org.springframework.retry.annotation.EnableRetry")
-            .add("spring-retry", "spring-boot-starter-aspectj");
+    void applyDependencies(DependencyCustomizer dependencies) {
+        dependencies.ifAnyMissingClasses('org.springframework.retry.annotation.EnableRetry')
+            .add('spring-retry', 'spring-boot-starter-aspectj')
     }
 
     @Override
-    public void applyImports(ImportCustomizer imports) {
-        imports.addStarImports("org.springframework.retry.annotation");
+    void applyImports(ImportCustomizer imports) {
+        imports.addStarImports('org.springframework.retry.annotation')
     }
 
 }

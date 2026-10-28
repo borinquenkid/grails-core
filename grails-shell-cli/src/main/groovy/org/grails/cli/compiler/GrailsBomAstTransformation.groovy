@@ -17,22 +17,24 @@
  *  under the License.
  */
 
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import org.codehaus.groovy.control.CompilePhase;
-import org.codehaus.groovy.transform.GroovyASTTransformation;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.control.CompilePhase
+import org.codehaus.groovy.transform.GroovyASTTransformation
 
 @GroovyASTTransformation(phase = CompilePhase.CONVERSION)
-public class GrailsBomAstTransformation extends GenericBomAstTransformation {
+@CompileStatic
+class GrailsBomAstTransformation extends GenericBomAstTransformation {
 
     @Override
     protected String getBomModule() {
-        return "grails-bom";
+        return 'grails-bom'
     }
 
     @Override
-    public int getOrder() {
-        return 0;
+    int getOrder() {
+        return 0
     }
 
 }

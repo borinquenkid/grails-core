@@ -18,6 +18,7 @@
  */
 package org.grails.cli.compiler.autoconfigure;
 
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 
@@ -32,22 +33,25 @@ import org.grails.cli.compiler.DependencyCustomizer;
  * @author Artem Bilan
  * @since 1.0.0
  */
-public class SpringIntegrationCompilerAutoConfiguration extends CompilerAutoConfiguration {
+// TODO(groovyism-cleanup): semicolons and double-quoted strings kept to clear the 50% rename-similarity threshold against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'UnnecessaryGString'])
+@CompileStatic
+class SpringIntegrationCompilerAutoConfiguration extends CompilerAutoConfiguration {
 
     @Override
-    public boolean matches(ClassNode classNode) {
+    boolean matches(ClassNode classNode) {
         return AstUtils.hasAtLeastOneAnnotation(classNode, "EnableIntegration") ||
                 AstUtils.hasAtLeastOneAnnotation(classNode, "MessageEndpoint");
     }
 
     @Override
-    public void applyDependencies(DependencyCustomizer dependencies) {
+    void applyDependencies(DependencyCustomizer dependencies) {
         dependencies.ifAnyMissingClasses("org.springframework.integration.config.EnableIntegration")
             .add("spring-boot-starter-integration");
     }
 
     @Override
-    public void applyImports(ImportCustomizer imports) {
+    void applyImports(ImportCustomizer imports) {
         imports.addImports("org.springframework.messaging.Message", "org.springframework.messaging.MessageChannel",
                 "org.springframework.messaging.PollableChannel", "org.springframework.messaging.SubscribableChannel",
                 "org.springframework.messaging.MessageHeaders",

@@ -16,9 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.profile;
+package org.grails.cli.profile
 
-import org.grails.build.parsing.CommandLine;
+import org.grails.build.parsing.CommandLine
 
 /**
  * Context for the execution of {@link org.grails.cli.profile.Command} instances within a {@link org.grails.cli.profile.Profile}
@@ -26,22 +26,23 @@ import org.grails.build.parsing.CommandLine;
  * @author Lari Hotari
  * @author Graeme Rocher
  */
-public interface ExecutionContext extends ProjectContext {
+interface ExecutionContext extends ProjectContext {
 
     /**
      * @return The parsed command line arguments as an instance of {@link org.grails.build.parsing.CommandLine}
      */
-    CommandLine getCommandLine();
+    CommandLine getCommandLine()
 
     /**
      * Allows cancelling of the running command
      */
-    void cancel();
+    void cancel()
 
     /**
      * Attaches a listener for cancellation events
      *
      * @param listener The {@link CommandCancellationListener}
      */
-    void addCancelledListener(CommandCancellationListener listener);
+    void addCancelledListener(CommandCancellationListener listener)
+
 }

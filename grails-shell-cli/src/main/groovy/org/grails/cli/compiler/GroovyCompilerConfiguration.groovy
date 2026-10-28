@@ -16,11 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.cli.compiler;
+package org.grails.cli.compiler
 
-import java.util.List;
-
-import org.grails.cli.compiler.grape.RepositoryConfiguration;
+import org.grails.cli.compiler.grape.RepositoryConfiguration
 
 /**
  * Configuration for the {@link GroovyCompiler}.
@@ -29,55 +27,55 @@ import org.grails.cli.compiler.grape.RepositoryConfiguration;
  * @author Andy Wilkinson
  * @since 1.0.0
  */
-public interface GroovyCompilerConfiguration {
+interface GroovyCompilerConfiguration {
 
     /**
      * Constant to be used when there is no {@link #getClasspath() classpath}.
      */
-    String[] DEFAULT_CLASSPATH = { "." };
+    String[] DEFAULT_CLASSPATH = [ '.' ] as String[]
 
     /**
      * Returns the scope in which the compiler operates.
      * @return the scope of the compiler
      */
-    GroovyCompilerScope getScope();
+    GroovyCompilerScope getScope()
 
     /**
      * Returns if import declarations should be guessed.
      * @return {@code true} if imports should be guessed, otherwise {@code false}
      */
-    boolean isGuessImports();
+    boolean isGuessImports()
 
     /**
      * Returns if jar dependencies should be guessed.
      * @return {@code true} if dependencies should be guessed, otherwise {@code false}
      */
-    boolean isGuessDependencies();
+    boolean isGuessDependencies()
 
     /**
      * Returns true if auto-configuration transformations should be applied.
      * @return {@code true} if auto-configuration transformations should be applied,
      * otherwise {@code false}
      */
-    boolean isAutoconfigure();
+    boolean isAutoconfigure()
 
     /**
      * Returns the classpath for local resources.
      * @return a path for local resources
      */
-    String[] getClasspath();
+    String[] getClasspath()
 
     /**
      * Returns the configuration for the repositories that will be used by the compiler to
      * resolve dependencies.
      * @return the repository configurations
      */
-    List<RepositoryConfiguration> getRepositoryConfiguration();
+    List<RepositoryConfiguration> getRepositoryConfiguration()
 
     /**
      * Returns if running in quiet mode.
      * @return {@code true} if running in quiet mode
      */
-    boolean isQuiet();
+    boolean isQuiet()
 
 }
