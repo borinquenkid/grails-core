@@ -17,10 +17,12 @@
  *  under the License.
  */
 
-package grails.databinding.initializers;
+package grails.databinding.initializers
 
-public interface ValueInitializer {
-    Object initialize();
+interface ValueInitializer {
 
-    Class<?> getTargetType();
+    Object initialize()
+
+    Class<?> getTargetType()
+
 }

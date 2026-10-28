@@ -16,42 +16,30 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.databinding.errors;
+package org.grails.databinding.errors
 
-import grails.databinding.errors.BindingError;
+import groovy.transform.CompileStatic
+
+import grails.databinding.errors.BindingError
 
 /**
  * @author Jeff Brown
  * @since 2.3
  */
-public class SimpleBindingError implements BindingError {
+@CompileStatic
+class SimpleBindingError implements BindingError {
 
-    private final Object object;
-    private final String propertyName;
-    private final Object rejectedValue;
-    private final Throwable cause;
+    final Object object
+    final String propertyName
+    final Object rejectedValue
+    final Throwable cause
 
-    public SimpleBindingError(Object object, String propertyName,
+    SimpleBindingError(Object object, String propertyName,
             Object rejectedValue, Throwable cause) {
-        this.object = object;
-        this.propertyName = propertyName;
-        this.rejectedValue = rejectedValue;
-        this.cause = cause;
+        this.object = object
+        this.propertyName = propertyName
+        this.rejectedValue = rejectedValue
+        this.cause = cause
     }
 
-    public Object getObject() {
-        return object;
-    }
-
-    public String getPropertyName() {
-        return propertyName;
-    }
-
-    public Object getRejectedValue() {
-        return rejectedValue;
-    }
-
-    public Throwable getCause() {
-        return cause;
-    }
 }

@@ -16,16 +16,18 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.databinding.converters;
+package grails.databinding.converters
 
 /**
  * @author Jeff Brown
  * @since 3.0
  */
-public interface ValueConverter {
-    boolean canConvert(Object value);
+interface ValueConverter {
 
-    Object convert(Object value);
+    boolean canConvert(Object value)
 
-    Class<?> getTargetType();
+    Object convert(Object value)
+
+    Class<?> getTargetType()
+
 }

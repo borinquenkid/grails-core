@@ -16,14 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.databinding;
+package grails.databinding
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
-import org.codehaus.groovy.transform.GroovyASTTransformationClass;
+import org.codehaus.groovy.transform.GroovyASTTransformationClass
 
 /**
  * Apply BindingFormat to a field to provide a format
@@ -31,6 +31,7 @@ import org.codehaus.groovy.transform.GroovyASTTransformationClass;
  *
 <pre>
 class DateContainer {
+
     &#064;BindingFormat('MMddyyyy')
     Date someDate
 }
@@ -41,8 +42,10 @@ class DateContainer {
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-@GroovyASTTransformationClass("org.grails.databinding.compiler.BindingFormatASTTransformation")
-public @interface BindingFormat {
-    String value() default "";
-    String code() default "";
+@GroovyASTTransformationClass('org.grails.databinding.compiler.BindingFormatASTTransformation')
+@interface BindingFormat {
+
+    String value() default ''
+    String code() default ''
+
 }

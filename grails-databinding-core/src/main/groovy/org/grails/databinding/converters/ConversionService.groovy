@@ -16,15 +16,16 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.databinding.converters;
+package org.grails.databinding.converters
 
 /**
  * @author Jeff Brown
  * @since 2.3
  */
-public interface ConversionService {
+interface ConversionService {
 
-    boolean canConvert(Class<?> source, Class<?> target);
+    boolean canConvert(Class<?> source, Class<?> target)
 
-    Object convert(Object objet, Class<?> targetType);
+    Object convert(Object objet, Class<?> targetType)
+
 }

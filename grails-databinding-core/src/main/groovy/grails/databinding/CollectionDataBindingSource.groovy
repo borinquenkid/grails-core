@@ -16,14 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.databinding;
-
-import java.util.List;
+package grails.databinding
 
 /**
  * @see DataBindingSource
  * @since 3.0
  */
-public interface CollectionDataBindingSource {
-    List<DataBindingSource> getDataBindingSources();
+interface CollectionDataBindingSource {
+
+    List<DataBindingSource> getDataBindingSources()
+
 }
