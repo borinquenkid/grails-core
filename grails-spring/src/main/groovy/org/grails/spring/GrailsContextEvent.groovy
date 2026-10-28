@@ -16,10 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.spring;
+package org.grails.spring
 
-import org.springframework.context.ApplicationEvent;
-import org.springframework.web.context.WebApplicationContext;
+import groovy.transform.CompileStatic
+import org.springframework.context.ApplicationEvent
+import org.springframework.web.context.WebApplicationContext
 
 /**
  * Signals various events related to the Grails context loading.
@@ -27,20 +28,18 @@ import org.springframework.web.context.WebApplicationContext;
  * @author Graeme Rocher
  * @since 1.0
  */
-public class GrailsContextEvent extends ApplicationEvent {
+@CompileStatic
+class GrailsContextEvent extends ApplicationEvent {
 
-    private static final long serialVersionUID = -2686144042443671643L;
+    private static final long serialVersionUID = -2686144042443671643L
 
-    public static final int DYNAMIC_METHODS_REGISTERED = 0;
+    public static final int DYNAMIC_METHODS_REGISTERED = 0
 
-    private int eventType;
+    final int eventType
 
-    public GrailsContextEvent(WebApplicationContext ctx, int eventType) {
-        super(ctx);
-        this.eventType = eventType;
+    GrailsContextEvent(WebApplicationContext ctx, int eventType) {
+        super(ctx)
+        this.eventType = eventType
     }
 
-    public int getEventType() {
-        return eventType;
-    }
 }

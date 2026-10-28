@@ -16,92 +16,100 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.spring;
+package org.grails.spring
 
-import groovy.lang.GroovyObject;
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaClass;
+import org.springframework.beans.BeanWrapper
+import org.springframework.beans.BeanWrapperImpl
+import org.springframework.beans.BeansException
+import org.springframework.beans.MutablePropertyValues
+import org.springframework.beans.factory.config.BeanDefinition
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
+import org.springframework.beans.factory.support.DefaultListableBeanFactory
+import org.springframework.beans.factory.support.GenericBeanDefinition
+import org.springframework.context.ApplicationContext
+import org.springframework.context.support.GenericApplicationContext
 
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.support.GenericBeanDefinition;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.POJO
 
 /**
  * An ApplicationContext that extends StaticApplicationContext and implements GroovyObject such that
  * beans can be retrieved with the dot de-reference syntax instead of using getBean('name').
  *
+ * <p>Not a synthesized GroovyObject: the Groovy compiler's own metaClass scaffolding for a class
+ * implementing GroovyObject conflicts with this class's own explicit {@code metaClass} field and
+ * hand-rolled getMetaClass()/setMetaClass(), causing a NullPointerException during construction
+ * (the synthetic initializer races the explicit field assignment in the constructor body). @POJO
+ * keeps this class a plain object as far as the compiler is concerned; the manual GroovyObject
+ * method implementations below still satisfy the interface for callers.</p>
+ *
  * @author Graeme Rocher
  * @since 1.0
  */
-public class GrailsApplicationContext extends GenericApplicationContext implements GroovyObject {
+@POJO
+@CompileStatic
+class GrailsApplicationContext extends GenericApplicationContext implements GroovyObject {
 
-    protected MetaClass metaClass;
-    private BeanWrapper ctxBean = new BeanWrapperImpl(this);
-    private static final String GRAILS_ENVIRONMENT_BEAN_NAME = "springEnvironment";
+    protected MetaClass metaClass
+    private BeanWrapper ctxBean = new BeanWrapperImpl(this)
+    private static final String GRAILS_ENVIRONMENT_BEAN_NAME = 'springEnvironment'
 
-    public GrailsApplicationContext(DefaultListableBeanFactory defaultListableBeanFactory) {
-        super(defaultListableBeanFactory);
-        metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass());
+    GrailsApplicationContext(DefaultListableBeanFactory defaultListableBeanFactory) {
+        super(defaultListableBeanFactory)
+        metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass())
     }
 
-    public GrailsApplicationContext(DefaultListableBeanFactory defaultListableBeanFactory, ApplicationContext applicationContext) {
-        super(defaultListableBeanFactory, applicationContext);
-        metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass());
+    GrailsApplicationContext(DefaultListableBeanFactory defaultListableBeanFactory, ApplicationContext applicationContext) {
+        super(defaultListableBeanFactory, applicationContext)
+        metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass())
     }
 
-    public GrailsApplicationContext(org.springframework.context.ApplicationContext parent) throws org.springframework.beans.BeansException {
-        super(parent);
-        metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass());
+    GrailsApplicationContext(org.springframework.context.ApplicationContext parent) throws org.springframework.beans.BeansException {
+        super(parent)
+        metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass())
     }
 
-    public GrailsApplicationContext() throws org.springframework.beans.BeansException {
-        metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass());
+    GrailsApplicationContext() throws org.springframework.beans.BeansException {
+        metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass())
     }
 
     @Override
-    public boolean containsBeanDefinition(String beanName) {
-        return super.containsBeanDefinition(beanName);
+    boolean containsBeanDefinition(String beanName) {
+        return super.containsBeanDefinition(beanName)
     }
 
-    public MetaClass getMetaClass() {
-        return metaClass;
+    MetaClass getMetaClass() {
+        return metaClass
     }
 
-    public Object getProperty(String property) {
+    Object getProperty(String property) {
         if (containsBean(property)) {
-            return getBean(property);
+            return getBean(property)
         }
         if (ctxBean.isReadableProperty(property)) {
-            return ctxBean.getPropertyValue(property);
+            return ctxBean.getPropertyValue(property)
         }
-        return null;
+        return null
     }
 
-    public Object invokeMethod(String name, Object args) {
-        return metaClass.invokeMethod(this, name, args);
+    Object invokeMethod(String name, Object args) {
+        return metaClass.invokeMethod(this, name, args)
     }
 
-    public void setMetaClass(MetaClass metaClass) {
-        this.metaClass = metaClass;
+    void setMetaClass(MetaClass metaClass) {
+        this.metaClass = metaClass
     }
 
-    public void setProperty(String property, Object newValue) {
+    void setProperty(String property, Object newValue) {
         if (newValue instanceof BeanDefinition) {
             if (containsBean(property)) {
-                removeBeanDefinition(property);
+                removeBeanDefinition(property)
             }
 
-            registerBeanDefinition(property, (BeanDefinition) newValue);
+            registerBeanDefinition(property, (BeanDefinition) newValue)
         }
         else {
-            metaClass.setProperty(this, property, newValue);
+            metaClass.setProperty(this, property, newValue)
         }
     }
 
@@ -110,10 +118,10 @@ public class GrailsApplicationContext extends GenericApplicationContext implemen
      * <p>For more advanced needs, register with the underlying BeanFactory directly.
      * @see #getDefaultListableBeanFactory
      */
-    public void registerSingleton(String name, Class<?> clazz) throws BeansException {
-        GenericBeanDefinition bd = new GenericBeanDefinition();
-        bd.setBeanClass(clazz);
-        getDefaultListableBeanFactory().registerBeanDefinition(name, bd);
+    void registerSingleton(String name, Class<?> clazz) throws BeansException {
+        GenericBeanDefinition bd = new GenericBeanDefinition()
+        bd.setBeanClass(clazz)
+        getDefaultListableBeanFactory().registerBeanDefinition(name, bd)
     }
 
     /**
@@ -121,11 +129,11 @@ public class GrailsApplicationContext extends GenericApplicationContext implemen
      * <p>For more advanced needs, register with the underlying BeanFactory directly.
      * @see #getDefaultListableBeanFactory
      */
-    public void registerSingleton(String name, Class<?> clazz, MutablePropertyValues pvs) throws BeansException {
-        GenericBeanDefinition bd = new GenericBeanDefinition();
-        bd.setBeanClass(clazz);
-        bd.setPropertyValues(pvs);
-        getDefaultListableBeanFactory().registerBeanDefinition(name, bd);
+    void registerSingleton(String name, Class<?> clazz, MutablePropertyValues pvs) throws BeansException {
+        GenericBeanDefinition bd = new GenericBeanDefinition()
+        bd.setBeanClass(clazz)
+        bd.setPropertyValues(pvs)
+        getDefaultListableBeanFactory().registerBeanDefinition(name, bd)
     }
 
     /**
@@ -133,11 +141,11 @@ public class GrailsApplicationContext extends GenericApplicationContext implemen
      * <p>For more advanced needs, register with the underlying BeanFactory directly.
      * @see #getDefaultListableBeanFactory
      */
-    public void registerPrototype(String name, Class<?> clazz) throws BeansException {
-        GenericBeanDefinition bd = new GenericBeanDefinition();
-        bd.setScope(GenericBeanDefinition.SCOPE_PROTOTYPE);
-        bd.setBeanClass(clazz);
-        getDefaultListableBeanFactory().registerBeanDefinition(name, bd);
+    void registerPrototype(String name, Class<?> clazz) throws BeansException {
+        GenericBeanDefinition bd = new GenericBeanDefinition()
+        bd.setScope(GenericBeanDefinition.SCOPE_PROTOTYPE)
+        bd.setBeanClass(clazz)
+        getDefaultListableBeanFactory().registerBeanDefinition(name, bd)
     }
 
     /**
@@ -145,25 +153,26 @@ public class GrailsApplicationContext extends GenericApplicationContext implemen
      * <p>For more advanced needs, register with the underlying BeanFactory directly.
      * @see #getDefaultListableBeanFactory
      */
-    public void registerPrototype(String name, Class<?> clazz, MutablePropertyValues pvs) throws BeansException {
-        GenericBeanDefinition bd = new GenericBeanDefinition();
-        bd.setScope(GenericBeanDefinition.SCOPE_PROTOTYPE);
-        bd.setBeanClass(clazz);
-        bd.setPropertyValues(pvs);
-        getDefaultListableBeanFactory().registerBeanDefinition(name, bd);
+    void registerPrototype(String name, Class<?> clazz, MutablePropertyValues pvs) throws BeansException {
+        GenericBeanDefinition bd = new GenericBeanDefinition()
+        bd.setScope(GenericBeanDefinition.SCOPE_PROTOTYPE)
+        bd.setBeanClass(clazz)
+        bd.setPropertyValues(pvs)
+        getDefaultListableBeanFactory().registerBeanDefinition(name, bd)
     }
 
     @Override
     protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-        super.prepareBeanFactory(beanFactory);
+        super.prepareBeanFactory(beanFactory)
 
         // workaround for GRAILS-7851, until Spring allows the environment bean name to be configurable
-        ((DefaultListableBeanFactory) beanFactory).destroySingleton(ENVIRONMENT_BEAN_NAME);
-        beanFactory.registerSingleton(GRAILS_ENVIRONMENT_BEAN_NAME, getEnvironment());
+        ((DefaultListableBeanFactory) beanFactory).destroySingleton(ENVIRONMENT_BEAN_NAME)
+        beanFactory.registerSingleton(GRAILS_ENVIRONMENT_BEAN_NAME, getEnvironment())
     }
 
     @Override
     protected void assertBeanFactoryActive() {
         // no-op to prevent excessive synchronization caused by SPR-10307 change
     }
+
 }
