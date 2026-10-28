@@ -14,34 +14,31 @@
  * limitations under the License.
  */
 
-package grails.plugins.quartz;
+package grails.plugins.quartz
 
-import java.util.HashMap;
-import java.util.Map;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.POJO
+import org.quartz.JobExecutionContext
 
-import groovy.lang.Closure;
+import grails.plugins.quartz.config.TriggersConfigBuilder
+import grails.util.GrailsClassUtils
+import org.grails.core.AbstractGrailsClass
 
-import org.quartz.JobExecutionContext;
-
-import grails.plugins.quartz.config.TriggersConfigBuilder;
-import grails.util.GrailsClassUtils;
-import org.grails.core.AbstractGrailsClass;
-
-import static grails.plugins.quartz.GrailsJobClassConstants.CONCURRENT;
-import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_CONCURRENT;
-import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_DESCRIPTION;
-import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_DURABILITY;
-import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_ENABLED;
-import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_GROUP;
-import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_REQUESTS_RECOVERY;
-import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_SESSION_REQUIRED;
-import static grails.plugins.quartz.GrailsJobClassConstants.DESCRIPTION;
-import static grails.plugins.quartz.GrailsJobClassConstants.DURABILITY;
-import static grails.plugins.quartz.GrailsJobClassConstants.ENABLED;
-import static grails.plugins.quartz.GrailsJobClassConstants.EXECUTE;
-import static grails.plugins.quartz.GrailsJobClassConstants.GROUP;
-import static grails.plugins.quartz.GrailsJobClassConstants.REQUESTS_RECOVERY;
-import static grails.plugins.quartz.GrailsJobClassConstants.SESSION_REQUIRED;
+import static grails.plugins.quartz.GrailsJobClassConstants.CONCURRENT
+import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_CONCURRENT
+import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_DESCRIPTION
+import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_DURABILITY
+import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_ENABLED
+import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_GROUP
+import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_REQUESTS_RECOVERY
+import static grails.plugins.quartz.GrailsJobClassConstants.DEFAULT_SESSION_REQUIRED
+import static grails.plugins.quartz.GrailsJobClassConstants.DESCRIPTION
+import static grails.plugins.quartz.GrailsJobClassConstants.DURABILITY
+import static grails.plugins.quartz.GrailsJobClassConstants.ENABLED
+import static grails.plugins.quartz.GrailsJobClassConstants.EXECUTE
+import static grails.plugins.quartz.GrailsJobClassConstants.GROUP
+import static grails.plugins.quartz.GrailsJobClassConstants.REQUESTS_RECOVERY
+import static grails.plugins.quartz.GrailsJobClassConstants.SESSION_REQUIRED
 
 /**
  * Grails artifact class which represents a Quartz job.
@@ -51,78 +48,85 @@ import static grails.plugins.quartz.GrailsJobClassConstants.SESSION_REQUIRED;
  * @author Sergey Nebolsin (nebolsin@gmail.com)
  * @since 0.1
  */
-public class DefaultGrailsJobClass extends AbstractGrailsClass implements GrailsJobClass {
+// Not a GroovyObject: AbstractGrailsClass overrides getMetaClass() to return the wrapped artefact
+// class's metaClass (by design), and a synthesized GroovyObject.invokeMethod()/getProperty() would
+// dispatch dynamic calls through that (wrong) metaClass instead of DefaultGrailsJobClass's own —
+// exactly what QuartzGrailsPlugin's refreshJobs does when it reads grailsJobClass.group/.enabled etc.
+@POJO
+@CompileStatic
+class DefaultGrailsJobClass extends AbstractGrailsClass implements GrailsJobClass {
 
-    public static final String JOB = "Job";
-    private Map triggers = new HashMap();
-    private boolean triggersEvaluated = false;
+    public static final String JOB = 'Job'
+    private Map triggers = new HashMap()
+    private boolean triggersEvaluated = false
 
-    public DefaultGrailsJobClass(Class clazz) {
-        super(clazz, JOB);
+    DefaultGrailsJobClass(Class clazz) {
+        super(clazz, JOB)
     }
 
     private void evaluateTriggers() {
         // registering additional triggersClosure from 'triggersClosure' closure if present
-        Closure triggersClosure = (Closure) GrailsClassUtils.getStaticPropertyValue(getClazz(), "triggers");
+        Closure triggersClosure = (Closure) GrailsClassUtils.getStaticPropertyValue(getClazz(), 'triggers')
 
-        TriggersConfigBuilder builder = new TriggersConfigBuilder(getFullName(), grailsApplication);
+        TriggersConfigBuilder builder = new TriggersConfigBuilder(getFullName(), grailsApplication)
 
         if (triggersClosure != null) {
-            builder.build(triggersClosure);
-            triggers = (Map) builder.getTriggers();
+            builder.build(triggersClosure)
+            triggers = (Map) builder.getTriggers()
         }
-        triggersEvaluated = true;
+        triggersEvaluated = true
     }
 
-    public void execute() {
-        getMetaClass().invokeMethod(getReferenceInstance(), EXECUTE, new Object[]{});
+    void execute() {
+        getMetaClass().invokeMethod(getReferenceInstance(), EXECUTE, new Object[0])
     }
 
-    public void execute(JobExecutionContext context) {
-        getMetaClass().invokeMethod(getReferenceInstance(), EXECUTE, new Object[]{context});
+    void execute(JobExecutionContext context) {
+        getMetaClass().invokeMethod(getReferenceInstance(), EXECUTE, [context] as Object[])
     }
 
-    public String getGroup() {
-        String group = getStaticPropertyValue(GROUP, String.class);
-        if (group == null || "".equals(group)) return DEFAULT_GROUP;
-        return group;
+    String getGroup() {
+        String group = getStaticPropertyValue(GROUP, String)
+        if (group == null || ''.equals(group)) return DEFAULT_GROUP
+        return group
     }
 
-    public boolean isConcurrent() {
-        Boolean concurrent = getStaticPropertyValue(CONCURRENT, Boolean.class);
-        return concurrent == null ? DEFAULT_CONCURRENT : concurrent;
+    boolean isConcurrent() {
+        Boolean concurrent = getStaticPropertyValue(CONCURRENT, Boolean)
+        return concurrent == null ? DEFAULT_CONCURRENT : concurrent
     }
 
-    public boolean isSessionRequired() {
-        Boolean sessionRequired = getStaticPropertyValue(SESSION_REQUIRED, Boolean.class);
-        return sessionRequired == null ? DEFAULT_SESSION_REQUIRED : sessionRequired;
+    boolean isSessionRequired() {
+        Boolean sessionRequired = getStaticPropertyValue(SESSION_REQUIRED, Boolean)
+        return sessionRequired == null ? DEFAULT_SESSION_REQUIRED : sessionRequired
     }
 
-    public boolean isDurability() {
-        Boolean durability = getStaticPropertyValue(DURABILITY, Boolean.class);
-        return durability == null ? DEFAULT_DURABILITY : durability;
+    boolean isDurability() {
+        Boolean durability = getStaticPropertyValue(DURABILITY, Boolean)
+        return durability == null ? DEFAULT_DURABILITY : durability
     }
 
-    public boolean isRequestsRecovery() {
-        Boolean requestsRecovery = getStaticPropertyValue(REQUESTS_RECOVERY, Boolean.class);
-        return requestsRecovery == null ? DEFAULT_REQUESTS_RECOVERY : requestsRecovery;
+    boolean isRequestsRecovery() {
+        Boolean requestsRecovery = getStaticPropertyValue(REQUESTS_RECOVERY, Boolean)
+        return requestsRecovery == null ? DEFAULT_REQUESTS_RECOVERY : requestsRecovery
     }
 
-    public boolean isEnabled() {
-        Boolean enabled = getStaticPropertyValue(ENABLED, Boolean.class);
-        return enabled == null ? DEFAULT_ENABLED : enabled;
+    boolean isEnabled() {
+        Boolean enabled = getStaticPropertyValue(ENABLED, Boolean)
+        return enabled == null ? DEFAULT_ENABLED : enabled
     }
 
-    public String getDescription() {
-        String description = (String) getPropertyOrStaticPropertyOrFieldValue(DESCRIPTION, String.class);
-        if (description == null || "".equals(description)) return DEFAULT_DESCRIPTION;
-        return description;
+    String getDescription() {
+        String description = (String) getPropertyOrStaticPropertyOrFieldValue(DESCRIPTION, String)
+        if (description == null || ''.equals(description)) return DEFAULT_DESCRIPTION
+        return description
     }
 
-    public Map getTriggers() {
+    Map getTriggers() {
         if (triggersEvaluated == false) {
-            evaluateTriggers();
+            evaluateTriggers()
         }
-        return triggers;
+        return triggers
     }
+
 }

@@ -14,61 +14,61 @@
  * limitations under the License.
  */
 
-package grails.plugins.quartz;
+package grails.plugins.quartz
 
-import java.beans.PropertyEditorSupport;
-import java.text.ParseException;
-import java.util.Date;
-import java.util.Map;
+import java.beans.PropertyEditorSupport
+import java.text.ParseException
 
-import org.quartz.JobDetail;
-import org.quartz.Trigger;
-import org.quartz.impl.triggers.AbstractTrigger;
-
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.PropertyAccessorFactory;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
+import groovy.transform.CompileStatic
+import org.quartz.JobDetail
+import org.quartz.Trigger
+import org.quartz.impl.triggers.AbstractTrigger
+import org.springframework.beans.BeanUtils
+import org.springframework.beans.BeanWrapper
+import org.springframework.beans.PropertyAccessorFactory
+import org.springframework.beans.factory.FactoryBean
+import org.springframework.beans.factory.InitializingBean
 
 /**
  * The factory bean to create and register trigger beans in Spring context.
  *
  * @author Sergey Nebolsin (nebolsin@gmail.com)
  */
-public class CustomTriggerFactoryBean implements FactoryBean<Trigger>, InitializingBean {
-    private Class<Trigger> triggerClass;
-    private Trigger customTrigger;
-    private JobDetail jobDetail;
+@CompileStatic
+class CustomTriggerFactoryBean implements FactoryBean<Trigger>, InitializingBean {
 
-    private Map triggerAttributes;
+    private Class<Trigger> triggerClass
+    private Trigger customTrigger
+    private JobDetail jobDetail
 
-    public void afterPropertiesSet() throws ParseException {
+    private Map triggerAttributes
+
+    void afterPropertiesSet() throws ParseException {
         // Create a trigger by the class name
-        customTrigger = BeanUtils.instantiateClass(triggerClass);
+        customTrigger = BeanUtils.instantiateClass(triggerClass)
 
         // If trigger is a standard trigger, set standard properties
         if (customTrigger instanceof AbstractTrigger) {
-            AbstractTrigger at = (AbstractTrigger) customTrigger;
+            AbstractTrigger at = (AbstractTrigger) customTrigger
 
             // Set job details
             if (jobDetail != null) {
-                at.setJobKey(jobDetail.getKey());
+                at.setJobKey(jobDetail.getKey())
             }
 
             // Set start delay
             if (triggerAttributes.containsKey(GrailsJobClassConstants.START_DELAY)) {
-                Number startDelay = (Number) triggerAttributes.remove(GrailsJobClassConstants.START_DELAY);
-                at.setStartTime(new Date(System.currentTimeMillis() + startDelay.longValue()));
+                Number startDelay = (Number) triggerAttributes.remove(GrailsJobClassConstants.START_DELAY)
+                at.setStartTime(new Date(System.currentTimeMillis() + startDelay.longValue()))
             } else {
-                at.setStartTime(new Date());
+                at.setStartTime(new Date())
             }
         }
 
         // Set non standard properties.
-        BeanWrapper customTriggerWrapper = PropertyAccessorFactory.forBeanPropertyAccess(customTrigger);
-        customTriggerWrapper.registerCustomEditor(String.class, new StringEditor());
-        customTriggerWrapper.setPropertyValues(triggerAttributes);
+        BeanWrapper customTriggerWrapper = PropertyAccessorFactory.forBeanPropertyAccess(customTrigger)
+        customTriggerWrapper.registerCustomEditor(String, new StringEditor())
+        customTriggerWrapper.setPropertyValues(triggerAttributes)
     }
 
     /**
@@ -76,8 +76,8 @@ public class CustomTriggerFactoryBean implements FactoryBean<Trigger>, Initializ
      *
      * @see org.springframework.beans.factory.FactoryBean#getObject()
      */
-    public Trigger getObject() throws Exception {
-        return customTrigger;
+    Trigger getObject() throws Exception {
+        return customTrigger
     }
 
     /**
@@ -85,8 +85,8 @@ public class CustomTriggerFactoryBean implements FactoryBean<Trigger>, Initializ
      *
      * @see org.springframework.beans.factory.FactoryBean#getObjectType()
      */
-    public Class<? extends Trigger> getObjectType() {
-        return triggerClass;
+    Class<? extends Trigger> getObjectType() {
+        return triggerClass
     }
 
     /**
@@ -94,32 +94,35 @@ public class CustomTriggerFactoryBean implements FactoryBean<Trigger>, Initializ
      *
      * @see org.springframework.beans.factory.FactoryBean#isSingleton()
      */
-    public boolean isSingleton() {
-        return true;
+    boolean isSingleton() {
+        return true
     }
 
-    public void setJobDetail(JobDetail jobDetail) {
-        this.jobDetail = jobDetail;
+    void setJobDetail(JobDetail jobDetail) {
+        this.jobDetail = jobDetail
     }
 
-    public void setTriggerClass(Class<Trigger> triggerClass) {
-        this.triggerClass = triggerClass;
+    void setTriggerClass(Class<Trigger> triggerClass) {
+        this.triggerClass = triggerClass
     }
 
-    public void setTriggerAttributes(Map triggerAttributes) {
-        this.triggerAttributes = triggerAttributes;
+    void setTriggerAttributes(Map triggerAttributes) {
+        this.triggerAttributes = triggerAttributes
     }
 }
 
 // We need this additional editor to support GString -> String convertion for trigger's properties.
+@CompileStatic
 class StringEditor extends PropertyEditorSupport {
+
     @Override
-    public void setValue(Object value) {
-        super.setValue(value == null ? null : value.toString());
+    void setValue(Object value) {
+        super.setValue(value == null ? null : value.toString())
     }
 
     @Override
-    public void setAsText(String text) throws IllegalArgumentException {
-        setValue(text);
+    void setAsText(String text) throws IllegalArgumentException {
+        setValue(text)
     }
+
 }

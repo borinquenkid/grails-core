@@ -16,31 +16,28 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.startup;
+package org.apache.grails.startup
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Duration;
-import java.util.List;
+import java.time.Duration
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import groovy.transform.CompileStatic
 
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringApplicationRunListener;
-import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.context.properties.bind.Bindable;
-import org.springframework.boot.context.properties.bind.Binder;
-import org.springframework.boot.web.server.context.WebServerApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.support.DefaultLifecycleProcessor;
-import org.springframework.core.SpringProperties;
-import org.springframework.util.StringUtils;
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-import grails.util.Environment;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
+import org.springframework.boot.SpringApplication
+import org.springframework.boot.SpringApplicationRunListener
+import org.springframework.boot.WebApplicationType
+import org.springframework.boot.context.properties.bind.Bindable
+import org.springframework.boot.context.properties.bind.Binder
+import org.springframework.boot.web.server.context.WebServerApplicationContext
+import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.context.support.DefaultLifecycleProcessor
+import org.springframework.core.SpringProperties
+import org.springframework.util.StringUtils
+
+import grails.util.Environment
 
 /**
  * Serves a progress page on the application's port from the moment the application context is
@@ -69,126 +66,129 @@ import grails.util.Environment;
  *
  * @since 8.1
  */
-public class StartupProgressRunListener implements SpringApplicationRunListener {
+@CompileStatic
+class StartupProgressRunListener implements SpringApplicationRunListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(StartupProgressRunListener.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StartupProgressRunListener)
 
-    private static final String PROPERTIES_PREFIX = "grails.startup.progress";
+    private static final String PROPERTIES_PREFIX = 'grails.startup.progress'
 
-    private static final int DEFAULT_PORT = 8080;
+    private static final int DEFAULT_PORT = 8080
+
+    private static final char SLASH = '/'
 
     /** How long a failed start waits for a watching page to be told why, before it carries on failing. */
-    private static final long FAILURE_DELIVERY_TIMEOUT_MILLIS = 2000;
+    private static final long FAILURE_DELIVERY_TIMEOUT_MILLIS = 2000
 
-    private final SpringApplication application;
+    private final SpringApplication application
 
     /** When the run of the application began, which the times in the report are measured from. */
-    private final long runStartNanos = System.nanoTime();
+    private final long runStartNanos = System.nanoTime()
 
-    private StartupProgress progress;
+    private StartupProgress progress
 
-    private StartupAccess access;
+    private StartupAccess access
 
     /** The full path of the startup report, while it is served. */
-    private String reportPath;
+    private String reportPath
 
-    private StartupProgressServer server;
+    private StartupProgressServer server
 
-    private InetAddress address;
+    private InetAddress address
 
-    private String contextPath = "";
+    private String contextPath = ''
 
-    private boolean ssl;
+    private boolean ssl
 
     /** The command that opens a browser, while one is still to be opened for this start. */
-    private List<String> browserCommand;
+    private List<String> browserCommand
 
-    public StartupProgressRunListener(SpringApplication application, String[] args) {
-        this.application = application;
+    StartupProgressRunListener(SpringApplication application, String[] args) {
+        this.application = application
     }
 
     @Override
-    public void contextPrepared(ConfigurableApplicationContext context) {
+    void contextPrepared(ConfigurableApplicationContext context) {
         if (application.getWebApplicationType() != WebApplicationType.SERVLET ||
                 !(context instanceof WebServerApplicationContext) ||
                 !StartupProgressFilter.startsEmbeddedServer(context)) {
-            return;
+            return
         }
-        Binder binder = Binder.get(context.getEnvironment());
-        StartupProgressProperties properties;
+        Binder binder = Binder.get(context.getEnvironment())
+        StartupProgressProperties properties
         try {
-            properties = binder.bindOrCreate(PROPERTIES_PREFIX, StartupProgressProperties.class);
+            properties = binder.bindOrCreate(PROPERTIES_PREFIX, StartupProgressProperties)
         }
         catch (RuntimeException ex) {
             // nothing else reads these settings, so a mistake in them is said here or not at all
-            LOG.warn("Not serving startup progress: the {} settings could not be read: {}", PROPERTIES_PREFIX, ex.getMessage());
-            return;
+            LOG.warn('Not serving startup progress: the {} settings could not be read: {}', PROPERTIES_PREFIX, ex.getMessage())
+            return
         }
-        int port;
+        int port
         try {
-            port = binder.bind("server.port", Integer.class).orElse(DEFAULT_PORT);
-            address = binder.bind("server.address", InetAddress.class).orElse(null);
-            contextPath = contextPath(binder.bind("server.servlet.context-path", String.class).orElse(""));
-            ssl = isSslEnabled(binder);
+            port = binder.bind('server.port', Integer).orElse(DEFAULT_PORT)
+            address = binder.bind('server.address', InetAddress).orElse(null)
+            contextPath = contextPath(binder.bind('server.servlet.context-path', String).orElse(''))
+            ssl = isSslEnabled(binder)
         }
         catch (RuntimeException ex) {
             // the web server reports a bad server.* setting far more usefully than this page could
-            LOG.debug("Not serving startup progress: the server settings could not be read", ex);
-            return;
+            LOG.debug('Not serving startup progress: the server settings could not be read', ex)
+            return
         }
         if (properties.isOpenBrowser()) {
-            browserCommand = properties.getBrowserCommand();
+            browserCommand = properties.getBrowserCommand()
         }
-        boolean pageEnabled = properties.isEnabledOrDefault();
-        boolean reportEnabled = properties.getEndpoint().isEnabledOrDefault();
+        boolean pageEnabled = properties.isEnabledOrDefault()
+        boolean reportEnabled = properties.getEndpoint().isEnabledOrDefault()
         if (!pageEnabled && !reportEnabled) {
-            return;
+            return
         }
 
-        String applicationName = applicationName(binder);
-        StartupProgress startupProgress = new StartupProgress(applicationName, Environment.getGrailsVersion(), runStartNanos);
-        StartupAccess startupAccess = new StartupAccess(properties.isShowDetailsOrDefault(), port);
-        String statusPath = path(properties.getStatusPath(), StartupProgressProperties.DEFAULT_STATUS_PATH, "startup progress status");
-        StartupProgressPage page = new StartupProgressPage(applicationName, statusPath, Environment.getGrailsVersion());
-        reportPath = reportEnabled ? path(properties.getEndpoint().getPath(), StartupProgressProperties.Endpoint.DEFAULT_PATH, "startup report") : null;
+        String name = applicationName(binder)
+        StartupProgress startupProgress = new StartupProgress(name, Environment.getGrailsVersion(), runStartNanos)
+        StartupAccess startupAccess = new StartupAccess(properties.isShowDetailsOrDefault(), port)
+        String statusPath = path(properties.getStatusPath(), StartupProgressProperties.DEFAULT_STATUS_PATH, 'startup progress status')
+        StartupProgressPage page = new StartupProgressPage(name, statusPath, Environment.getGrailsVersion())
+        reportPath = reportEnabled ? path(properties.getEndpoint().getPath(), StartupProgressProperties.Endpoint.DEFAULT_PATH, 'startup report') : null
         if (statusPath.equals(reportPath)) {
             // a page polling there would take the report for the application answering, and reload without end
-            LOG.warn("Not serving the startup report at {}: it is the path the startup progress page polls", reportPath);
-            reportPath = null;
-            reportEnabled = false;
+            LOG.warn('Not serving the startup report at {}: it is the path the startup progress page polls', reportPath)
+            reportPath = null
+            reportEnabled = false
         }
-        StartupProgressResponder responder = new StartupProgressResponder(startupProgress, page, startupAccess, statusPath, reportPath);
-        boolean servingPage = pageEnabled && servePage(responder, port);
+        StartupProgressResponder responder = new StartupProgressResponder(startupProgress, page, startupAccess, statusPath, reportPath)
+        boolean servingPage = pageEnabled && servePage(responder, port)
         if (!servingPage && !reportEnabled) {
-            reportPath = null;
-            return;
+            reportPath = null
+            return
         }
-        progress = startupProgress;
-        access = startupAccess;
+        progress = startupProgress
+        access = startupAccess
 
-        context.setApplicationStartup(StartupProgressApplicationStartup.create(context.getApplicationStartup(), startupProgress, context.getBeanFactory()));
-        ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+        context.setApplicationStartup(StartupProgressApplicationStartup.create(context.getApplicationStartup(), startupProgress, context.getBeanFactory()))
+        ConfigurableListableBeanFactory beanFactory = context.getBeanFactory()
         // the lifecycle beans live as long as the context, so they hold what they act on rather than this listener
-        StartupProgressServer pageServer = server;
-        WebServerApplicationContext webContext = (WebServerApplicationContext) context;
-        beanFactory.registerSingleton("grailsStartupProgressHandOff", StartupProgressLifecycle.beforeWebServer(() -> {
-            startupProgress.startingWebServer();
+        StartupProgressServer pageServer = server
+        WebServerApplicationContext webContext = (WebServerApplicationContext) context
+        beanFactory.registerSingleton('grailsStartupProgressHandOff', StartupProgressLifecycle.beforeWebServer(() -> {
+            startupProgress.startingWebServer()
             if (pageServer != null) {
-                pageServer.stop();
+                pageServer.stop()
             }
-        }));
-        beanFactory.registerSingleton("grailsStartupProgressInitializing", StartupProgressLifecycle.afterWebServer(() -> {
-            startupProgress.initializing();
+        }))
+        beanFactory.registerSingleton('grailsStartupProgressInitializing', StartupProgressLifecycle.afterWebServer(() -> {
+            startupProgress.initializing()
             if (webContext.getWebServer() != null) {
                 // a random port is only known now, and names the cookie that signs a browser in to the report
-                startupAccess.usePort(webContext.getWebServer().getPort());
+                startupAccess.usePort(webContext.getWebServer().getPort())
             }
-        }));
-        beanFactory.registerSingleton("grailsStartupProgressFilter",
-                StartupProgressFilter.registration(responder, servingPage));
+        }))
+        beanFactory.registerSingleton('grailsStartupProgressFilter',
+                StartupProgressFilter.registration(responder, servingPage))
         if (servingPage) {
-            LOG.info("Startup progress is shown at {} until the application is ready", uri("http", port, "/", signInQuery()));
-            openBrowser("http", port, signInQuery());
+            LOG.info('Startup progress is shown at {} until the application is ready', uri('http', port, '/', signInQuery()))
+            openBrowser('http', port, signInQuery())
         }
     }
 
@@ -197,134 +197,135 @@ public class StartupProgressRunListener implements SpringApplicationRunListener 
      */
     private boolean servePage(StartupProgressResponder responder, int port) {
         if (port <= 0) {
-            LOG.debug("Not serving startup progress: server.port {} is not a fixed port", port);
-            return false;
+            LOG.debug('Not serving startup progress: server.port {} is not a fixed port', port)
+            return false
         }
         if (ssl) {
-            LOG.debug("Not serving startup progress: the web server uses SSL");
-            return false;
+            LOG.debug('Not serving startup progress: the web server uses SSL')
+            return false
         }
         if (isCheckpointOnRefresh()) {
             // the checkpoint is taken before any lifecycle bean starts, so before the port would be handed over,
             // and a checkpoint fails on an open socket
-            LOG.debug("Not serving startup progress: a checkpoint is taken on refresh");
-            return false;
+            LOG.debug('Not serving startup progress: a checkpoint is taken on refresh')
+            return false
         }
-        StartupProgressServer progressServer = new StartupProgressServer(address, port, responder);
+        StartupProgressServer progressServer = new StartupProgressServer(address, port, responder)
         try {
-            progressServer.start();
+            progressServer.start()
         }
         catch (IOException ex) {
-            LOG.debug("Not serving startup progress: port {} could not be bound", port, ex);
-            return false;
+            LOG.debug('Not serving startup progress: port {} could not be bound', port, ex)
+            return false
         }
-        server = progressServer;
-        return true;
+        server = progressServer
+        return true
     }
 
     @Override
-    public void started(ConfigurableApplicationContext context, Duration timeTaken) {
+    void started(ConfigurableApplicationContext context, Duration timeTaken) {
         if (progress != null) {
-            progress.started();
+            progress.started()
         }
-        stopServer();
+        stopServer()
     }
 
     @Override
-    public void ready(ConfigurableApplicationContext context, Duration timeTaken) {
+    void ready(ConfigurableApplicationContext context, Duration timeTaken) {
         if (progress != null) {
-            progress.ready();
+            progress.ready()
         }
-        stopServer();
-        if (context instanceof WebServerApplicationContext webContext && webContext.getWebServer() != null) {
-            String scheme = ssl ? "https" : "http";
-            int port = webContext.getWebServer().getPort();
+        stopServer()
+        if (context instanceof WebServerApplicationContext && ((WebServerApplicationContext) context).getWebServer() != null) {
+            WebServerApplicationContext webContext = (WebServerApplicationContext) context
+            String scheme = ssl ? 'https' : 'http'
+            int port = webContext.getWebServer().getPort()
             if (reportPath != null) {
                 // the details of the start are for whoever can read this log, so the address carries the token that shows them
-                LOG.info("Startup report is at {}", uri(scheme, port, reportPath.substring(contextPath.length()), signInQuery()));
+                LOG.info('Startup report is at {}', uri(scheme, port, reportPath.substring(contextPath.length()), signInQuery()))
             }
             // a browser not opened on the progress page opens on the application itself
-            openBrowser(scheme, port, null);
+            openBrowser(scheme, port, null)
         }
     }
 
     @Override
-    public void failed(ConfigurableApplicationContext context, Throwable exception) {
+    void failed(ConfigurableApplicationContext context, Throwable exception) {
         if (progress == null) {
-            return;
+            return
         }
-        StartupProgress.Phase reached = progress.getPhase();
-        progress.failed(exception);
+        StartupProgress.Phase reached = progress.getPhase()
+        progress.failed(exception)
         if (server == null) {
             // only the report was served, which nobody watches while the application starts
-            return;
+            return
         }
-        boolean answering = server.isRunning();
+        boolean answering = server.isRunning()
         if (!answering && (reached == StartupProgress.Phase.STARTING_WEB_SERVER || reached == StartupProgress.Phase.INITIALIZING)) {
             // a refresh that fails as the web server starts, or once it is up, stops the web server before run
             // listeners hear of it, so take the port back to say why; if the port is still held once the web server
             // is up, the failure came after the refresh and the web server's own filter is answering
-            answering = restartServer() || reached == StartupProgress.Phase.INITIALIZING;
+            answering = restartServer() || reached == StartupProgress.Phase.INITIALIZING
         }
         if (answering) {
-            progress.awaitFailureDelivery(FAILURE_DELIVERY_TIMEOUT_MILLIS);
+            progress.awaitFailureDelivery(FAILURE_DELIVERY_TIMEOUT_MILLIS)
         }
-        stopServer();
+        stopServer()
     }
 
     private boolean restartServer() {
         try {
-            server.start();
-            return true;
+            server.start()
+            return true
         }
         catch (IOException ex) {
-            LOG.debug("Could not take the port back to report the failed start", ex);
-            return false;
+            LOG.debug('Could not take the port back to report the failed start', ex)
+            return false
         }
     }
 
     private void openBrowser(String scheme, int port, String query) {
-        List<String> command = browserCommand;
+        List<String> command = browserCommand
         if (command == null || port <= 0) {
-            return;
+            return
         }
-        browserCommand = null;
-        URI uri = uri(scheme, port, "/", query);
-        if (uri != null) {
-            StartupBrowser.open(uri, command);
+        browserCommand = null
+        URI target = uri(scheme, port, '/', query)
+        if (target != null) {
+            StartupBrowser.open(target, command)
         }
     }
 
     /** The query that signs a browser in from the log, when there are details it would see by signing in. */
     private String signInQuery() {
-        return access.isSignInRequired() ? access.signInQuery() : null;
+        return access.isSignInRequired() ? access.signInQuery() : null
     }
 
     private URI uri(String scheme, int port, String path, String query) {
-        String host = address == null || address.isAnyLocalAddress() ? "localhost" : address.getHostAddress();
+        String host = address == null || address.isAnyLocalAddress() ? 'localhost' : address.getHostAddress()
         try {
-            return new URI(scheme, null, host, port, contextPath + path, query, null);
+            return new URI(scheme, null, host, port, contextPath + path, query, null)
         }
         catch (URISyntaxException ex) {
-            LOG.debug("No address to open a browser on for context path {}", contextPath, ex);
-            return null;
+            LOG.debug('No address to open a browser on for context path {}', contextPath, ex)
+            return null
         }
     }
 
     private void stopServer() {
         if (server != null) {
-            server.stop();
+            server.stop()
         }
     }
 
     /** Whether Spring is to take a CRaC checkpoint when the context refreshes, as {@code -Dspring.context.checkpoint=onRefresh} asks. */
     private static boolean isCheckpointOnRefresh() {
-        return DefaultLifecycleProcessor.ON_REFRESH_VALUE.equalsIgnoreCase(SpringProperties.getProperty(DefaultLifecycleProcessor.CHECKPOINT_PROPERTY_NAME));
+        return DefaultLifecycleProcessor.ON_REFRESH_VALUE.equalsIgnoreCase(SpringProperties.getProperty(DefaultLifecycleProcessor.CHECKPOINT_PROPERTY_NAME))
     }
 
     private static boolean isSslEnabled(Binder binder) {
-        boolean configured = binder.bind("server.ssl", Bindable.mapOf(String.class, Object.class)).map(ssl -> !ssl.isEmpty()).orElse(false);
-        return configured && binder.bind("server.ssl.enabled", Boolean.class).orElse(true);
+        boolean configured = binder.bind('server.ssl', Bindable.mapOf(String, Object)).map((Map<String, Object> ssl) -> !ssl.isEmpty()).orElse(false)
+        return configured && binder.bind('server.ssl.enabled', Boolean).orElse(true)
     }
 
     /**
@@ -332,21 +333,21 @@ public class StartupProgressRunListener implements SpringApplicationRunListener 
      * would take the place of the application's own root falls back to the default.
      */
     private String path(String configured, String defaultPath, String servedThere) {
-        String path = contextPath(configured == null ? "" : configured);
+        String path = contextPath(configured == null ? '' : configured)
         if (path.isEmpty()) {
-            LOG.warn("Serving the {} at {} rather than at the application's root", servedThere, defaultPath);
-            path = defaultPath;
+            LOG.warn('Serving the {} at {} rather than at the application\'s root', servedThere, defaultPath)
+            path = defaultPath
         }
-        return contextPath + path;
+        return contextPath + path
     }
 
     private static String contextPath(String configured) {
-        String path = StringUtils.trimTrailingCharacter(configured.trim(), '/');
-        return path.isEmpty() || path.startsWith("/") ? path : "/" + path;
+        String path = StringUtils.trimTrailingCharacter(configured.trim(), SLASH)
+        return path.isEmpty() || path.startsWith('/') ? path : '/' + path
     }
 
     private static String applicationName(Binder binder) {
-        return binder.bind("spring.application.name", String.class)
-                .orElseGet(() -> binder.bind("info.app.name", String.class).orElse("Grails application"));
+        return binder.bind('spring.application.name', String)
+                .orElseGet(() -> binder.bind('info.app.name', String).orElse('Grails application'))
     }
 }

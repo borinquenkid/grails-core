@@ -294,6 +294,7 @@ class StartupProgressSpec extends Specification {
         given: 'a start that will fail'
         Gates.beanCreation = new CountDownLatch(1)
         Gates.startupHook = new CountDownLatch(1)
+        Gates.watched = new CountDownLatch(1)
         switch (failIn) {
             case 'bean' -> Gates.beanFailure = 'database is down <b>'
             case 'web server' -> Gates.webServerFailure = 'database is down <b>'
@@ -347,6 +348,7 @@ class StartupProgressSpec extends Specification {
     void 'leaves internals off the page when details are not shown'() {
         given: 'a start that will fail'
         Gates.beanCreation = new CountDownLatch(1)
+        Gates.watched = new CountDownLatch(1)
         Gates.beanFailure = 'database is down'
 
         when: 'the application starts without details, asked to open a browser'
@@ -1021,15 +1023,26 @@ class StartupProgressSpec extends Specification {
     }
 
     private Response awaitStatus(String phase) {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30)
+        long start = System.nanoTime()
+        long deadline = start + TimeUnit.SECONDS.toNanos(30)
+        List<String> polls = []
+        String previous = null
         while (System.nanoTime() < deadline) {
             Response response = status()
+            if (response != null) {
+                Gates.watched.countDown()
+            }
             if (response?.phase == phase) {
                 return response
             }
+            String seen = response?.phase ?: 'no answer'
+            if (seen != previous) {
+                polls << "${TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start)}ms: ${seen}".toString()
+                previous = seen
+            }
             Thread.sleep(50)
         }
-        throw new AssertionError("No ${phase} status within 30 seconds")
+        throw new AssertionError("No ${phase} status within 30 seconds; answers by change: ${polls}; runner alive: ${runner?.alive}; run failure: ${runFailure}")
     }
 
     private Response status(String contextPath = '') {
@@ -1179,6 +1192,7 @@ class StartupProgressSpec extends Specification {
         static volatile CountDownLatch beanStarted
         static volatile CountDownLatch beanCreation
         static volatile CountDownLatch startupHook
+        static volatile CountDownLatch watched = new CountDownLatch(0)
         static volatile String beanFailure
         static volatile String startupHookFailure
         static volatile int unmappedRequests
@@ -1192,6 +1206,7 @@ class StartupProgressSpec extends Specification {
             beanStarted = new CountDownLatch(1)
             beanCreation = new CountDownLatch(0)
             startupHook = new CountDownLatch(0)
+            watched = new CountDownLatch(0)
             beanFailure = null
             startupHookFailure = null
             unmappedRequests = 0
@@ -1209,6 +1224,17 @@ class StartupProgressSpec extends Specification {
 
         static void await(CountDownLatch latch) {
             latch.await(30, TimeUnit.SECONDS)
+        }
+
+        /**
+         * Fails the start, but only once the spec's poller has been answered since the gates opened. A failed
+         * start only waits to tell a page that polled within the last few seconds, so a pause of the machine
+         * between the last poll and the failure would otherwise leave the start unwatched and the port closed
+         * before the page could be told.
+         */
+        static void fail(String message) {
+            Gates.await(watched)
+            throw new IllegalStateException(message)
         }
     }
 
@@ -1233,7 +1259,7 @@ class StartupProgressSpec extends Specification {
             }
             Gates.await(Gates.startupHook)
             if (Gates.startupHookFailure) {
-                throw new IllegalStateException(Gates.startupHookFailure)
+                Gates.fail(Gates.startupHookFailure)
             }
         }
     }
@@ -1293,7 +1319,7 @@ class StartupProgressSpec extends Specification {
             Gates.beanStarted.countDown()
             Gates.await(Gates.beanCreation)
             if (Gates.beanFailure) {
-                throw new IllegalStateException(Gates.beanFailure)
+                Gates.fail(Gates.beanFailure)
             }
             new SlowStartBean()
         }
@@ -1344,7 +1370,7 @@ class StartupProgressSpec extends Specification {
         @Override
         void onApplicationEvent(ServletWebServerInitializedEvent event) {
             if (Gates.webServerFailure) {
-                throw new IllegalStateException(Gates.webServerFailure)
+                Gates.fail(Gates.webServerFailure)
             }
         }
     }
