@@ -16,9 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.buffer;
 
-import java.io.Writer;
+import groovy.transform.CompileStatic;
+import groovy.transform.stc.POJO;
 
 import org.grails.encoder.EncodedAppender;
 import org.grails.encoder.EncodedAppenderFactory;
@@ -26,21 +28,26 @@ import org.grails.encoder.Encoder;
 import org.grails.encoder.EncoderAware;
 import org.grails.encoder.EncodingStateRegistry;
 
-public class CodecPrintWriter extends GrailsPrintWriter implements EncoderAware, EncodedAppenderFactory {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+@POJO
+class CodecPrintWriter extends GrailsPrintWriter implements EncoderAware, EncodedAppenderFactory {
+
     private final Encoder encoder;
     private final StreamCharBuffer buffer;
     private boolean ignoreEncodingState;
 
-    public CodecPrintWriter(Writer out, Encoder encoder, EncodingStateRegistry encodingStateRegistry) {
+    CodecPrintWriter(Writer out, Encoder encoder, EncodingStateRegistry encodingStateRegistry) {
         this(out, encoder, encodingStateRegistry, false);
     }
-    
-    public CodecPrintWriter(Writer out, Encoder encoder, EncodingStateRegistry encodingStateRegistry, boolean ignoreEncodingState) {
+
+    CodecPrintWriter(Writer out, Encoder encoder, EncodingStateRegistry encodingStateRegistry, boolean ignoreEncodingState) {
         super(null);
         this.encoder = encoder;
         buffer = new StreamCharBuffer();
         buffer.setNotifyParentBuffersEnabled(false);
-        allowUnwrappingOut = false;
+        this.@allowUnwrappingOut = false;
         buffer.connectTo(out, false);
         if (out instanceof EncodedAppenderFactory) {
             buffer.setWriteDirectlyToConnectedMinSize(0);
@@ -49,18 +56,18 @@ public class CodecPrintWriter extends GrailsPrintWriter implements EncoderAware,
         setOut(buffer.getWriterForEncoder(encoder, encodingStateRegistry, ignoreEncodingState));
     }
 
-    public Encoder getEncoder() {
+    Encoder getEncoder() {
         return encoder;
     }
 
-    public EncodedAppender getEncodedAppender() {
+    EncodedAppender getEncodedAppender() {
         EncodedAppender encodedAppender = ((EncodedAppenderFactory) buffer.getWriter()).getEncodedAppender();
         encodedAppender.setIgnoreEncodingState(ignoreEncodingState);
         return encodedAppender;
     }
 
     @Override
-    public Writer getWriterForEncoder(Encoder encoder, EncodingStateRegistry encodingStateRegistry) {
+    Writer getWriterForEncoder(Encoder encoder, EncodingStateRegistry encodingStateRegistry) {
         return buffer.getWriterForEncoder(encoder, encodingStateRegistry, ignoreEncodingState);
     }
 }

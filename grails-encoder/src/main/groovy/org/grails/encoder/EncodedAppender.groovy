@@ -16,9 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
-
-import java.io.IOException;
+package org.grails.encoder
 
 /**
  * This is the input interface to the streaming encoding solution. Methods in
@@ -27,7 +25,8 @@ import java.io.IOException;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface EncodedAppender {
+interface EncodedAppender {
+
     /**
      * Encodes a portion of a string and appends it to the buffer.
      *
@@ -44,7 +43,7 @@ public interface EncodedAppender {
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
-    void append(Encoder encoder, EncodingState encodingState, CharSequence str, int off, int len) throws IOException;
+    void append(Encoder encoder, EncodingState encodingState, CharSequence str, int off, int len) throws IOException
 
     /**
      * Appends an encoded portion of a string to the buffer
@@ -63,7 +62,7 @@ public interface EncodedAppender {
      *             Signals that an I/O exception has occurred.
      */
     void appendEncoded(Encoder encoder, EncodingState encodingState, CharSequence str, int off, int len)
-            throws IOException;
+            throws IOException
 
     /**
      * Encodes a portion of a char array and appends it to the buffer.
@@ -81,7 +80,7 @@ public interface EncodedAppender {
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
-    void append(Encoder encoder, EncodingState encodingState, char[] b, int off, int len) throws IOException;
+    void append(Encoder encoder, EncodingState encodingState, char[] b, int off, int len) throws IOException
 
     /**
      * Appends an encoded portion of a char array to the buffer.
@@ -99,7 +98,7 @@ public interface EncodedAppender {
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
-    void appendEncoded(Encoder encoder, EncodingState encodingState, char[] b, int off, int len) throws IOException;
+    void appendEncoded(Encoder encoder, EncodingState encodingState, char[] b, int off, int len) throws IOException
 
     /**
      * Encodes a {@link StreamEncodeable} instance and appends it to the buffer.
@@ -108,7 +107,7 @@ public interface EncodedAppender {
      * @param streamEncodeable the instance to encode
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    void append(Encoder encoder, StreamEncodeable streamEncodeable) throws IOException;
+    void append(Encoder encoder, StreamEncodeable streamEncodeable) throws IOException
 
     /**
      * Flush the internal buffer and write the buffered input to a possible
@@ -116,9 +115,9 @@ public interface EncodedAppender {
      *
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    void flush() throws IOException;
+    void flush() throws IOException
 
-    public void close() throws IOException;
+    void close() throws IOException
     
     /**
      * When enabled, will encode all input regardless of it's current state
@@ -126,12 +125,12 @@ public interface EncodedAppender {
      *  
      * @param ignoreEncodingState
      */
-    void setIgnoreEncodingState(boolean ignoreEncodingState);
+    void setIgnoreEncodingState(boolean ignoreEncodingState)
     
     /**
      * @return current state of ignoreEncodingState setting
      */
-    public boolean isIgnoreEncodingState();
+    boolean isIgnoreEncodingState()
     
     /**
      * Check if the encoder should be used to a input with certain encodingState
@@ -142,5 +141,5 @@ public interface EncodedAppender {
      *            the current encoding state
      * @return true, if should encode
      */
-    public boolean shouldEncode(Encoder encoderToApply, EncodingState encodingState);
+    boolean shouldEncode(Encoder encoderToApply, EncodingState encodingState)
 }

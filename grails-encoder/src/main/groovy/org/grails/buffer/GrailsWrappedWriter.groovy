@@ -16,15 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.buffer;
+package org.grails.buffer
 
-import java.io.Writer;
+interface GrailsWrappedWriter {
 
-public interface GrailsWrappedWriter {
+    boolean isAllowUnwrappingOut()
 
-    public boolean isAllowUnwrappingOut();
+    Writer unwrap()
 
-    public Writer unwrap();
-
-    public void markUsed();
+    void markUsed()
 }

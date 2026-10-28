@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
 /**
  * interface for decoder methods
@@ -24,7 +24,7 @@ package org.grails.encoder;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface Decoder extends CodecIdentifierProvider {
+interface Decoder extends CodecIdentifierProvider {
 
     /**
      * Decode given input object
@@ -33,5 +33,5 @@ public interface Decoder extends CodecIdentifierProvider {
      *            the input object
      * @return the decoded object
      */
-    Object decode(Object o);
+    Object decode(Object o)
 }

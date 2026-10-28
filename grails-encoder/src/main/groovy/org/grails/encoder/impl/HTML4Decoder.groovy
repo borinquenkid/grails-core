@@ -16,12 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder.impl;
+package org.grails.encoder.impl
 
-import org.springframework.web.util.HtmlUtils;
+import groovy.transform.CompileStatic
 
-import org.grails.encoder.CodecIdentifier;
-import org.grails.encoder.Decoder;
+import org.springframework.web.util.HtmlUtils
+
+import org.grails.encoder.CodecIdentifier
+import org.grails.encoder.Decoder
 
 /**
  * HTML4 decoder that uses Spring's HtmlUtils.htmlUnescape to do the unescaping.
@@ -29,22 +31,23 @@ import org.grails.encoder.Decoder;
  * @author Lari Hotari
  * @since 2.3
  */
-public class HTML4Decoder implements Decoder {
+@CompileStatic
+class HTML4Decoder implements Decoder {
 
     /* (non-Javadoc)
      * @see Decoder#decode(java.lang.Object)
      */
-    public Object decode(Object o) {
+    Object decode(Object o) {
         if (o == null) {
-            return null;
+            return null
         }
-        return HtmlUtils.htmlUnescape(String.valueOf(o));
+        return HtmlUtils.htmlUnescape(String.valueOf(o))
     }
 
     /* (non-Javadoc)
      * @see CodecIdentifierProvider#getCodecIdentifier()
      */
-    public CodecIdentifier getCodecIdentifier() {
-        return HTML4Encoder.HTML4_CODEC_IDENTIFIER;
+    CodecIdentifier getCodecIdentifier() {
+        return HTML4Encoder.HTML4_CODEC_IDENTIFIER
     }
 }

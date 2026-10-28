@@ -16,33 +16,37 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
-public class ChainedDecoder implements Decoder {
-    protected Decoder[] decoders;
-    protected CodecIdentifier codecIdentifier;
-    
-    public ChainedDecoder(Decoder[] decoders) {
-        this.decoders = decoders;
-        this.codecIdentifier = createCodecIdentifier(decoders);
+import groovy.transform.CompileStatic
+
+@CompileStatic
+class ChainedDecoder implements Decoder {
+
+    protected Decoder[] decoders
+    protected CodecIdentifier codecIdentifier
+
+    ChainedDecoder(Decoder[] decoders) {
+        this.decoders = decoders
+        this.codecIdentifier = createCodecIdentifier(decoders)
     }
 
     protected CombinedCodecIdentifier createCodecIdentifier(Decoder[] decoders) {
-        return new CombinedCodecIdentifier(decoders, true);
+        return new CombinedCodecIdentifier(decoders, true)
     }
 
     @Override
-    public CodecIdentifier getCodecIdentifier() {
-        return codecIdentifier;
+    CodecIdentifier getCodecIdentifier() {
+        return codecIdentifier
     }
 
     @Override
-    public Object decode(Object o) {
-        if (o == null) return o;
-        Object decoded = o;
+    Object decode(Object o) {
+        if (o == null) return o
+        Object decoded = o
         for (Decoder decoder : decoders) {
-            decoded = decoder.decode(decoded);
+            decoded = decoder.decode(decoded)
         }
-        return decoded;
+        return decoded
     }
 }

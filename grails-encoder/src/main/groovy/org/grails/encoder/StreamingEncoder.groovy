@@ -16,9 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
-
-import java.io.IOException;
+package org.grails.encoder
 
 /**
  * Streaming encoder interface that makes it possible to encode a portion of a
@@ -29,7 +27,8 @@ import java.io.IOException;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface StreamingEncoder extends Encoder {
+interface StreamingEncoder extends Encoder {
+
     /**
      * Encode and append portion of source CharSequence to the appender.
      *
@@ -47,5 +46,5 @@ public interface StreamingEncoder extends Encoder {
      *             Signals that an I/O exception has occurred.
      */
     void encodeToStream(Encoder thisInstance, CharSequence source, int offset, int len, EncodedAppender appender,
-            EncodingState encodingState) throws IOException;
+            EncodingState encodingState) throws IOException
 }

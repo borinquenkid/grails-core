@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
 /**
  * Marks a class capable of encoding itself with given Encoder
@@ -24,7 +24,7 @@ package org.grails.encoder;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface Encodeable {
+interface Encodeable {
 
     /**
      * Encode with given encoder.
@@ -33,5 +33,5 @@ public interface Encodeable {
      *            the encoder
      * @return the encoded result
      */
-    CharSequence encode(Encoder encoder);
+    CharSequence encode(Encoder encoder)
 }

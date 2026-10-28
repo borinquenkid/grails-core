@@ -16,9 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
-
-import java.util.Set;
+package org.grails.encoder
 
 /**
  * Information about the codec that identifies it and tells it's aliases.
@@ -26,14 +24,14 @@ import java.util.Set;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface CodecIdentifier {
+interface CodecIdentifier {
 
     /**
      * Gets the unique name of the codec.
      *
      * @return the codec name
      */
-    String getCodecName();
+    String getCodecName()
 
     /**
      * Gets the aliases for this codec. Aliases are used in registering
@@ -41,7 +39,7 @@ public interface CodecIdentifier {
      *
      * @return the codec aliases
      */
-    Set<String> getCodecAliases();
+    Set<String> getCodecAliases()
 
     /**
      * Checks if this codec is equivalent to some other codec
@@ -50,5 +48,5 @@ public interface CodecIdentifier {
      *            the CodecIdentifier of the other codec
      * @return true, if is equivalent
      */
-    boolean isEquivalent(CodecIdentifier other);
+    boolean isEquivalent(CodecIdentifier other)
 }

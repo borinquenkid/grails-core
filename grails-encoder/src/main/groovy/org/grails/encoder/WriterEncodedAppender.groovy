@@ -16,12 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
-import java.io.IOException;
-import java.io.Writer;
+import groovy.transform.CompileStatic
 
-import org.grails.charsequences.CharSequences;
+import org.grails.charsequences.CharSequences
 
 /**
  * An EncodedAppender implementation that writes to a java.io.Writer.
@@ -29,24 +28,26 @@ import org.grails.charsequences.CharSequences;
  * @author Lari Hotari
  * @since 2.3
  */
-public class WriterEncodedAppender extends AbstractEncodedAppender {
-    private Writer target;
+@CompileStatic
+class WriterEncodedAppender extends AbstractEncodedAppender {
+
+    private Writer target
 
     /**
      * Default constructor.
      *
      * @param target the target writer
      */
-    public WriterEncodedAppender(Writer target) {
-        this.target = target;
+    WriterEncodedAppender(Writer target) {
+        this.target = target
     }
 
     /* (non-Javadoc)
      * @see AbstractEncodedAppender#flush()
      */
     @Override
-    public void flush() throws IOException {
-        target.flush();
+    void flush() throws IOException {
+        target.flush()
     }
 
     /* (non-Javadoc)
@@ -54,7 +55,7 @@ public class WriterEncodedAppender extends AbstractEncodedAppender {
      */
     @Override
     protected void write(EncodingState encodingState, char[] b, int off, int len) throws IOException {
-        target.write(b, off, len);
+        target.write(b, off, len)
     }
 
     /* (non-Javadoc)
@@ -62,7 +63,7 @@ public class WriterEncodedAppender extends AbstractEncodedAppender {
      */
     @Override
     protected void write(EncodingState encodingState, String str, int off, int len) throws IOException {
-        target.write(str, off, len);
+        target.write(str, off, len)
     }
 
     /* (non-Javadoc)
@@ -70,18 +71,18 @@ public class WriterEncodedAppender extends AbstractEncodedAppender {
      */
     @Override
     protected void appendCharSequence(EncodingState encodingState, CharSequence csq, int start, int end) throws IOException {
-        CharSequences.writeCharSequence(target, csq, start, end);
+        CharSequences.writeCharSequence(target, csq, start, end)
     }
 
     /* (non-Javadoc)
      * @see EncodedAppender#close()
      */
-    public void close() throws IOException {
-        target.close();
+    void close() throws IOException {
+        target.close()
     }
 
     @Override
     protected EncodingState createNewEncodingState(Encoder encoder, EncodingState encodingState) {
-        return null;
+        return null
     }
 }

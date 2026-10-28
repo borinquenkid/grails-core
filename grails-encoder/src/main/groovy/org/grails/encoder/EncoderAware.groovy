@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
 /**
  * Marks a instance capable of providing information about the current encoder
@@ -25,12 +25,12 @@ package org.grails.encoder;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface EncoderAware {
+interface EncoderAware {
 
     /**
      * Gets the current encoder in use.
      *
      * @return the encoder
      */
-    Encoder getEncoder();
+    Encoder getEncoder()
 }

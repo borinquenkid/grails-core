@@ -16,50 +16,52 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
-import java.io.IOException;
+import groovy.transform.CompileStatic
 
-import org.grails.charsequences.CharSequences;
+import org.grails.charsequences.CharSequences
 
 /**
  * EncodedAppender implementation used for piping / chaining several StreamingEncoders
  *
  */
-public class StreamingEncoderEncodedAppender extends AbstractEncodedAppender {
-    private final StreamingEncoder encoder;
-    private final EncodedAppender target;
+@CompileStatic
+class StreamingEncoderEncodedAppender extends AbstractEncodedAppender {
 
-    public StreamingEncoderEncodedAppender(StreamingEncoder encoder, EncodedAppender target) {
-        this.encoder = encoder;
-        this.target = target;
+    private final StreamingEncoder encoder
+    private final EncodedAppender target
+
+    StreamingEncoderEncodedAppender(StreamingEncoder encoder, EncodedAppender target) {
+        this.encoder = encoder
+        this.target = target
     }
 
     @Override
-    public void close() throws IOException {
-        target.close();
+    void close() throws IOException {
+        target.close()
     }
 
     @Override
-    public void flush() throws IOException {
-        target.flush();
+    void flush() throws IOException {
+        target.flush()
     }
 
     @Override
     protected void write(EncodingState encodingState, char[] b, int off, int len) throws IOException {
         if (shouldEncode(encoder, encodingState)) {
-            encoder.encodeToStream(encoder, CharSequences.createCharSequence(b), off, len, target, createNewEncodingState(encoder, encodingState));
+            encoder.encodeToStream(encoder, CharSequences.createCharSequence(b), off, len, target, createNewEncodingState(encoder, encodingState))
         } else {
-            target.appendEncoded(null, encodingState, b, off, len);
+            target.appendEncoded(null, encodingState, b, off, len)
         }
     }
 
     @Override
     protected void write(EncodingState encodingState, String str, int off, int len) throws IOException {
         if (shouldEncode(encoder, encodingState)) {
-            encoder.encodeToStream(encoder, str, off, len, target, createNewEncodingState(encoder, encodingState));
+            encoder.encodeToStream(encoder, str, off, len, target, createNewEncodingState(encoder, encodingState))
         } else {
-            target.appendEncoded(null, encodingState, str, off, len);
+            target.appendEncoded(null, encodingState, str, off, len)
         }
     }
 
@@ -67,9 +69,9 @@ public class StreamingEncoderEncodedAppender extends AbstractEncodedAppender {
     protected void appendCharSequence(EncodingState encodingState, CharSequence str, int start, int end)
             throws IOException {
         if (shouldEncode(encoder, encodingState.getPreviousEncodingState())) {
-            encoder.encodeToStream(encoder, str, start, end - start, target, encodingState);
+            encoder.encodeToStream(encoder, str, start, end - start, target, encodingState)
         } else {
-            target.appendEncoded(null, encodingState, str, start, end - start);
+            target.appendEncoded(null, encodingState, str, start, end - start)
         }
     }
 }

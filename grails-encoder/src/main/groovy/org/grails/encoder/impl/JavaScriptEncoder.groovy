@@ -16,11 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder.impl;
+package org.grails.encoder.impl
 
-import org.grails.encoder.AbstractCharReplacementEncoder;
-import org.grails.encoder.CodecIdentifier;
-import org.grails.encoder.DefaultCodecIdentifier;
+import groovy.transform.CompileStatic
+
+import org.grails.encoder.AbstractCharReplacementEncoder
+import org.grails.encoder.CodecIdentifier
+import org.grails.encoder.DefaultCodecIdentifier
 
 /**
  * Used for making strings safe to be included in a SCRIPT tag besides normal
@@ -30,16 +32,18 @@ import org.grails.encoder.DefaultCodecIdentifier;
  * @author Lari Hotari
  * @since 2.3
  */
-public class JavaScriptEncoder extends AbstractCharReplacementEncoder {
-    public static final CodecIdentifier JAVASCRIPT_CODEC_IDENTIFIER = new DefaultCodecIdentifier(
-            "JavaScript", "Js") {
-        public boolean isEquivalent(CodecIdentifier other) {
-            return super.isEquivalent(other) || BasicJSONEncoder.JSON_CODEC_IDENTIFIER.getCodecName().equals(other.getCodecName());
-        }
-    };
+@CompileStatic
+class JavaScriptEncoder extends AbstractCharReplacementEncoder {
 
-    public JavaScriptEncoder() {
-        super(JAVASCRIPT_CODEC_IDENTIFIER);
+    public static final CodecIdentifier JAVASCRIPT_CODEC_IDENTIFIER = new DefaultCodecIdentifier(
+            'JavaScript', 'Js') {
+        boolean isEquivalent(CodecIdentifier other) {
+            return super.isEquivalent(other) || BasicJSONEncoder.JSON_CODEC_IDENTIFIER.getCodecName().equals(other.getCodecName())
+        }
+    }
+
+    JavaScriptEncoder() {
+        super(JAVASCRIPT_CODEC_IDENTIFIER)
     }
 
     /* (non-Javadoc)
@@ -49,69 +53,69 @@ public class JavaScriptEncoder extends AbstractCharReplacementEncoder {
     protected String escapeCharacter(char ch, char previousChar) {
         switch (ch) {
             case '"':
-                return "\\u0022";
+                return '\\u0022'
             case '\'':
-                return "\\u0027";
+                return '\\u0027'
             case '`': // backtick
-                return "\\u0060";                
+                return '\\u0060'
             case '\\':
-                return "\\u005c";
+                return '\\u005c'
             case '/':
-                return "\\u002f";
+                return '\\u002f'
             case '\t':
-                return "\\t";
+                return '\\t'
             case '\n':
                 if (previousChar == '\r') {
-                    return "";
+                    return ''
                 } else {
-                    return "\\n";
+                    return '\\n'
                 }
             case '\r':
-                return "\\n";
+                return '\\n'
             case '\f':
-                return "\\f";
+                return '\\f'
             case '\b':
-                return "\\b";
-            case '\u000B': // vertical tab: http://bclary.com/2004/11/07/#a-7.8.4
-                return "\\v";
+                return '\\b'
+            case '': // vertical tab: http://bclary.com/2004/11/07/#a-7.8.4
+                return '\\v'
             case '&':
-                return "\\u0026";
+                return '\\u0026'
             case '<':
-                return "\\u003c";
+                return '\\u003c'
             case '>':
-                return "\\u003e";
+                return '\\u003e'
             case '(':
-                return "\\u0028";
+                return '\\u0028'
             case ')':
-                return "\\u0029";
+                return '\\u0029'
             case '[':
-                return "\\u005b";
+                return '\\u005b'
             case ']':
-                return "\\u005d";
+                return '\\u005d'
             case '{':
-                return "\\u007b";
+                return '\\u007b'
             case '}':
-                return "\\u007d";
+                return '\\u007d'
             case ',':
-                return "\\u002c";
+                return '\\u002c'
             case ';':
-                return "\\u003b";
+                return '\\u003b'
             case '@':
-                return "\\u0040";
-            case '\u2028':
-                return "\\u2028"; // Line separator
-            case '\u2029':
-                return "\\u2029"; // Paragraph separator
+                return '\\u0040'
+            case ' ':
+                return '\\u2028' // Line separator
+            case ' ':
+                return '\\u2029' // Paragraph separator
         }
-        if (ch < ' ') {
+        if (ch < (' ' as char)) {
             // remove all other control characters
-            return "";
+            return ''
         }
-        return null;
+        return null
     }
 
     @Override
-    public boolean isApplyToSafelyEncoded() {
-        return true;
+    boolean isApplyToSafelyEncoded() {
+        return true
     }
 }

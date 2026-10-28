@@ -16,10 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.charsequences;
-
-import java.io.IOException;
-import java.io.Writer;
+package org.grails.charsequences
 
 /**
  * Utility functions for handling java.lang.CharSequence instances
@@ -29,23 +26,25 @@ import java.io.Writer;
  * @since 2.3.10
  *
  */
-public class CharSequences {
+@groovy.transform.CompileStatic
+class CharSequences {
+
     private CharSequences() {
     }
 
-    public static CharSequence createCharSequence(char[] chars) {
-        return new CharArrayCharSequence(chars, 0, chars.length);
+    static CharSequence createCharSequence(char[] chars) {
+        return new CharArrayCharSequence(chars, 0, chars.length)
     }
     
-    public static CharSequence createCharSequence(char[] chars, int start, int count) {
-        return new CharArrayCharSequence(chars, start, count);
+    static CharSequence createCharSequence(char[] chars, int start, int count) {
+        return new CharArrayCharSequence(chars, start, count)
     }
     
-    public static CharSequence createCharSequence(CharSequence str, int start, int count) {
+    static CharSequence createCharSequence(CharSequence str, int start, int count) {
         if (canUseOriginalForSubSequence(str, start, count)) {
-            return str;
+            return str
         } else {
-            return new SubCharSequence(str, start, count);
+            return new SubCharSequence(str, start, count)
         }
     }
     
@@ -62,18 +61,18 @@ public class CharSequences {
      * @param count length on sub sequence
      * @return true if input is String, StringBuilder or StringBuffer class, start is 0 and count is length of input sequence
      */
-    public static boolean canUseOriginalForSubSequence(CharSequence str, int start, int count) {
-        if (start != 0) return false;
-        final Class<?> csqClass = str.getClass();
-        return (csqClass == String.class || csqClass == StringBuilder.class || csqClass == StringBuffer.class) && count == str.length();
+    static boolean canUseOriginalForSubSequence(CharSequence str, int start, int count) {
+        if (start != 0) return false
+        final Class<?> csqClass = str.getClass()
+        return (csqClass == String || csqClass == StringBuilder || csqClass == StringBuffer) && count == str.length()
     }
     
-    public static CharSequence createSingleCharSequence(int c) {
-        return new SingleCharCharSequence(c);
+    static CharSequence createSingleCharSequence(int c) {
+        return new SingleCharCharSequence(c)
     }
     
-    public static CharSequence createSingleCharSequence(char ch) {
-        return new SingleCharCharSequence(ch);
+    static CharSequence createSingleCharSequence(char ch) {
+        return new SingleCharCharSequence(ch)
     }
     
     /**
@@ -86,34 +85,34 @@ public class CharSequences {
      * @param end end index + 1
      * @throws IOException
      */
-    public static void writeCharSequence(Writer target, CharSequence csq, int start, int end) throws IOException {
-        final Class<?> csqClass = csq.getClass();
-        if (csqClass == String.class) {
-            target.write((String) csq, start, end - start);
+    static void writeCharSequence(Writer target, CharSequence csq, int start, int end) throws IOException {
+        final Class<?> csqClass = csq.getClass()
+        if (csqClass == String) {
+            target.write((String) csq, start, end - start)
         }
-        else if (csqClass == StringBuffer.class) {
-            char[] buf = new char[end - start];
-            ((StringBuffer) csq).getChars(start, end, buf, 0);
-            target.write(buf);
+        else if (csqClass == StringBuffer) {
+            char[] buf = new char[end - start]
+            ((StringBuffer) csq).getChars(start, end, buf, 0)
+            target.write(buf)
         }
-        else if (csqClass == StringBuilder.class) {
-            char[] buf = new char[end - start];
-            ((StringBuilder) csq).getChars(start, end, buf, 0);
-            target.write(buf);
+        else if (csqClass == StringBuilder) {
+            char[] buf = new char[end - start]
+            ((StringBuilder) csq).getChars(start, end, buf, 0)
+            target.write(buf)
         }
         else if (csq instanceof CharArrayAccessible) {
-            char[] buf = new char[end - start];
-            ((CharArrayAccessible) csq).getChars(start, end, buf, 0);
-            target.write(buf);
+            char[] buf = new char[end - start]
+            ((CharArrayAccessible) csq).getChars(start, end, buf, 0)
+            target.write(buf)
         }
         else {
-            String str = csq.subSequence(start, end).toString();
-            target.write(str, 0, str.length());
+            String str = csq.subSequence(start, end).toString()
+            target.write(str, 0, str.length())
         }
     }
     
-    public static void writeCharSequence(Writer target, CharSequence csq) throws IOException {
-        writeCharSequence(target, csq, 0, csq.length());
+    static void writeCharSequence(Writer target, CharSequence csq) throws IOException {
+        writeCharSequence(target, csq, 0, csq.length())
     }
     
     /**
@@ -150,23 +149,23 @@ public class CharSequences {
      *             <code>dst.length</code>
      *             </ul>
      */    
-    public static void getChars(CharSequence csq, int srcBegin, int srcEnd, char dst[], int dstBegin) {
-        final Class<?> csqClass = csq.getClass();
-        if (csqClass == String.class) {
-            ((String) csq).getChars(srcBegin, srcEnd, dst, dstBegin);
+    static void getChars(CharSequence csq, int srcBegin, int srcEnd, char[] dst, int dstBegin) {
+        final Class<?> csqClass = csq.getClass()
+        if (csqClass == String) {
+            ((String) csq).getChars(srcBegin, srcEnd, dst, dstBegin)
         }
-        else if (csqClass == StringBuffer.class) {
-            ((StringBuffer) csq).getChars(srcBegin, srcEnd, dst, dstBegin);
+        else if (csqClass == StringBuffer) {
+            ((StringBuffer) csq).getChars(srcBegin, srcEnd, dst, dstBegin)
         }
-        else if (csqClass == StringBuilder.class) {
-            ((StringBuilder) csq).getChars(srcBegin, srcEnd, dst, dstBegin);
+        else if (csqClass == StringBuilder) {
+            ((StringBuilder) csq).getChars(srcBegin, srcEnd, dst, dstBegin)
         }
         else if (csq instanceof CharArrayAccessible) {
-            ((CharArrayAccessible) csq).getChars(srcBegin, srcEnd, dst, dstBegin);
+            ((CharArrayAccessible) csq).getChars(srcBegin, srcEnd, dst, dstBegin)
         }
         else {
-            String str = csq.subSequence(srcBegin, srcEnd).toString();
-            str.getChars(0, str.length(), dst, dstBegin);
+            String str = csq.subSequence(srcBegin, srcEnd).toString()
+            str.getChars(0, str.length(), dst, dstBegin)
         }
     }
 }

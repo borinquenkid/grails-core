@@ -16,11 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.buffer;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -28,8 +26,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
-import java.util.Iterator;
-import java.util.LinkedList;
+
+import groovy.transform.CompileStatic;
 
 import grails.util.GrailsArrayUtils;
 
@@ -42,7 +40,10 @@ import grails.util.GrailsArrayUtils;
  *
  * @author Lari Hotari, Sagire Software Oy
  */
-public class StreamByteBuffer {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class StreamByteBuffer {
 
     private static final int DEFAULT_CHUNK_SIZE = 8192;
 
@@ -57,20 +58,20 @@ public class StreamByteBuffer {
     private ReadMode readMode;
     private Iterator<StreamByteBufferChunk> readIterator;
 
-    public enum ReadMode {
+    static enum ReadMode {
         REMOVE_AFTER_READING,
         RETAIN_AFTER_READING
     }
 
-    public StreamByteBuffer() {
+    StreamByteBuffer() {
         this(DEFAULT_CHUNK_SIZE);
     }
 
-    public StreamByteBuffer(int chunkSize) {
+    StreamByteBuffer(int chunkSize) {
         this(chunkSize, ReadMode.REMOVE_AFTER_READING);
     }
 
-    public StreamByteBuffer(int chunkSize, ReadMode readMode) {
+    StreamByteBuffer(int chunkSize, ReadMode readMode) {
         this.chunkSize = chunkSize;
         this.readMode = readMode;
         currentWriteChunk = new StreamByteBufferChunk(chunkSize);
@@ -78,32 +79,32 @@ public class StreamByteBuffer {
         input = new StreamByteBufferInputStream();
     }
 
-    public OutputStream getOutputStream() {
+    OutputStream getOutputStream() {
         return output;
     }
 
-    public InputStream getInputStream() {
+    InputStream getInputStream() {
         return input;
     }
 
-    public void writeTo(OutputStream target) throws IOException {
+    void writeTo(OutputStream target) throws IOException {
         while (prepareRead() != -1) {
             currentReadChunk.writeTo(target);
         }
     }
 
-    public byte[] readAsByteArray() {
+    byte[] readAsByteArray() {
         byte[] buf = new byte[totalBytesUnread()];
         input.readImpl(buf, 0, buf.length);
         return buf;
     }
 
-    public String readAsString(String encoding) throws CharacterCodingException {
+    String readAsString(String encoding) throws CharacterCodingException {
         Charset charset = Charset.forName(encoding);
         return readAsString(charset);
     }
 
-    public String readAsString(Charset charset) throws CharacterCodingException {
+    String readAsString(Charset charset) throws CharacterCodingException {
         int unreadSize = totalBytesUnread();
         if (unreadSize > 0) {
             CharsetDecoder decoder = charset.newDecoder().onMalformedInput(
@@ -146,7 +147,7 @@ public class StreamByteBuffer {
         return null;
     }
 
-    public int totalBytesUnread() {
+    int totalBytesUnread() {
         int total = 0;
         if (readMode == ReadMode.REMOVE_AFTER_READING) {
             total = totalBytesUnreadInList;
@@ -206,7 +207,7 @@ public class StreamByteBuffer {
         return bytesUnread;
     }
 
-    public void reset() {
+    void reset() {
         if (readMode == ReadMode.RETAIN_AFTER_READING) {
             readIterator = null;
             prepareRetainAfterReading();
@@ -224,15 +225,15 @@ public class StreamByteBuffer {
         }
     }
 
-    public ReadMode getReadMode() {
+    ReadMode getReadMode() {
         return readMode;
     }
 
-    public void setReadMode(ReadMode readMode) {
+    void setReadMode(ReadMode readMode) {
         this.readMode = readMode;
     }
 
-    public void retainAfterReadingMode() {
+    void retainAfterReadingMode() {
         setReadMode(ReadMode.RETAIN_AFTER_READING);
     }
 
@@ -242,12 +243,12 @@ public class StreamByteBuffer {
         private int size;
         private int used = 0;
 
-        public StreamByteBufferChunk(int size) {
+        StreamByteBufferChunk(int size) {
             this.size = size;
             buffer = new byte[size];
         }
 
-        public ByteBuffer readToNioBuffer() {
+        ByteBuffer readToNioBuffer() {
             if (pointer < used) {
                 ByteBuffer result;
                 if (pointer > 0 || used < size) {
@@ -263,7 +264,7 @@ public class StreamByteBuffer {
             return null;
         }
 
-        public boolean write(byte b) {
+        boolean write(byte b) {
             if (used < size) {
                 buffer[used++] = b;
                 return true;
@@ -272,36 +273,36 @@ public class StreamByteBuffer {
             return false;
         }
 
-        public void write(byte[] b, int off, int len) {
+        void write(byte[] b, int off, int len) {
             System.arraycopy(b, off, buffer, used, len);
             used = used + len;
         }
 
-        public void read(byte[] b, int off, int len) {
+        void read(byte[] b, int off, int len) {
             System.arraycopy(buffer, pointer, b, off, len);
             pointer = pointer + len;
         }
 
-        public void writeTo(OutputStream target) throws IOException {
+        void writeTo(OutputStream target) throws IOException {
             if (pointer < used) {
                 target.write(buffer, pointer, used - pointer);
                 pointer = used;
             }
         }
 
-        public void reset() {
+        void reset() {
             pointer = 0;
         }
 
-        public int bytesUsed() {
+        int bytesUsed() {
             return used;
         }
 
-        public int bytesUnread() {
+        int bytesUnread() {
             return used - pointer;
         }
 
-        public int read() {
+        int read() {
             if (pointer < used) {
                 return buffer[pointer++] & 0xff;
             }
@@ -309,7 +310,7 @@ public class StreamByteBuffer {
             return -1;
         }
 
-        public int spaceLeft() {
+        int spaceLeft() {
             return size - used;
         }
     }
@@ -318,7 +319,7 @@ public class StreamByteBuffer {
         private boolean closed = false;
 
         @Override
-        public void write(byte[] b, int off, int len) throws IOException {
+        void write(byte[] b, int off, int len) throws IOException {
             if (b == null) {
                 throw new NullPointerException();
             }
@@ -337,41 +338,41 @@ public class StreamByteBuffer {
             while (bytesLeft > 0) {
                 int spaceLeft = allocateSpace();
                 int writeBytes = Math.min(spaceLeft, bytesLeft);
-                currentWriteChunk.write(b, currentOffset, writeBytes);
+                StreamByteBuffer.this.currentWriteChunk.write(b, currentOffset, writeBytes);
                 bytesLeft -= writeBytes;
                 currentOffset += writeBytes;
             }
         }
 
         @Override
-        public void close() throws IOException {
+        void close() throws IOException {
             closed = true;
         }
 
-        public boolean isClosed() {
+        boolean isClosed() {
             return closed;
         }
 
         @Override
-        public void write(int b) throws IOException {
+        void write(int b) throws IOException {
             allocateSpace();
-            currentWriteChunk.write((byte) b);
+            StreamByteBuffer.this.currentWriteChunk.write((byte) b);
         }
 
-        public StreamByteBuffer getBuffer() {
+        StreamByteBuffer getBuffer() {
             return StreamByteBuffer.this;
         }
     }
 
     class StreamByteBufferInputStream extends InputStream {
         @Override
-        public int read() throws IOException {
+        int read() throws IOException {
             prepareRead();
-            return currentReadChunk.read();
+            return StreamByteBuffer.this.currentReadChunk.read();
         }
 
         @Override
-        public int read(byte[] b, int off, int len) throws IOException {
+        int read(byte[] b, int off, int len) throws IOException {
             return readImpl(b, off, len);
         }
 
@@ -395,7 +396,7 @@ public class StreamByteBuffer {
             int totalBytesRead = 0;
             while (bytesLeft > 0 && bytesUnread != -1) {
                 int readBytes = Math.min(bytesUnread, bytesLeft);
-                currentReadChunk.read(b, currentOffset, readBytes);
+                StreamByteBuffer.this.currentReadChunk.read(b, currentOffset, readBytes);
                 bytesLeft -= readBytes;
                 currentOffset += readBytes;
                 totalBytesRead += readBytes;
@@ -409,8 +410,8 @@ public class StreamByteBuffer {
         }
 
         @Override
-        public synchronized void reset() throws IOException {
-            if (readMode == ReadMode.RETAIN_AFTER_READING) {
+        synchronized void reset() throws IOException {
+            if (StreamByteBuffer.this.readMode == ReadMode.RETAIN_AFTER_READING) {
                 StreamByteBuffer.this.reset();
             }
             else {
@@ -420,16 +421,16 @@ public class StreamByteBuffer {
         }
 
         @Override
-        public int available() throws IOException {
+        int available() throws IOException {
             return totalBytesUnread();
         }
 
-        public StreamByteBuffer getBuffer() {
+        StreamByteBuffer getBuffer() {
             return StreamByteBuffer.this;
         }
     }
 
-    public void clear() {
+    void clear() {
         chunks.clear();
         currentReadChunk = null;
         totalBytesUnreadInList = 0;

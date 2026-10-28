@@ -16,11 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.buffer;
+package org.grails.buffer
 
-import java.io.IOException;
-import java.io.Writer;
-import java.lang.reflect.Field;
+import java.lang.reflect.Field
 
 /**
  * Provides optimized access to java.lang.String internals
@@ -30,7 +28,7 @@ import java.lang.reflect.Field;
  *
  * java.lang.String creation reusing a char[] buffer requires Java 1.5+
  *
- * System property "stringchararrayaccessor.disabled" disables this hack.
+ * System property 'stringchararrayaccessor.disabled' disables this hack.
  * -Dstringchararrayaccessor.disabled=true
  *
  * Read JSR-133, "9.1.1 Post-Construction Modification of Final Fields"
@@ -39,39 +37,41 @@ import java.lang.reflect.Field;
  * @author Lari Hotari, Sagire Software Oy
  *
  */
-public class StringCharArrayAccessor {
-    static volatile boolean enabled = Boolean.getBoolean("stringchararrayaccessor.disabled");
-    static volatile boolean jdk7_string = false;
+@groovy.transform.CompileStatic
+class StringCharArrayAccessor {
 
-    static Field valueField;
-    static Field countField;
-    static Field offsetField;
+    static volatile boolean enabled = Boolean.getBoolean('stringchararrayaccessor.disabled')
+    static volatile boolean jdk7_string = false
+
+    static Field valueField
+    static Field countField
+    static Field offsetField
 
     static {
         if (enabled) {
             try {
-                valueField = String.class.getDeclaredField("value");
-                valueField.setAccessible(true);
+                valueField = String.getDeclaredField('value')
+                valueField.setAccessible(true)
             }
             catch (Exception e) {
-                enabled = false;
-                handleError(e);
+                enabled = false
+                handleError(e)
             }
         }
         if (enabled) {
             try {
-                countField = String.class.getDeclaredField("count");
-                countField.setAccessible(true);
+                countField = String.getDeclaredField('count')
+                countField.setAccessible(true)
 
-                offsetField = String.class.getDeclaredField("offset");
-                offsetField.setAccessible(true);
+                offsetField = String.getDeclaredField('offset')
+                offsetField.setAccessible(true)
             }
             catch (NoSuchFieldException e) {
-                jdk7_string = true;
+                jdk7_string = true
             }
             catch (Exception e) {
-                enabled = false;
-                handleError(e);
+                enabled = false
+                handleError(e)
             }
         }
     }
@@ -91,8 +91,8 @@ public class StringCharArrayAccessor {
      * @throws  IOException
      *          If an I/O error occurs
      */
-    static public void writeStringAsCharArray(Writer writer, String str) throws IOException {
-        writeStringAsCharArray(writer, str, 0, str.length());
+    static void writeStringAsCharArray(Writer writer, String str) throws IOException {
+        writeStringAsCharArray(writer, str, 0, str.length())
     }
 
     /**
@@ -113,57 +113,57 @@ public class StringCharArrayAccessor {
      * @throws  IOException
      *          If an I/O error occurs
      */
-    static public void writeStringAsCharArray(Writer writer, String str, int off, int len) throws IOException {
+    static void writeStringAsCharArray(Writer writer, String str, int off, int len) throws IOException {
         if (!enabled) {
-            writeStringFallback(writer, str, off, len);
-            return;
+            writeStringFallback(writer, str, off, len)
+            return
         }
 
-        char[] value;
-        int internalOffset = 0;
+        char[] value
+        int internalOffset = 0
         try {
-            value = (char[]) valueField.get(str);
+            value = (char[]) valueField.get(str)
             if (!jdk7_string) {
-                internalOffset = offsetField.getInt(str);
+                internalOffset = offsetField.getInt(str)
             }
         }
         catch (Exception e) {
-            handleError(e);
-            writeStringFallback(writer, str, off, len);
-            return;
+            handleError(e)
+            writeStringFallback(writer, str, off, len)
+            return
         }
-        writer.write(value, internalOffset + off, len);
+        writer.write(value, internalOffset + off, len)
     }
 
     private static void writeStringFallback(Writer writer, String str, int off, int len) throws IOException {
-        writer.write(str, off, len);
+        writer.write(str, off, len)
     }
 
     static char[] getValue(String str) {
         if (!enabled) {
-            return getValueFallback(str);
+            return getValueFallback(str)
         }
 
-        char[] value = null;
-        int internalOffset = 0;
+        char[] value = null
+        int internalOffset = 0
         try {
-            value = (char[]) valueField.get(str);
+            value = (char[]) valueField.get(str)
             if (!jdk7_string) {
-                internalOffset = offsetField.getInt(str);
+                internalOffset = offsetField.getInt(str)
             }
         }
         catch (Exception e) {
-            handleError(e);
+            handleError(e)
         }
         if (value != null && internalOffset == 0) {
-            return value;
+            return value
         }
 
-        return getValueFallback(str);
+        return getValueFallback(str)
     }
 
     static char[] getValueFallback(String str) {
-        return str.toCharArray();
+        return str.toCharArray()
     }
 
     /**
@@ -173,47 +173,47 @@ public class StringCharArrayAccessor {
      *        char array to be used as java.lang.String content, don't modify it after passing it.
      * @return new java.lang.String
      */
-    public static String createString(char[] charBuf) {
+    static String createString(char[] charBuf) {
         if (!enabled) {
-            return createStringFallback(charBuf);
+            return createStringFallback(charBuf)
         }
 
-        String str = new String();
+        String str = new String()
         try {
             // try to prevent possible final field setting execution reordering in JIT (JSR-133/JMM, "9.1.1 Post-Construction Modification of Final Fields")
             // it was a bit unclear for me if this could ever happen in a single thread
             synchronized (str) {
-                valueField.set(str, charBuf);
+                valueField.set(str, charBuf)
                 if (!jdk7_string) {
-                    countField.set(str, charBuf.length);
+                    countField.set(str, charBuf.length)
                 }
             }
             synchronized (str) {
                 // safety check, just to be sure that setting the final fields went ok
                 if (str.length() != charBuf.length) {
-                    throw new IllegalStateException("Fast java.lang.String construction failed.");
+                    throw new IllegalStateException('Fast java.lang.String construction failed.')
                 }
             }
         }
         catch (Exception e) {
-            handleError(e);
-            str = createStringFallback(charBuf);
+            handleError(e)
+            str = createStringFallback(charBuf)
         }
-        return str;
+        return str
     }
 
     private static String createStringFallback(char[] charBuf) {
-        return new String(charBuf);
+        return new String(charBuf)
     }
 
     private static synchronized void handleError(Exception e) {
-        enabled = false;
-        valueField = null;
-        countField = null;
-        offsetField = null;
+        enabled = false
+        valueField = null
+        countField = null
+        offsetField = null
     }
 
-    static public boolean isEnabled() {
-        return enabled;
+    static boolean isEnabled() {
+        return enabled
     }
 }

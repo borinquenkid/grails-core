@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.charsequences;
+package org.grails.charsequences
 
 /**
  * Wraps a char array and implements CharSequence interface
@@ -26,54 +26,56 @@ package org.grails.charsequences;
  * @since 2.3.10
  *
  */
+@groovy.transform.CompileStatic
 class CharArrayCharSequence implements CharSequence, CharArrayAccessible {
-    private final char[] chars;
-    private final int count;
-    private final int start;
+
+    private final char[] chars
+    private final int count
+    private final int start
 
     CharArrayCharSequence(char[] chars, int start, int count) {
         if (start + count > chars.length)
-            throw new StringIndexOutOfBoundsException(start);
-        this.chars = chars;
-        this.start = start;
-        this.count = count;
+            throw new StringIndexOutOfBoundsException(start)
+        this.chars = chars
+        this.start = start
+        this.count = count
     }
 
-    public char charAt(int index) {
+    char charAt(int index) {
         if ((index < 0) || (index + start >= chars.length))
-            throw new StringIndexOutOfBoundsException(index);
-        return chars[index + start];
+            throw new StringIndexOutOfBoundsException(index)
+        return chars[index + start]
     }
 
-    public int length() {
-        return count;
+    int length() {
+        return count
     }
 
-    public CharSequence subSequence(int start, int end) {
+    CharSequence subSequence(int start, int end) {
         if (start < 0)
-            throw new StringIndexOutOfBoundsException(start);
+            throw new StringIndexOutOfBoundsException(start)
         if (end > count)
-            throw new StringIndexOutOfBoundsException(end);
+            throw new StringIndexOutOfBoundsException(end)
         if (start > end)
-            throw new StringIndexOutOfBoundsException(end - start);
+            throw new StringIndexOutOfBoundsException(end - start)
         if (start == 0 && end == count) {
-            return this;
+            return this
         }
-        return new CharArrayCharSequence(chars, this.start + start, end - start);
+        return new CharArrayCharSequence(chars, this.start + start, end - start)
     }
 
     @Override
-    public String toString() {
-        return new String(chars, start, count);
+    String toString() {
+        return new String(chars, start, count)
     }
 
-    public void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin) {
+    void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin) {
         if (srcBegin < 0)
-            throw new StringIndexOutOfBoundsException(srcBegin);
+            throw new StringIndexOutOfBoundsException(srcBegin)
         if ((srcEnd < 0) || (srcEnd > start + count))
-            throw new StringIndexOutOfBoundsException(srcEnd);
+            throw new StringIndexOutOfBoundsException(srcEnd)
         if (srcBegin > srcEnd)
-            throw new StringIndexOutOfBoundsException("srcBegin > srcEnd");
-        System.arraycopy(chars, start + srcBegin, dst, dstBegin, srcEnd - srcBegin);
+            throw new StringIndexOutOfBoundsException('srcBegin > srcEnd')
+        System.arraycopy(chars, start + srcBegin, dst, dstBegin, srcEnd - srcBegin)
     }
 }

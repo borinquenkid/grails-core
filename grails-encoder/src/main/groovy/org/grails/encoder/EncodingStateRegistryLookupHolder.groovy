@@ -16,25 +16,29 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
-import grails.util.Holder;
+import groovy.transform.CompileStatic
 
-public class EncodingStateRegistryLookupHolder {
-    private static Holder<EncodingStateRegistryLookup> holder = new Holder<>("encodingStateRegistryLookup");
+import grails.util.Holder
+
+@CompileStatic
+class EncodingStateRegistryLookupHolder {
+
+    private static Holder<EncodingStateRegistryLookup> holder = new Holder<>('encodingStateRegistryLookup')
 
     private EncodingStateRegistryLookupHolder() {
     }
 
-    public static void setEncodingStateRegistryLookup(EncodingStateRegistryLookup lookup) {
-        holder.set(lookup);
+    static void setEncodingStateRegistryLookup(EncodingStateRegistryLookup lookup) {
+        holder.set(lookup)
     }
 
-    public static EncodingStateRegistryLookup getEncodingStateRegistryLookup() {
-        return holder.get();
+    static EncodingStateRegistryLookup getEncodingStateRegistryLookup() {
+        return holder.get()
     }
-    
-    public static void clear() {
-        holder.set(null);
+
+    static void clear() {
+        holder.set(null)
     }
 }

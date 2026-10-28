@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.charsequences;
+package org.grails.charsequences
 
 /**
  * Wraps a single char and implements CharSequence interface
@@ -26,49 +26,51 @@ package org.grails.charsequences;
  * @since 2.3.10
  *
  */
+@groovy.transform.CompileStatic
 class SingleCharCharSequence implements CharSequence, CharArrayAccessible {
-    private final char ch;
+
+    private final char ch
 
     SingleCharCharSequence(int c) {
-        this((char) c);
+        this((char) c)
     }
     
     SingleCharCharSequence(char ch) {
-        this.ch = ch;
+        this.ch = ch
     }
 
-    public char charAt(int index) {
+    char charAt(int index) {
         if ((index < 0) || (index > 0))
-            throw new StringIndexOutOfBoundsException(index);
-        return ch;
+            throw new StringIndexOutOfBoundsException(index)
+        return ch
     }
 
-    public int length() {
-        return 1;
+    int length() {
+        return 1
     }
 
-    public CharSequence subSequence(int start, int end) {
+    CharSequence subSequence(int start, int end) {
         if (start < 0)
-            throw new StringIndexOutOfBoundsException(start);
+            throw new StringIndexOutOfBoundsException(start)
         if (end > 1)
-            throw new StringIndexOutOfBoundsException(end);
+            throw new StringIndexOutOfBoundsException(end)
         if (start > end)
-            throw new StringIndexOutOfBoundsException(end - start);
-        return this;
+            throw new StringIndexOutOfBoundsException(end - start)
+        return this
     }
 
     @Override
-    public String toString() {
-        return new String(new char[]{ch});
+    String toString() {
+        return new String(new char[]{ch})
     }
 
-    public void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin) {
+    void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin) {
         if (srcBegin < 0)
-            throw new StringIndexOutOfBoundsException(srcBegin);
+            throw new StringIndexOutOfBoundsException(srcBegin)
         if ((srcEnd < 0) || (srcEnd > 1))
-            throw new StringIndexOutOfBoundsException(srcEnd);
+            throw new StringIndexOutOfBoundsException(srcEnd)
         if (srcBegin > srcEnd)
-            throw new StringIndexOutOfBoundsException("srcBegin > srcEnd");
-        dst[dstBegin] = ch;
+            throw new StringIndexOutOfBoundsException('srcBegin > srcEnd')
+        dst[dstBegin] = ch
     }
 }

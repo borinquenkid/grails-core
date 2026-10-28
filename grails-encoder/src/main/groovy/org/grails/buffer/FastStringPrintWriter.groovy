@@ -16,15 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.buffer;
+package org.grails.buffer
 
-import java.io.Reader;
+import groovy.transform.CompileStatic
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-import org.springframework.objenesis.ObjenesisStd;
-import org.springframework.objenesis.instantiator.ObjectInstantiator;
+import org.springframework.objenesis.ObjenesisStd
+import org.springframework.objenesis.instantiator.ObjectInstantiator
 
 /**
  * Fast in-memory PrintWriter implementation.
@@ -32,72 +32,74 @@ import org.springframework.objenesis.instantiator.ObjectInstantiator;
  * @author Lari Hotari
  * @since 2.0
  */
-public class FastStringPrintWriter extends GrailsPrintWriterAdapter {
-    private static final Logger LOG = LoggerFactory.getLogger(FastStringPrintWriter.class);
+@CompileStatic
+class FastStringPrintWriter extends GrailsPrintWriterAdapter {
 
-    private static ObjectInstantiator instantiator;
+    private static final Logger LOG = LoggerFactory.getLogger(FastStringPrintWriter)
+
+    private static ObjectInstantiator instantiator
 
     static {
         try {
-            instantiator = new ObjenesisStd(false).getInstantiatorOf(FastStringPrintWriter.class);
+            instantiator = new ObjenesisStd(false).getInstantiatorOf(FastStringPrintWriter)
         } catch (Exception e) {
-            LOG.debug("Couldn't get direct performance optimized instantiator for FastStringPrintWriter. Using default instantiation.", e);
+            LOG.debug("Couldn't get direct performance optimized instantiator for FastStringPrintWriter. Using default instantiation.", e)
         }
     }
 
-    private StreamCharBuffer streamBuffer;
+    private StreamCharBuffer streamBuffer
 
-    public FastStringPrintWriter() {
-        super(new StreamCharBuffer().getWriter());
-        streamBuffer = ((StreamCharBuffer.StreamCharBufferWriter) getOut()).getBuffer();
+    FastStringPrintWriter() {
+        super(new StreamCharBuffer().getWriter())
+        streamBuffer = ((StreamCharBuffer.StreamCharBufferWriter) getOut()).getBuffer()
     }
 
-    public FastStringPrintWriter(int initialChunkSize) {
-        super(new StreamCharBuffer(initialChunkSize).getWriter());
-        streamBuffer = ((StreamCharBuffer.StreamCharBufferWriter) getOut()).getBuffer();
+    FastStringPrintWriter(int initialChunkSize) {
+        super(new StreamCharBuffer(initialChunkSize).getWriter())
+        streamBuffer = ((StreamCharBuffer.StreamCharBufferWriter) getOut()).getBuffer()
     }
 
-    public static FastStringPrintWriter newInstance() {
-        return newInstance(0);
+    static FastStringPrintWriter newInstance() {
+        return newInstance(0)
     }
 
-    public static FastStringPrintWriter newInstance(int initialChunkSize) {
+    static FastStringPrintWriter newInstance(int initialChunkSize) {
         if (instantiator == null) {
             if (initialChunkSize > 0) {
-                return new FastStringPrintWriter(initialChunkSize);
+                return new FastStringPrintWriter(initialChunkSize)
             }
-            return new FastStringPrintWriter();
+            return new FastStringPrintWriter()
         }
 
-        FastStringPrintWriter instance = (FastStringPrintWriter) instantiator.newInstance();
+        FastStringPrintWriter instance = (FastStringPrintWriter) instantiator.newInstance()
         if (initialChunkSize > 0) {
-            instance.streamBuffer = new StreamCharBuffer(initialChunkSize);
+            instance.@streamBuffer = new StreamCharBuffer(initialChunkSize)
         } else {
-            instance.streamBuffer = new StreamCharBuffer();
+            instance.@streamBuffer = new StreamCharBuffer()
         }
-        instance.setTarget(instance.streamBuffer.getWriter());
-        return instance;
+        instance.setTarget(instance.@streamBuffer.getWriter())
+        return instance
     }
 
     protected FastStringPrintWriter(Object o) {
-        this();
-        print(o);
+        this()
+        print(o)
     }
 
-    public StreamCharBuffer getBuffer() {
-        return streamBuffer;
+    StreamCharBuffer getBuffer() {
+        return streamBuffer
     }
 
     @Override
-    public String toString() {
-        return getValue();
+    String toString() {
+        return getValue()
     }
 
-    public String getValue() {
-        return streamBuffer.toString();
+    String getValue() {
+        return streamBuffer.toString()
     }
 
-    public Reader getReader() {
-        return streamBuffer.getReader();
+    Reader getReader() {
+        return streamBuffer.getReader()
     }
 }

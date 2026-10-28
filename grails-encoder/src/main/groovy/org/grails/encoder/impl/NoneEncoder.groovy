@@ -16,46 +16,47 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder.impl;
+package org.grails.encoder.impl
 
-import java.io.IOException;
+import groovy.transform.CompileStatic
 
-import org.grails.encoder.CodecIdentifier;
-import org.grails.encoder.DefaultCodecIdentifier;
-import org.grails.encoder.EncodedAppender;
-import org.grails.encoder.Encoder;
-import org.grails.encoder.EncodingState;
-import org.grails.encoder.StreamingEncoder;
+import org.grails.encoder.CodecIdentifier
+import org.grails.encoder.DefaultCodecIdentifier
+import org.grails.encoder.EncodedAppender
+import org.grails.encoder.Encoder
+import org.grails.encoder.EncodingState
+import org.grails.encoder.StreamingEncoder
 
 /**
  * @author Lari Hotari
  * @since 2.3
  */
-public class NoneEncoder implements StreamingEncoder {
-    static final CodecIdentifier CODEC_IDENTIFIER = new DefaultCodecIdentifier("None");
+@CompileStatic
+class NoneEncoder implements StreamingEncoder {
 
-    public Object encode(Object o) {
-        return o;
+    static final CodecIdentifier CODEC_IDENTIFIER = new DefaultCodecIdentifier('None')
+
+    Object encode(Object o) {
+        return o
     }
 
-    public boolean isSafe() {
-        return false;
+    boolean isSafe() {
+        return false
     }
 
-    public boolean isApplyToSafelyEncoded() {
-        return false;
+    boolean isApplyToSafelyEncoded() {
+        return false
     }
 
-    public void markEncoded(CharSequence string) {
-
+    void markEncoded(CharSequence string) {
     }
 
-    public CodecIdentifier getCodecIdentifier() {
-        return CODEC_IDENTIFIER;
+    CodecIdentifier getCodecIdentifier() {
+        return CODEC_IDENTIFIER
     }
 
-    public void encodeToStream(Encoder thisInstance, CharSequence source, int offset, int len, EncodedAppender appender,
+    void encodeToStream(Encoder thisInstance, CharSequence source, int offset, int len, EncodedAppender appender,
             EncodingState encodingState) throws IOException {
-        appender.append(null, encodingState, source, offset, len);
+        appender.append(null, encodingState, source, offset, len)
     }
 }

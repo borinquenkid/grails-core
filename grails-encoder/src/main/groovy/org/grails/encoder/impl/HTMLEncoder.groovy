@@ -16,10 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder.impl;
+package org.grails.encoder.impl
 
-import org.grails.encoder.CodecIdentifier;
-import org.grails.encoder.DefaultCodecIdentifier;
+import groovy.transform.CompileStatic
+
+import org.grails.encoder.CodecIdentifier
+import org.grails.encoder.DefaultCodecIdentifier
 
 /**
  * HTMLEncoder implementation currently this doesn't add any extra features to
@@ -29,14 +31,16 @@ import org.grails.encoder.DefaultCodecIdentifier;
  * @author Lari Hotari
  * @since 2.3
  */
-public class HTMLEncoder extends BasicXMLEncoder {
-    public static final CodecIdentifier HTML_CODEC_IDENTIFIER = new DefaultCodecIdentifier("HTML");
+@CompileStatic
+class HTMLEncoder extends BasicXMLEncoder {
 
-    public HTMLEncoder() {
-        super(HTML_CODEC_IDENTIFIER);
+    public static final CodecIdentifier HTML_CODEC_IDENTIFIER = new DefaultCodecIdentifier('HTML')
+
+    HTMLEncoder() {
+        super(HTML_CODEC_IDENTIFIER)
     }
-    
+
     protected Object doEncode(Object o) {
-        return doCharReplacementEncoding(o);
-    }    
+        return doCharReplacementEncoding(o)
+    }
 }

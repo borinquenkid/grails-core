@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
 /**
  * Marker interface that tells that the instance has information about the Codec
@@ -25,12 +25,12 @@ package org.grails.encoder;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface CodecIdentifierProvider {
+interface CodecIdentifierProvider {
 
     /**
      * Gets the codec identifier information.
      *
      * @return the codec identifier information
      */
-    CodecIdentifier getCodecIdentifier();
+    CodecIdentifier getCodecIdentifier()
 }

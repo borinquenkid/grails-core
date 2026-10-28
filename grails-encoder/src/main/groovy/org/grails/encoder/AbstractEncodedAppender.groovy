@@ -16,11 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
-import java.io.IOException;
+import groovy.transform.CompileStatic
 
-import org.grails.charsequences.CharSequences;
+import org.grails.charsequences.CharSequences
 
 /**
  * Abstract base class for implementations of {@link EncodedAppender} interface
@@ -28,8 +28,10 @@ import org.grails.charsequences.CharSequences;
  * @author Lari Hotari
  * @since 2.3
  */
-public abstract class AbstractEncodedAppender implements EncodedAppender {
-    private boolean ignoreEncodingState;
+@CompileStatic
+abstract class AbstractEncodedAppender implements EncodedAppender {
+
+    private boolean ignoreEncodingState
 
     /**
      * Append a portion of a char array to the buffer and attach the
@@ -46,7 +48,7 @@ public abstract class AbstractEncodedAppender implements EncodedAppender {
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
-    protected abstract void write(EncodingState encodingState, char[] b, int off, int len) throws IOException;
+    protected abstract void write(EncodingState encodingState, char[] b, int off, int len) throws IOException
 
     /**
      * Append a portion of a string to the buffer and attach the encodingState
@@ -63,7 +65,7 @@ public abstract class AbstractEncodedAppender implements EncodedAppender {
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
-    protected abstract void write(EncodingState encodingState, String str, int off, int len) throws IOException;
+    protected abstract void write(EncodingState encodingState, String str, int off, int len) throws IOException
 
     /**
      * Append a portion of a CharSequence to the buffer and attach the
@@ -81,7 +83,7 @@ public abstract class AbstractEncodedAppender implements EncodedAppender {
      *             Signals that an I/O exception has occurred.
      */
     protected abstract void appendCharSequence(EncodingState encodingState, CharSequence str, int start, int end)
-            throws IOException;
+            throws IOException
 
     /*
      * (non-Javadoc)
@@ -91,30 +93,30 @@ public abstract class AbstractEncodedAppender implements EncodedAppender {
      * EncodingState, char[], int,
      * int)
      */
-    public void append(Encoder encoder, EncodingState encodingState, char[] b, int off, int len) throws IOException {
+    void append(Encoder encoder, EncodingState encodingState, char[] b, int off, int len) throws IOException {
         if (b == null || len <= 0) {
-            return;
+            return
         }
         if (shouldEncode(encoder, encodingState)) {
-            EncodingState newEncoders = createNewEncodingState(encoder, encodingState);
+            EncodingState newEncoders = createNewEncodingState(encoder, encodingState)
             if (encoder instanceof StreamingEncoder) {
                 ((StreamingEncoder) encoder).encodeToStream(encoder, CharSequences.createCharSequence(b, off, len), 0, len, this,
-                        newEncoders);
+                        newEncoders)
             }
             else {
-                encodeAndWrite(encoder, newEncoders, String.valueOf(b, off, len));
+                encodeAndWrite(encoder, newEncoders, String.valueOf(b, off, len))
             }
         }
         else {
-            write(encodingState, b, off, len);
+            write(encodingState, b, off, len)
         }
     }
 
     protected EncodingState createNewEncodingState(Encoder encoder, EncodingState encodingState) {
         if (encodingState == null) {
-            return new EncodingStateImpl(encoder, null);
+            return new EncodingStateImpl(encoder, null)
         }
-        return encodingState.appendEncoder(encoder);
+        return encodingState.appendEncoder(encoder)
     }
 
     /*
@@ -125,40 +127,40 @@ public abstract class AbstractEncodedAppender implements EncodedAppender {
      * EncodingState,
      * java.lang.CharSequence, int, int)
      */
-    public void append(Encoder encoder, EncodingState encodingState, CharSequence str, int off, int len)
+    void append(Encoder encoder, EncodingState encodingState, CharSequence str, int off, int len)
             throws IOException {
         if (str == null || len <= 0) {
-            return;
+            return
         }
         if (shouldEncode(encoder, encodingState)) {
-            EncodingState newEncoders = createNewEncodingState(encoder, encodingState);
+            EncodingState newEncoders = createNewEncodingState(encoder, encodingState)
             if (encoder instanceof StreamingEncoder) {
-                ((StreamingEncoder) encoder).encodeToStream(encoder, str, off, len, this, newEncoders);
+                ((StreamingEncoder) encoder).encodeToStream(encoder, str, off, len, this, newEncoders)
             }
             else {
-                CharSequence source;
+                CharSequence source
                 if (CharSequences.canUseOriginalForSubSequence(str, off, len)) {
-                    source = str;
+                    source = str
                 }
                 else {
-                    source = str.subSequence(off, off + len);
+                    source = str.subSequence(off, off + len)
                 }
-                encodeAndWrite(encoder, newEncoders, source);
+                encodeAndWrite(encoder, newEncoders, source)
             }
         }
         else {
-            appendCharSequence(encodingState, str, off, off + len);
+            appendCharSequence(encodingState, str, off, off + len)
         }
     }
 
-    public void appendEncoded(Encoder encoder, EncodingState encodingState, char[] b, int off, int len)
+    void appendEncoded(Encoder encoder, EncodingState encodingState, char[] b, int off, int len)
             throws IOException {
-        write(createNewEncodingState(encoder, encodingState), b, off, len);
+        write(createNewEncodingState(encoder, encodingState), b, off, len)
     }
 
-    public void appendEncoded(Encoder encoder, EncodingState encodingState, CharSequence str, int off, int len)
+    void appendEncoded(Encoder encoder, EncodingState encodingState, CharSequence str, int off, int len)
             throws IOException {
-        appendCharSequence(createNewEncodingState(encoder, encodingState), str, off, off + len);
+        appendCharSequence(createNewEncodingState(encoder, encodingState), str, off, off + len)
     }
 
     /**
@@ -170,14 +172,14 @@ public abstract class AbstractEncodedAppender implements EncodedAppender {
      *            the current encoding state
      * @return true, if should encode
      */
-    public boolean shouldEncode(Encoder encoderToApply, EncodingState encodingState) {
+    boolean shouldEncode(Encoder encoderToApply, EncodingState encodingState) {
         return ignoreEncodingState || (encoderToApply != null &&
-                (encodingState == null || shouldEncodeWith(encoderToApply, encodingState)));
+                (encodingState == null || shouldEncodeWith(encoderToApply, encodingState)))
     }
 
     protected boolean shouldEncodeWith(Encoder encoderToApply, EncodingState encodingState) {
         return DefaultEncodingStateRegistry.shouldEncodeWith(encoderToApply,
-                encodingState);
+                encodingState)
     }
 
     /**
@@ -194,10 +196,10 @@ public abstract class AbstractEncodedAppender implements EncodedAppender {
      */
     protected void encodeAndWrite(Encoder encoder, EncodingState newEncodingState, CharSequence input)
             throws IOException {
-        Object encoded = encoder.encode(input);
+        Object encoded = encoder.encode(input)
         if (encoded != null) {
-            String encodedStr = String.valueOf(encoded);
-            write(newEncodingState, encodedStr, 0, encodedStr.length());
+            String encodedStr = String.valueOf(encoded)
+            write(newEncodingState, encodedStr, 0, encodedStr.length())
         }
     }
 
@@ -208,23 +210,22 @@ public abstract class AbstractEncodedAppender implements EncodedAppender {
      * .codehaus.groovy.grails.support.encoding.Encoder,
      * StreamEncodeable)
      */
-    public void append(Encoder encoder, StreamEncodeable streamEncodeable) throws IOException {
-        streamEncodeable.encodeTo(this, encoder);
+    void append(Encoder encoder, StreamEncodeable streamEncodeable) throws IOException {
+        streamEncodeable.encodeTo(this, encoder)
     }
 
     /*
      * (non-Javadoc)
      * @see EncodedAppender#flush()
      */
-    public void flush() throws IOException {
-
+    void flush() throws IOException {
     }
 
-    public boolean isIgnoreEncodingState() {
-        return ignoreEncodingState;
+    boolean isIgnoreEncodingState() {
+        return ignoreEncodingState
     }
 
-    public void setIgnoreEncodingState(boolean ignoreEncodingState) {
-        this.ignoreEncodingState = ignoreEncodingState;
+    void setIgnoreEncodingState(boolean ignoreEncodingState) {
+        this.ignoreEncodingState = ignoreEncodingState
     }
 }

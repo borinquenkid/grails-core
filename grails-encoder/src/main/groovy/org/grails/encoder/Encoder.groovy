@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
 /**
  * Interface for encoding methods.
@@ -24,7 +24,7 @@ package org.grails.encoder;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface Encoder extends CodecIdentifierProvider {
+interface Encoder extends CodecIdentifierProvider {
 
     /**
      * Encode given input object
@@ -32,7 +32,7 @@ public interface Encoder extends CodecIdentifierProvider {
      * @param o the input object
      * @return the encoded object
      */
-    Object encode(Object o);
+    Object encode(Object o)
 
     /**
      * Checks if this encoder is XSS "safe". This means that after appling this
@@ -41,13 +41,13 @@ public interface Encoder extends CodecIdentifierProvider {
      *
      * @return true, if is safe
      */
-    boolean isSafe();
+    boolean isSafe()
 
     /**
      * @return <code>true</code> if this this codec should be applied to a buffer part that is
      * already encoded with a safe encoder
      */
-    boolean isApplyToSafelyEncoded();
+    boolean isApplyToSafelyEncoded()
 
     /**
      * Mark this instance as encoded with this encoder in the current
@@ -55,5 +55,5 @@ public interface Encoder extends CodecIdentifierProvider {
      *
      * @param string a CharSequence to mark as encoded
      */
-    void markEncoded(CharSequence string);
+    void markEncoded(CharSequence string)
 }

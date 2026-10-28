@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.charsequences;
+package org.grails.charsequences
 
 /**
  * Marker interface for telling that the underlying char array is directly accessible
@@ -26,7 +26,7 @@ package org.grails.charsequences;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface CharArrayAccessible {
+interface CharArrayAccessible {
 
     /**
      * Characters are copied from this sequence into the
@@ -58,5 +58,6 @@ public interface CharArrayAccessible {
      *             <code>dst.length</code>
      *             </ul>
      */
-    void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin);
+    void getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin)
+
 }

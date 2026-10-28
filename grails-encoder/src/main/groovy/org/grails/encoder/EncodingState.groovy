@@ -16,9 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
-
-import java.util.Set;
+package org.grails.encoder
 
 /**
  * Holds the state of applied encodings
@@ -26,16 +24,16 @@ import java.util.Set;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface EncodingState {
+interface EncodingState {
 
     /**
      * Gets the current encoding state (= encoder that have been applied)
      *
      * @return the encoders that have been applied
      */
-    Set<Encoder> getEncoders();
+    Set<Encoder> getEncoders()
 
-    EncodingState appendEncoder(Encoder encoder);
+    EncodingState appendEncoder(Encoder encoder)
     
-    EncodingState getPreviousEncodingState();
+    EncodingState getPreviousEncodingState()
 }

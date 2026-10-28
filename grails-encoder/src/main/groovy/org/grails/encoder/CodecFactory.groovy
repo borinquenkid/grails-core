@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
 /**
  * This interface can be used to tell that a Grails Codec class should use these
@@ -26,19 +26,19 @@ package org.grails.encoder;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface CodecFactory {
+interface CodecFactory {
 
     /**
      * Gets the encoder instance.
      *
      * @return the encoder
      */
-    Encoder getEncoder();
+    Encoder getEncoder()
 
     /**
      * Gets the decoder instance.
      *
      * @return the decoder
      */
-    Decoder getDecoder();
+    Decoder getDecoder()
 }

@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
 /**
  * EncodingStateRegistry keeps encoding state of CharSequence instances.
@@ -28,7 +28,7 @@ package org.grails.encoder;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface EncodingStateRegistry {
+interface EncodingStateRegistry {
 
     /**
      * Gets the current encoding state for a CharSequence.
@@ -37,7 +37,7 @@ public interface EncodingStateRegistry {
      *            a CharSequence
      * @return the encoding state for the CharSequence
      */
-    EncodingState getEncodingStateFor(CharSequence string);
+    EncodingState getEncodingStateFor(CharSequence string)
 
     /**
      * Checks if a encoder should be applied to a CharSequence
@@ -48,7 +48,7 @@ public interface EncodingStateRegistry {
      *            a CharSequence
      * @return true, if it should be applied
      */
-    boolean shouldEncodeWith(Encoder encoderToApply, CharSequence string);
+    boolean shouldEncodeWith(Encoder encoderToApply, CharSequence string)
 
     /**
      * Checks if the CharSequence is encoded with encoder.
@@ -59,7 +59,7 @@ public interface EncodingStateRegistry {
      *            a CharSequence
      * @return true, if it is encoded with encoder
      */
-    boolean isEncodedWith(Encoder encoder, CharSequence string);
+    boolean isEncodedWith(Encoder encoder, CharSequence string)
 
     /**
      * Registers that the CharSequence has been encoded with encoder
@@ -69,5 +69,5 @@ public interface EncodingStateRegistry {
      * @param escaped
      *            the CharSequence
      */
-    void registerEncodedWith(Encoder encoder, CharSequence escaped);
+    void registerEncodedWith(Encoder encoder, CharSequence escaped)
 }

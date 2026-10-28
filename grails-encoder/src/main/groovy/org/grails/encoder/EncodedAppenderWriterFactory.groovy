@@ -16,9 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
-
-import java.io.Writer;
+package org.grails.encoder
 
 /**
  * This interface marks an instance capable of getting a
@@ -28,7 +26,7 @@ import java.io.Writer;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface EncodedAppenderWriterFactory {
+interface EncodedAppenderWriterFactory {
 
     /**
      * Gets the EncodedAppenderWriter instance that is connected to this
@@ -40,5 +38,5 @@ public interface EncodedAppenderWriterFactory {
      *            the current EncodingStateRegistry to use
      * @return the java.io.Writer instance
      */
-    Writer getWriterForEncoder(Encoder encoder, EncodingStateRegistry encodingStateRegistry);
+    Writer getWriterForEncoder(Encoder encoder, EncodingStateRegistry encodingStateRegistry)
 }

@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
 /**
  * This interface marks an instance capable of looking of the current
@@ -25,12 +25,12 @@ package org.grails.encoder;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface EncodingStateRegistryLookup {
+interface EncodingStateRegistryLookup {
 
     /**
      * Lookup encoding state registry.
      *
      * @return the encoding state registry
      */
-    EncodingStateRegistry lookup();
+    EncodingStateRegistry lookup()
 }

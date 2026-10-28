@@ -16,12 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import groovy.transform.CompileStatic
 
 /**
  * default implementation of {@link CodecIdentifier}
@@ -29,74 +26,76 @@ import java.util.Set;
  * @author Lari Hotari
  * @since 2.3
  */
-public class DefaultCodecIdentifier implements CodecIdentifier {
-    final private String codecName;
-    final private Set<String> codecAliases;
+@CompileStatic
+class DefaultCodecIdentifier implements CodecIdentifier {
 
-    public DefaultCodecIdentifier(String codecName) {
-        this(codecName, (Set<String>) null);
+    private final String codecName
+    private final Set<String> codecAliases
+
+    DefaultCodecIdentifier(String codecName) {
+        this(codecName, (Set<String>) null)
     }
 
-    public DefaultCodecIdentifier(String codecName, String... codecAliases) {
-        this(codecName, codecAliases != null ? new HashSet<>(Arrays.asList(codecAliases)) : null);
+    DefaultCodecIdentifier(String codecName, String... codecAliases) {
+        this(codecName, codecAliases != null ? new HashSet<>(Arrays.asList(codecAliases)) : null)
     }
 
-    public DefaultCodecIdentifier(String codecName, Set<String> codecAliases) {
-        this.codecName = codecName;
-        this.codecAliases = codecAliases != null ? Collections.unmodifiableSet(codecAliases) : null;
+    DefaultCodecIdentifier(String codecName, Set<String> codecAliases) {
+        this.codecName = codecName
+        this.codecAliases = codecAliases != null ? Collections.unmodifiableSet(codecAliases) : null
     }
 
     /* (non-Javadoc)
      * @see CodecIdentifier#getCodecName()
      */
-    public String getCodecName() {
-        return codecName;
+    String getCodecName() {
+        return codecName
     }
 
     /* (non-Javadoc)
      * @see CodecIdentifier#getCodecAliases()
      */
-    public Set<String> getCodecAliases() {
-        return codecAliases;
+    Set<String> getCodecAliases() {
+        return codecAliases
     }
 
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */
     @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((codecAliases == null) ? 0 : codecAliases.hashCode());
-        result = prime * result + ((codecName == null) ? 0 : codecName.hashCode());
-        return result;
+    int hashCode() {
+        final int prime = 31
+        int result = 1
+        result = prime * result + ((codecAliases == null) ? 0 : codecAliases.hashCode())
+        result = prime * result + ((codecName == null) ? 0 : codecName.hashCode())
+        return result
     }
 
     /* (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
+    boolean equals(Object obj) {
+        if (this.is(obj))
+            return true
         if (obj == null)
-            return false;
+            return false
         if (getClass() != obj.getClass())
-            return false;
-        DefaultCodecIdentifier other = (DefaultCodecIdentifier) obj;
+            return false
+        DefaultCodecIdentifier other = (DefaultCodecIdentifier) obj
         if (codecAliases == null) {
             if (other.codecAliases != null)
-                return false;
+                return false
         }
         else if (!codecAliases.equals(other.codecAliases))
-            return false;
+            return false
         if (codecName == null) {
             if (other.codecName != null)
-                return false;
+                return false
         }
         else if (!codecName.equals(other.codecName))
-            return false;
-        return true;
+            return false
+        return true
     }
 
     /*
@@ -104,23 +103,23 @@ public class DefaultCodecIdentifier implements CodecIdentifier {
      * @see java.lang.Object#toString()
      */
     @Override
-    public String toString() {
-        return "DefaultCodecIdentifier [codecName=" + codecName + ", codecAliases=" + codecAliases + "]";
+    String toString() {
+        return 'DefaultCodecIdentifier [codecName=' + codecName + ', codecAliases=' + codecAliases + ']'
     }
 
     /* (non-Javadoc)
      * @see CodecIdentifier#isEquivalent(CodecIdentifier)
      */
-    public boolean isEquivalent(CodecIdentifier other) {
+    boolean isEquivalent(CodecIdentifier other) {
         if (this.codecName.equals(other.getCodecName())) {
-            return true;
+            return true
         }
         if (this.codecAliases != null && this.codecAliases.contains(other.getCodecName())) {
-            return true;
+            return true
         }
         if (other.getCodecAliases() != null && other.getCodecAliases().contains(this.codecName)) {
-            return true;
+            return true
         }
-        return false;
+        return false
     }
 }

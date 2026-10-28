@@ -16,41 +16,45 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder.impl;
+package org.grails.encoder.impl
 
-import org.springframework.web.util.HtmlUtils;
+import groovy.transform.CompileStatic
 
-import org.grails.encoder.CodecFactory;
-import org.grails.encoder.CodecIdentifier;
-import org.grails.encoder.Decoder;
-import org.grails.encoder.Encoder;
+import org.springframework.web.util.HtmlUtils
 
-public class XMLCodecFactory implements CodecFactory {
-    protected Encoder encoder = new BasicXMLEncoder();
+import org.grails.encoder.CodecFactory
+import org.grails.encoder.CodecIdentifier
+import org.grails.encoder.Decoder
+import org.grails.encoder.Encoder
+
+@CompileStatic
+class XMLCodecFactory implements CodecFactory {
+
+    protected Encoder encoder = new BasicXMLEncoder()
     protected Decoder decoder = new Decoder() {
-        public CodecIdentifier getCodecIdentifier() {
-            return BasicXMLEncoder.XML_CODEC_IDENTIFIER;
+        CodecIdentifier getCodecIdentifier() {
+            return BasicXMLEncoder.XML_CODEC_IDENTIFIER
         }
 
-        public Object decode(Object o) {
+        Object decode(Object o) {
             if (o == null) {
-                return null;
+                return null
             }
-            return HtmlUtils.htmlUnescape(String.valueOf(o));
+            return HtmlUtils.htmlUnescape(String.valueOf(o))
         }
-    };
+    }
 
     /* (non-Javadoc)
      * @see CodecFactory#getEncoder()
      */
-    public Encoder getEncoder() {
-        return encoder;
+    Encoder getEncoder() {
+        return encoder
     }
 
     /* (non-Javadoc)
      * @see CodecFactory#getDecoder()
      */
-    public Decoder getDecoder() {
-        return decoder;
+    Decoder getDecoder() {
+        return decoder
     }
 }

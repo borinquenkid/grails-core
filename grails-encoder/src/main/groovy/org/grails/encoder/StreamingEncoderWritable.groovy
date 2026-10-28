@@ -16,10 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
-
-import java.io.IOException;
-import java.io.Writer;
+package org.grails.encoder
 
 /**
  * Marks a class capable of encoding itself with given EncodesToWriter instance to given
@@ -28,7 +25,7 @@ import java.io.Writer;
  * @author Lari Hotari
  * @since 2.3.10
  */
-public interface StreamingEncoderWritable {
+interface StreamingEncoderWritable {
 
     /**
      * Asks the instance to use given writer and EncodesToWriter instance to encode 
@@ -41,5 +38,5 @@ public interface StreamingEncoderWritable {
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
-    void encodeTo(Writer writer, EncodesToWriter encoder) throws IOException;
+    void encodeTo(Writer writer, EncodesToWriter encoder) throws IOException
 }

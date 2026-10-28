@@ -16,9 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.buffer;
+package org.grails.buffer
 
-import java.io.Reader;
+import groovy.transform.CompileStatic
 
 /**
  * Java's default StringWriter uses a StringBuffer which is synchronized. This
@@ -28,45 +28,46 @@ import java.io.Reader;
  * @author Lari Hotari
  * @since 1.1
  */
-public class FastStringWriter extends GrailsPrintWriter {
+@CompileStatic
+class FastStringWriter extends GrailsPrintWriter {
 
-    protected final StreamCharBuffer streamBuffer;
+    protected final StreamCharBuffer streamBuffer
 
-    public FastStringWriter() {
-        super(null);
-        streamBuffer = new StreamCharBuffer();
-        initOut();
+    FastStringWriter() {
+        super(null)
+        streamBuffer = new StreamCharBuffer()
+        initOut()
     }
 
-    public FastStringWriter(int initialChunkSize) {
-        super(null);
-        streamBuffer = new StreamCharBuffer(initialChunkSize);
-        initOut();
+    FastStringWriter(int initialChunkSize) {
+        super(null)
+        streamBuffer = new StreamCharBuffer(initialChunkSize)
+        initOut()
     }
 
-    public FastStringWriter(Object o) {
-        this();
-        print(o);
+    FastStringWriter(Object o) {
+        this()
+        print(o)
     }
 
     protected void initOut() {
-        setOut(streamBuffer.getWriter());
+        setOut(streamBuffer.getWriter())
     }
 
-    public StreamCharBuffer getBuffer() {
-        return streamBuffer;
+    StreamCharBuffer getBuffer() {
+        return streamBuffer
     }
 
     @Override
-    public String toString() {
-        return getValue();
+    String toString() {
+        return getValue()
     }
 
-    public String getValue() {
-        return streamBuffer.toString();
+    String getValue() {
+        return streamBuffer.toString()
     }
 
-    public Reader getReader() {
-        return streamBuffer.getReader();
+    Reader getReader() {
+        return streamBuffer.getReader()
     }
 }

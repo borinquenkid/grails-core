@@ -16,11 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
-public interface CodecLookup {
+interface CodecLookup {
 
-    public Encoder lookupEncoder(String codecName);
+    Encoder lookupEncoder(String codecName)
 
-    public Decoder lookupDecoder(String codecName);
+    Decoder lookupDecoder(String codecName)
 }

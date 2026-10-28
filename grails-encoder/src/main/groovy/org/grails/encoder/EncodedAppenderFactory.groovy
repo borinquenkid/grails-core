@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
 /**
  * This interface marks an instance capable of getting a EncodedAppender
@@ -26,7 +26,7 @@ package org.grails.encoder;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface EncodedAppenderFactory {
+interface EncodedAppenderFactory {
 
     /**
      * Gets the EncodedAppender that is connected to the instance of this
@@ -34,5 +34,5 @@ public interface EncodedAppenderFactory {
      *
      * @return the EncodedAppender
      */
-    EncodedAppender getEncodedAppender();
+    EncodedAppender getEncodedAppender()
 }

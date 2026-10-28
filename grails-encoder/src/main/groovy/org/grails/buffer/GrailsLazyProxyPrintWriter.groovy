@@ -16,65 +16,66 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.buffer;
+package org.grails.buffer
 
-import java.io.IOException;
-import java.io.Writer;
+import groovy.transform.CompileStatic
 
-public class GrailsLazyProxyPrintWriter extends GrailsPrintWriter {
-    private DestinationFactory factory;
-    private boolean destinationActivated = false;
+@CompileStatic
+class GrailsLazyProxyPrintWriter extends GrailsPrintWriter {
+
+    private DestinationFactory factory
+    private boolean destinationActivated = false
 
     /**
      * Factory to lazily instantiate the destination.
      */
-    public static interface DestinationFactory {
-        Writer activateDestination() throws IOException;
+    static interface DestinationFactory {
+        Writer activateDestination() throws IOException
     }
 
-    public GrailsLazyProxyPrintWriter(DestinationFactory factory) {
-        super(null);
-        this.factory = factory;
+    GrailsLazyProxyPrintWriter(DestinationFactory factory) {
+        super(null)
+        this.factory = factory
     }
 
     @Override
-    public Writer getOut() {
+    Writer getOut() {
         if (!destinationActivated) {
             try {
-                super.setOut(factory.activateDestination());
+                super.setOut(factory.activateDestination())
             }
             catch (IOException e) {
-                setError();
+                setError()
             }
-            destinationActivated = true;
+            destinationActivated = true
         }
-        return super.getOut();
+        return super.getOut()
     }
 
     @Override
-    public boolean isAllowUnwrappingOut() {
-        return destinationActivated ? super.isAllowUnwrappingOut() : false;
+    boolean isAllowUnwrappingOut() {
+        return destinationActivated ? super.isAllowUnwrappingOut() : false
     }
 
     @Override
-    public Writer unwrap() {
-        return destinationActivated ? super.unwrap() : this;
+    Writer unwrap() {
+        return destinationActivated ? super.unwrap() : this
     }
 
-    public void updateDestination(DestinationFactory f) {
-        setDestinationActivated(false);
-        this.factory = f;
+    void updateDestination(DestinationFactory f) {
+        setDestinationActivated(false)
+        this.factory = f
     }
 
     @Override
-    public boolean isDestinationActivated() {
-        return destinationActivated;
+    boolean isDestinationActivated() {
+        return destinationActivated
     }
 
-    public void setDestinationActivated(boolean destinationActivated) {
-        this.destinationActivated = destinationActivated;
+    void setDestinationActivated(boolean destinationActivated) {
+        this.destinationActivated = destinationActivated
         if (!this.destinationActivated) {
-            super.setOut(null);
+            super.setOut(null)
         }
     }
 }

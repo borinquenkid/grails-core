@@ -16,11 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
-
-import java.io.IOException;
-import java.io.Writer;
-import java.util.List;
+package org.grails.encoder
 
 /**
  * Marks a class capable of encoding to target Writer
@@ -29,11 +25,11 @@ import java.util.List;
  * @since 2.3.10
  *
  */
-public interface EncodesToWriter {
+interface EncodesToWriter {
 
-    public void encodeToWriter(CharSequence str, int off, int len, Writer writer, EncodingState encodingState) throws IOException;
+    void encodeToWriter(CharSequence str, int off, int len, Writer writer, EncodingState encodingState) throws IOException
 
-    public void encodeToWriter(char[] buf, int off, int len, Writer writer, EncodingState encodingState) throws IOException;
+    void encodeToWriter(char[] buf, int off, int len, Writer writer, EncodingState encodingState) throws IOException
 
-    public EncodesToWriter createChainingEncodesToWriter(List<StreamingEncoder> additionalEncoders, boolean applyAdditionalFirst);
+    EncodesToWriter createChainingEncodesToWriter(List<StreamingEncoder> additionalEncoders, boolean applyAdditionalFirst)
 }

@@ -16,11 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder.impl;
+package org.grails.encoder.impl
 
-import org.grails.encoder.CodecFactory;
-import org.grails.encoder.Decoder;
-import org.grails.encoder.Encoder;
+import groovy.transform.CompileStatic
+
+import org.grails.encoder.CodecFactory
+import org.grails.encoder.Decoder
+import org.grails.encoder.Encoder
 
 /**
  * Encodes and decodes strings to and from HTML. It uses escaping information
@@ -30,23 +32,25 @@ import org.grails.encoder.Encoder;
  * @author Lari Hotari
  * @since 2.3
  */
-public class HTML4Codec implements CodecFactory {
-    static final String CODEC_NAME = "HTML4";
+@CompileStatic
+class HTML4Codec implements CodecFactory {
 
-    private static Encoder encoder = new HTML4Encoder();
-    private static Decoder decoder = new HTML4Decoder();
+    static final String CODEC_NAME = 'HTML4'
+
+    private static Encoder encoder = new HTML4Encoder()
+    private static Decoder decoder = new HTML4Decoder()
 
     /* (non-Javadoc)
      * @see CodecFactory#getEncoder()
      */
-    public Encoder getEncoder() {
-        return encoder;
+    Encoder getEncoder() {
+        return encoder
     }
 
     /* (non-Javadoc)
      * @see CodecFactory#getDecoder()
      */
-    public Decoder getDecoder() {
-        return decoder;
+    Decoder getDecoder() {
+        return decoder
     }
 }

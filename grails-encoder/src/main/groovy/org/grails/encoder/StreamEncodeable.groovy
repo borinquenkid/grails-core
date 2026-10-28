@@ -16,9 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
-
-import java.io.IOException;
+package org.grails.encoder
 
 /**
  * Marks a class capable of encoding itself with given Encoder to given
@@ -27,7 +25,7 @@ import java.io.IOException;
  * @author Lari Hotari
  * @since 2.3
  */
-public interface StreamEncodeable {
+interface StreamEncodeable {
 
     /**
      * Calls the encoder to encode the current content of the StreamEncodable
@@ -42,5 +40,5 @@ public interface StreamEncodeable {
      * @throws IOException
      *             Signals that an I/O exception has occurred.
      */
-    void encodeTo(EncodedAppender appender, Encoder encoder) throws IOException;
+    void encodeTo(EncodedAppender appender, Encoder encoder) throws IOException
 }

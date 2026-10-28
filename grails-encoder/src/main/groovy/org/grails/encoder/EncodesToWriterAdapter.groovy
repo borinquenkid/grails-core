@@ -16,91 +16,90 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.encoder;
+package org.grails.encoder
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import org.grails.charsequences.CharSequences;
+import org.grails.charsequences.CharSequences
 
-public class EncodesToWriterAdapter implements EncodesToWriter {
-    private final StreamingEncoder encoder;
-    private boolean ignoreEncodingState;
+@CompileStatic
+class EncodesToWriterAdapter implements EncodesToWriter {
 
-    public EncodesToWriterAdapter(StreamingEncoder encoder) {
-        this(encoder, false);
+    private final StreamingEncoder encoder
+    private boolean ignoreEncodingState
+
+    EncodesToWriterAdapter(StreamingEncoder encoder) {
+        this(encoder, false)
     }
 
-    public EncodesToWriterAdapter(StreamingEncoder encoder, boolean ignoreEncodingState) {
-        this.encoder = encoder;
-        this.ignoreEncodingState = ignoreEncodingState;
+    EncodesToWriterAdapter(StreamingEncoder encoder, boolean ignoreEncodingState) {
+        this.encoder = encoder
+        this.ignoreEncodingState = ignoreEncodingState
     }
 
     @Override
-    public void encodeToWriter(CharSequence str, int off, int len, Writer writer, EncodingState encodingState) throws IOException {
+    void encodeToWriter(CharSequence str, int off, int len, Writer writer, EncodingState encodingState) throws IOException {
         if (shouldEncodeWith(encoder, encodingState)) {
-            encoder.encodeToStream(encoder, str, off, len, new WriterEncodedAppender(writer), createNewEncodingState(encoder, encodingState));
+            encoder.encodeToStream(encoder, str, off, len, new WriterEncodedAppender(writer), createNewEncodingState(encoder, encodingState))
         } else {
-            CharSequences.writeCharSequence(writer, str, off, len);
+            CharSequences.writeCharSequence(writer, str, off, len)
         }
     }
 
     @Override
-    public void encodeToWriter(char[] buf, int off, int len, Writer writer, EncodingState encodingState) throws IOException {
+    void encodeToWriter(char[] buf, int off, int len, Writer writer, EncodingState encodingState) throws IOException {
         if (shouldEncodeWith(encoder, encodingState)) {
-            encoder.encodeToStream(encoder, CharSequences.createCharSequence(buf, off, len), 0, len, new WriterEncodedAppender(writer), createNewEncodingState(encoder, encodingState));
+            encoder.encodeToStream(encoder, CharSequences.createCharSequence(buf, off, len), 0, len, new WriterEncodedAppender(writer), createNewEncodingState(encoder, encodingState))
         } else {
-            writer.write(buf, off, len);
+            writer.write(buf, off, len)
         }
     }
 
     protected EncodingState createNewEncodingState(Encoder encoder, EncodingState encodingState) {
         if (encodingState == null) {
-            return new EncodingStateImpl(encoder, null);
+            return new EncodingStateImpl(encoder, null)
         }
-        return encodingState.appendEncoder(encoder);
+        return encodingState.appendEncoder(encoder)
     }
 
     protected boolean shouldEncodeWith(Encoder encoderToApply, EncodingState encodingState) {
         return ignoreEncodingState || encodingState == null || DefaultEncodingStateRegistry.shouldEncodeWith(encoderToApply,
-                encodingState);
+                encodingState)
     }
 
-    public StreamingEncoder getStreamingEncoder() {
-        return encoder;
+    StreamingEncoder getStreamingEncoder() {
+        return encoder
     }
 
-    public boolean isIgnoreEncodingState() {
-        return ignoreEncodingState;
+    boolean isIgnoreEncodingState() {
+        return ignoreEncodingState
     }
 
-    public void setIgnoreEncodingState(boolean ignoreEncodingState) {
-        this.ignoreEncodingState = ignoreEncodingState;
+    void setIgnoreEncodingState(boolean ignoreEncodingState) {
+        this.ignoreEncodingState = ignoreEncodingState
     }
 
     @Override
-    public EncodesToWriter createChainingEncodesToWriter(List<StreamingEncoder> additionalEncoders, boolean applyAdditionalFirst) {
-        EncodesToWriterAdapter chained = createChainingEncodesToWriter(getStreamingEncoder(), additionalEncoders, applyAdditionalFirst);
-        chained.setIgnoreEncodingState(isIgnoreEncodingState());
-        return chained;
+    EncodesToWriter createChainingEncodesToWriter(List<StreamingEncoder> additionalEncoders, boolean applyAdditionalFirst) {
+        EncodesToWriterAdapter chained = createChainingEncodesToWriter(getStreamingEncoder(), additionalEncoders, applyAdditionalFirst)
+        chained.setIgnoreEncodingState(isIgnoreEncodingState())
+        return chained
     }
 
-    public static EncodesToWriterAdapter createChainingEncodesToWriter(StreamingEncoder baseEncoder, List<StreamingEncoder> additionalEncoders, boolean applyAdditionalFirst) {
-        boolean baseEncoderShouldBeApplied = ChainedEncoders.shouldApplyEncoder(baseEncoder);
-        List<StreamingEncoder> allEncoders = new ArrayList<>(additionalEncoders.size() + 1);
+    static EncodesToWriterAdapter createChainingEncodesToWriter(StreamingEncoder baseEncoder, List<StreamingEncoder> additionalEncoders, boolean applyAdditionalFirst) {
+        boolean baseEncoderShouldBeApplied = ChainedEncoders.shouldApplyEncoder(baseEncoder)
+        List<StreamingEncoder> allEncoders = new ArrayList<>(additionalEncoders.size() + 1)
         if (!applyAdditionalFirst && baseEncoderShouldBeApplied) {
-            allEncoders.add(baseEncoder);
+            allEncoders.add(baseEncoder)
         }
         for (StreamingEncoder additional : additionalEncoders) {
             if (ChainedEncoders.shouldApplyEncoder(additional)) {
-                allEncoders.add(additional);
+                allEncoders.add(additional)
             }
         }
         if (applyAdditionalFirst && baseEncoderShouldBeApplied) {
-            allEncoders.add(baseEncoder);
+            allEncoders.add(baseEncoder)
         }
-        return new EncodesToWriterAdapter(ChainedEncoder.createFor(allEncoders));
+        return new EncodesToWriterAdapter(ChainedEncoder.createFor(allEncoders))
     }
 }
