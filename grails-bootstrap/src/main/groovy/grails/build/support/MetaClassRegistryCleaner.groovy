@@ -16,23 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.build.support;
+package grails.build.support
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.lang.ref.WeakReference
+import java.util.concurrent.ConcurrentHashMap
 
-import groovy.lang.ExpandoMetaClass;
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaClass;
-import groovy.lang.MetaClassRegistry;
-import groovy.lang.MetaClassRegistryChangeEvent;
-import groovy.lang.MetaClassRegistryChangeEventListener;
-import org.codehaus.groovy.runtime.metaclass.MetaClassRegistryImpl;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.runtime.metaclass.MetaClassRegistryImpl
 
 /**
  * Allows clean-up of changes made to the MetaClassRegistry.
@@ -40,140 +30,137 @@ import org.codehaus.groovy.runtime.metaclass.MetaClassRegistryImpl;
  * @author Graeme Rocher
  * @since 2.0
  */
-@SuppressWarnings("rawtypes")
-public class MetaClassRegistryCleaner implements MetaClassRegistryChangeEventListener {
+@SuppressWarnings('rawtypes')
+@CompileStatic
+class MetaClassRegistryCleaner implements MetaClassRegistryChangeEventListener {
 
-    private Map<Class, Object> alteredClasses = new ConcurrentHashMap<>();
-    private Map<IdentityWeakReference, Object> alteredInstances = new ConcurrentHashMap<>();
-    private static final Object NO_CUSTOM_METACLASS = new Object();
-    private static boolean cleaning;
-    private static final MetaClassRegistryCleaner INSTANCE = new MetaClassRegistryCleaner();
+    private Map<Class, Object> alteredClasses = new ConcurrentHashMap<>()
+    private Map<IdentityWeakReference, Object> alteredInstances = new ConcurrentHashMap<>()
+    private static final Object NO_CUSTOM_METACLASS = new Object()
+    private static boolean cleaning
+    private static final MetaClassRegistryCleaner INSTANCE = new MetaClassRegistryCleaner()
 
     private MetaClassRegistryCleaner() {
     }
 
-    public static MetaClassRegistryCleaner createAndRegister() {
+    static MetaClassRegistryCleaner createAndRegister() {
 
-        MetaClassRegistry metaClassRegistry = GroovySystem.getMetaClassRegistry();
-        MetaClassRegistryChangeEventListener[] listeners = metaClassRegistry.getMetaClassRegistryChangeEventListeners();
-        boolean registered = false;
-        for (MetaClassRegistryChangeEventListener listener : listeners) {
-            if (listener == INSTANCE) {
-                registered = true; break;
-            }
+        MetaClassRegistry metaClassRegistry = GroovySystem.getMetaClassRegistry()
+        MetaClassRegistryChangeEventListener[] listeners = metaClassRegistry.metaClassRegistryChangeEventListeners
+        if (!listeners.any { INSTANCE.is(it) }) {
+            GroovySystem.getMetaClassRegistry().addMetaClassRegistryChangeEventListener(INSTANCE)
         }
-        if (!registered) {
-            GroovySystem.getMetaClassRegistry().addMetaClassRegistryChangeEventListener(INSTANCE);
-        }
-        return INSTANCE;
+        return INSTANCE
     }
 
-    public static void cleanAndRemove(MetaClassRegistryCleaner cleaner) {
-        cleaner.clean();
-        GroovySystem.getMetaClassRegistry().removeMetaClassRegistryChangeEventListener(cleaner);
+    static void cleanAndRemove(MetaClassRegistryCleaner cleaner) {
+        cleaner.clean()
+        GroovySystem.getMetaClassRegistry().removeMetaClassRegistryChangeEventListener(cleaner)
     }
 
-    public static void addAlteredMetaClass(Class cls, MetaClass altered) {
-        INSTANCE.alteredClasses.put(cls, altered);
+    static void addAlteredMetaClass(Class cls, MetaClass altered) {
+        INSTANCE.alteredClasses.put(cls, altered)
     }
 
-    public void updateConstantMetaClass(MetaClassRegistryChangeEvent cmcu) {
+    void updateConstantMetaClass(MetaClassRegistryChangeEvent cmcu) {
         if (!cleaning) {
-            MetaClass oldMetaClass = cmcu.getOldMetaClass();
-            Class classToUpdate = cmcu.getClassToUpdate();
-            Object instanceToUpdate = cmcu.getInstance();
-            if (instanceToUpdate == null && (cmcu.getNewMetaClass() instanceof ExpandoMetaClass)) {
-                updateMetaClassOfClass(oldMetaClass, classToUpdate);
+            MetaClass oldMetaClass = cmcu.oldMetaClass
+            Class classToUpdate = cmcu.classToUpdate
+            Object instanceToUpdate = cmcu.instance
+            if (instanceToUpdate == null && (cmcu.newMetaClass instanceof ExpandoMetaClass)) {
+                updateMetaClassOfClass(oldMetaClass, classToUpdate)
             } else if (instanceToUpdate != null) {
-                updateMetaClassOfInstance(oldMetaClass, instanceToUpdate);
+                updateMetaClassOfInstance(oldMetaClass, instanceToUpdate)
             }
         }
     }
 
     private void updateMetaClassOfInstance(MetaClass oldMetaClass, Object instanceToUpdate) {
-        IdentityWeakReference key = new IdentityWeakReference(instanceToUpdate);
+        IdentityWeakReference key = new IdentityWeakReference(instanceToUpdate)
         if (oldMetaClass != null) {
-            Object current = alteredInstances.get(key);
-            if (current == null || current == NO_CUSTOM_METACLASS) {
-                alteredInstances.put(key, oldMetaClass);
+            Object current = alteredInstances[key]
+            if (current == null || NO_CUSTOM_METACLASS.is(current)) {
+                alteredInstances.put(key, oldMetaClass)
             }
         } else {
-            alteredInstances.put(key, NO_CUSTOM_METACLASS);
+            alteredInstances.put(key, NO_CUSTOM_METACLASS)
         }
     }
 
     private void updateMetaClassOfClass(MetaClass oldMetaClass, Class classToUpdate) {
-        if (oldMetaClass != null && !(oldMetaClass.getClass().getName().equals("groovy.mock.interceptor.MockProxyMetaClass"))) {
-            Object current = alteredClasses.get(classToUpdate);
+        if (oldMetaClass != null && oldMetaClass.getClass().name != 'groovy.mock.interceptor.MockProxyMetaClass') {
+            Object current = alteredClasses[classToUpdate]
             if (current == null) {
-                alteredClasses.put(classToUpdate, oldMetaClass);
+                alteredClasses.put(classToUpdate, oldMetaClass)
             }
         }
         else {
-            alteredClasses.put(classToUpdate, NO_CUSTOM_METACLASS);
+            alteredClasses.put(classToUpdate, NO_CUSTOM_METACLASS)
         }
     }
 
-    public synchronized void clean() {
+    synchronized void clean() {
         try {
-            cleaning = true;
-            MetaClassRegistryImpl registry = (MetaClassRegistryImpl) GroovySystem.getMetaClassRegistry();
-            cleanMetaClassOfClass(registry);
-            cleanMetaClassOfInstance(registry);
+            cleaning = true
+            MetaClassRegistryImpl registry = (MetaClassRegistryImpl) GroovySystem.getMetaClassRegistry()
+            cleanMetaClassOfClass(registry)
+            cleanMetaClassOfInstance(registry)
         } finally {
-            cleaning = false;
+            cleaning = false
         }
     }
 
     private void cleanMetaClassOfInstance(MetaClassRegistryImpl registry) {
-        List<IdentityWeakReference> keys = new ArrayList<>(alteredInstances.keySet());
-        for (IdentityWeakReference key : keys) {
-            Object instance = key.get();
+        List<IdentityWeakReference> keys = new ArrayList<>(alteredInstances.keySet())
+        for (IdentityWeakReference key in keys) {
+            Object instance = key.get()
             if (instance != null) {
-                Object alteredMetaClass = alteredInstances.get(key);
-                if (alteredMetaClass == NO_CUSTOM_METACLASS) {
-                    alteredMetaClass = null;
+                Object alteredMetaClass = alteredInstances[key]
+                if (NO_CUSTOM_METACLASS.is(alteredMetaClass)) {
+                    alteredMetaClass = null
                 }
-                registry.setMetaClass(instance, (MetaClass) alteredMetaClass);
+                registry.setMetaClass(instance, (MetaClass) alteredMetaClass)
             }
         }
-        alteredInstances.clear();
+        alteredInstances.clear()
     }
 
     private void cleanMetaClassOfClass(MetaClassRegistryImpl registry) {
-        Set<Class> classes = new HashSet<>(alteredClasses.keySet());
-        for (Class aClass : classes) {
-            Object alteredMetaClass = alteredClasses.get(aClass);
-            if (alteredMetaClass == NO_CUSTOM_METACLASS) {
-                registry.removeMetaClass(aClass);
+        Set<Class> classes = new HashSet<>(alteredClasses.keySet())
+        for (Class aClass in classes) {
+            Object alteredMetaClass = alteredClasses[aClass]
+            if (NO_CUSTOM_METACLASS.is(alteredMetaClass)) {
+                registry.removeMetaClass(aClass)
             }
             else {
-                registry.setMetaClass(aClass, (MetaClass) alteredMetaClass);
+                registry.setMetaClass(aClass, (MetaClass) alteredMetaClass)
             }
         }
-        alteredClasses.clear();
+        alteredClasses.clear()
     }
 
     private static final class IdentityWeakReference extends WeakReference<Object> {
 
-        private int hash;
+        private int hash
 
-        public IdentityWeakReference(Object referent) {
-            super(referent);
-            hash = System.identityHashCode(referent);
+        IdentityWeakReference(Object referent) {
+            super(referent)
+            hash = System.identityHashCode(referent)
         }
 
         @Override
-        public int hashCode() {
-            return hash;
+        int hashCode() {
+            return hash
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
+        boolean equals(Object obj) {
+            // identity on both levels: == would call equals() again on the key and compare the referents by value
+            if (this.is(obj)) {
+                return true
             }
-            return get() == ((IdentityWeakReference) obj).get();
+            return get().is(((IdentityWeakReference) obj).get())
         }
     }
+
 }

@@ -16,12 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.plugins.metadata;
+package grails.plugins.metadata
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
 /**
  * Annotation that appears on classes of a particular plugin.
@@ -30,8 +30,10 @@ import java.lang.annotation.Target;
  * @since 1.2
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface GrailsPlugin {
-    String name();
-    String version();
+@Target([ElementType.TYPE])
+@interface GrailsPlugin {
+
+    String name()
+    String version()
+
 }

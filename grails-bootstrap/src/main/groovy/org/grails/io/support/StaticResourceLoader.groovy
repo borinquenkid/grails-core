@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.io.support;
+package org.grails.io.support
+
+import groovy.transform.CompileStatic
 
 /**
  * Loads relative to a static base resource
@@ -24,20 +26,21 @@ package org.grails.io.support;
  * @author Graeme Rocher
  * @since 3.1
  */
-public class StaticResourceLoader implements ResourceLoader {
+@CompileStatic
+class StaticResourceLoader implements ResourceLoader {
 
-    private Resource baseResource;
+    private Resource baseResource
 
-    public StaticResourceLoader(Resource baseResource) {
-        this.baseResource = baseResource;
+    StaticResourceLoader(Resource baseResource) {
+        this.baseResource = baseResource
     }
 
-    public Resource getResource(String location) {
-        return baseResource.createRelative(location);
+    Resource getResource(String location) {
+        return baseResource.createRelative(location)
     }
 
-    public ClassLoader getClassLoader() {
-        return Thread.currentThread().getContextClassLoader();
+    ClassLoader getClassLoader() {
+        return Thread.currentThread().contextClassLoader
     }
+
 }
-

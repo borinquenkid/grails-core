@@ -16,18 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.io.support;
+package org.grails.io.support
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap
 
-import grails.util.Environment;
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
+import groovy.transform.PackageScopeTarget
+
+import grails.util.Environment
 
 /**
  * Used to locate resources at build / development time
@@ -35,88 +32,87 @@ import grails.util.Environment;
  * @author Graeme Rocher
  * @since 3.0
  */
-public class ResourceLocator {
-    public static final String WILDCARD = "*";
-    public static final String FILE_SEPARATOR = File.separator;
-    public static final String CLOSURE_MARKER = "$";
-    public static final String WEB_APP_DIR = "web-app";
+@CompileStatic
+class ResourceLocator {
 
-    protected static final Resource NULL_RESOURCE = new ByteArrayResource("null".getBytes());
+    public static final String WILDCARD = '*'
+    public static final String FILE_SEPARATOR = File.separator
+    public static final String CLOSURE_MARKER = '\$'
+    public static final String WEB_APP_DIR = 'web-app'
 
-    protected PathMatchingResourcePatternResolver patchMatchingResolver;
-    protected List<String> classSearchDirectories = new ArrayList<>();
-    protected List<String> resourceSearchDirectories = new ArrayList<>();
-    protected Map<String, Resource> classNameToResourceCache = new ConcurrentHashMap<>();
-    protected Map<String, Resource> uriToResourceCache = new ConcurrentHashMap<>();
-    protected ResourceLoader defaultResourceLoader = new FileSystemResourceLoader();
-    protected boolean warDeployed = Environment.isWarDeployed();
+    protected static final Resource NULL_RESOURCE = new ByteArrayResource('null'.getBytes())
 
-    public void setSearchLocation(String searchLocation) {
-        ResourceLoader resourceLoader = getDefaultResourceLoader();
-        patchMatchingResolver = new PathMatchingResourcePatternResolver(resourceLoader);
-        initializeForSearchLocation(searchLocation);
+    protected PathMatchingResourcePatternResolver patchMatchingResolver
+    protected List<String> classSearchDirectories = []
+    protected List<String> resourceSearchDirectories = []
+    protected Map<String, Resource> classNameToResourceCache = new ConcurrentHashMap<>()
+    protected Map<String, Resource> uriToResourceCache = new ConcurrentHashMap<>()
+    protected ResourceLoader defaultResourceLoader = new FileSystemResourceLoader()
+    protected boolean warDeployed = Environment.isWarDeployed()
+
+    void setSearchLocation(String searchLocation) {
+        ResourceLoader resourceLoader = getDefaultResourceLoader()
+        patchMatchingResolver = new PathMatchingResourcePatternResolver(resourceLoader)
+        initializeForSearchLocation(searchLocation)
     }
 
     protected ResourceLoader getDefaultResourceLoader() {
-        return defaultResourceLoader;
+        return defaultResourceLoader
     }
 
-    public void setSearchLocations(Collection<String> searchLocations) {
-        patchMatchingResolver = new PathMatchingResourcePatternResolver(getDefaultResourceLoader());
-        for (String searchLocation : searchLocations) {
-            initializeForSearchLocation(searchLocation);
+    void setSearchLocations(Collection<String> searchLocations) {
+        patchMatchingResolver = new PathMatchingResourcePatternResolver(getDefaultResourceLoader())
+        for (String searchLocation in searchLocations) {
+            initializeForSearchLocation(searchLocation)
         }
     }
 
     private void initializeForSearchLocation(String searchLocation) {
-        String searchLocationPlusSlash = searchLocation.endsWith("/") ? searchLocation : searchLocation + FILE_SEPARATOR;
+        String searchLocationPlusSlash = searchLocation.endsWith('/') ? searchLocation : searchLocation + FILE_SEPARATOR
         try {
-            File[] directories = new File(searchLocationPlusSlash + GrailsResourceUtils.GRAILS_APP_DIR).listFiles(new FileFilter() {
-                public boolean accept(File file) {
-                    return file.isDirectory() && !file.isHidden();
-                }
-            });
+            File[] directories = new File(searchLocationPlusSlash + GrailsResourceUtils.GRAILS_APP_DIR).listFiles(
+                    { File file -> file.isDirectory() && !file.isHidden() } as FileFilter)
             if (directories != null) {
-                for (File directory : directories) {
-                    classSearchDirectories.add(directory.getCanonicalPath());
+                for (File directory in directories) {
+                    classSearchDirectories << directory.canonicalPath
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException ignored) {
             // ignore
         }
 
-        classSearchDirectories.add(searchLocationPlusSlash + "src/main/java");
-        classSearchDirectories.add(searchLocationPlusSlash + "src/main/groovy");
-        resourceSearchDirectories.add(searchLocationPlusSlash);
+        classSearchDirectories << (searchLocationPlusSlash + 'src/main/java')
+        classSearchDirectories << (searchLocationPlusSlash + 'src/main/groovy')
+        resourceSearchDirectories << searchLocationPlusSlash
     }
 
-    public Resource findResourceForURI(String uri) {
-        Resource resource = uriToResourceCache.get(uri);
+    Resource findResourceForURI(String uri) {
+        Resource resource = uriToResourceCache[uri]
         if (resource == null) {
 
-            PluginResourceInfo info = inferPluginNameFromURI(uri);
+            PluginResourceInfo info = inferPluginNameFromURI(uri)
             if (warDeployed) {
-                Resource defaultResource = defaultResourceLoader.getResource(uri);
-                if (defaultResource != null && defaultResource.exists()) {
-                    resource = defaultResource;
+                Resource defaultResource = defaultResourceLoader.getResource(uri)
+                if (defaultResource?.exists()) {
+                    resource = defaultResource
                 }
             }
             else {
-                String uriWebAppRelative = WEB_APP_DIR + uri;
+                String uriWebAppRelative = WEB_APP_DIR + uri
 
-                for (String resourceSearchDirectory : resourceSearchDirectories) {
-                    Resource res = resolveExceptionSafe(resourceSearchDirectory + uriWebAppRelative);
+                for (String resourceSearchDirectory in resourceSearchDirectories) {
+                    Resource res = resolveExceptionSafe(resourceSearchDirectory + uriWebAppRelative)
                     if (res.exists()) {
-                        resource = res;
+                        resource = res
                     }
                     else if (!warDeployed) {
-                        Resource dir = resolveExceptionSafe(resourceSearchDirectory);
+                        Resource dir = resolveExceptionSafe(resourceSearchDirectory)
                         if (dir.exists() && info != null) {
-                            String filename = dir.getFilename();
-                            if (filename != null && filename.equals(info.pluginName)) {
-                                Resource pluginFile = dir.createRelative(WEB_APP_DIR + info.uri);
+                            String filename = dir.filename
+                            if (filename == info.pluginName) {
+                                Resource pluginFile = dir.createRelative(WEB_APP_DIR + info.uri)
                                 if (pluginFile.exists()) {
-                                    resource = pluginFile;
+                                    resource = pluginFile
                                 }
                             }
                         }
@@ -125,95 +121,97 @@ public class ResourceLocator {
             }
 
             if (resource == null || !resource.exists()) {
-                Resource tmp = defaultResourceLoader != null ? defaultResourceLoader.getResource(uri) : null;
-                if (tmp != null && tmp.exists()) {
-                    resource = tmp;
+                Resource tmp = defaultResourceLoader?.getResource(uri)
+                if (tmp?.exists()) {
+                    resource = tmp
                 }
             }
 
             if (resource != null) {
-                uriToResourceCache.put(uri, resource);
+                uriToResourceCache.put(uri, resource)
             }
             else if (warDeployed) {
-                uriToResourceCache.put(uri, NULL_RESOURCE);
+                uriToResourceCache.put(uri, NULL_RESOURCE)
             }
         }
-        return resource == NULL_RESOURCE ? null : resource;
+        return NULL_RESOURCE.is(resource) ? null : resource
     }
 
     private PluginResourceInfo inferPluginNameFromURI(String uri) {
-        if (uri.startsWith("/plugins/")) {
-            String withoutPluginsPath = uri.substring("/plugins/".length(), uri.length());
-            int i = withoutPluginsPath.indexOf('/');
+        if (uri.startsWith('/plugins/')) {
+            String withoutPluginsPath = uri.substring('/plugins/'.length(), uri.length())
+            int i = withoutPluginsPath.indexOf('/')
             if (i > -1) {
-                PluginResourceInfo info = new PluginResourceInfo();
-                info.pluginName = withoutPluginsPath.substring(0, i);
-                info.uri = withoutPluginsPath.substring(i, withoutPluginsPath.length());
-                return info;
+                PluginResourceInfo info = new PluginResourceInfo()
+                info.@pluginName = withoutPluginsPath.substring(0, i)
+                info.@uri = withoutPluginsPath.substring(i, withoutPluginsPath.length())
+                return info
             }
         }
-        return null;
+        return null
     }
 
-    public Resource findResourceForClassName(String className) {
+    Resource findResourceForClassName(String className) {
 
         if (className.contains(CLOSURE_MARKER)) {
-            className = className.substring(0, className.indexOf(CLOSURE_MARKER));
+            className = className.substring(0, className.indexOf(CLOSURE_MARKER))
         }
-        Resource resource = classNameToResourceCache.get(className);
+        Resource resource = classNameToResourceCache[className]
         if (resource == null) {
-            String classNameWithPathSeparator = className.replace(".", FILE_SEPARATOR);
-            for (String pathPattern : getSearchPatternForExtension(classNameWithPathSeparator, ".groovy", ".java")) {
-                resource = resolveExceptionSafe(pathPattern);
-                if (resource != null && resource.exists()) {
-                    classNameToResourceCache.put(className, resource);
-                    break;
+            String classNameWithPathSeparator = className.replace('.', FILE_SEPARATOR)
+            for (String pathPattern in getSearchPatternForExtension(classNameWithPathSeparator, '.groovy', '.java')) {
+                resource = resolveExceptionSafe(pathPattern)
+                if (resource?.exists()) {
+                    classNameToResourceCache.put(className, resource)
+                    break
                 }
             }
             if (resource == null || !resource.exists()) {
-                for (String ext : new String[]{".groovy", ".java"}) {
-                    resource = resolveExceptionSafe(GrailsResourceUtils.DOMAIN_DIR_PATH + "**/" + className + ext);
-                    if (resource != null && resource.exists()) {
-                        classNameToResourceCache.put(className, resource);
-                        break;
+                for (String ext in ['.groovy', '.java'] as String[]) {
+                    resource = resolveExceptionSafe(GrailsResourceUtils.DOMAIN_DIR_PATH + '**/' + className + ext)
+                    if (resource?.exists()) {
+                        classNameToResourceCache.put(className, resource)
+                        break
                     }
                 }
             }
         }
-        return resource != null && resource.exists() ? resource : null;
+        return resource?.exists() ? resource : null
     }
 
     private List<String> getSearchPatternForExtension(String classNameWithPathSeparator, String... extensions) {
 
-        List<String> searchPatterns = new ArrayList<>();
-        for (String extension : extensions) {
-            String filename = classNameWithPathSeparator + extension;
-            for (String classSearchDirectory : classSearchDirectories) {
-                searchPatterns.add(classSearchDirectory + FILE_SEPARATOR + filename);
+        List<String> searchPatterns = []
+        for (String extension in extensions) {
+            String filename = classNameWithPathSeparator + extension
+            for (String classSearchDirectory in classSearchDirectories) {
+                searchPatterns << (classSearchDirectory + FILE_SEPARATOR + filename)
             }
         }
 
-        return searchPatterns;
+        return searchPatterns
     }
 
     private Resource resolveExceptionSafe(String pathPattern) {
         try {
-            Resource[] resources = patchMatchingResolver.getResources("file:" + pathPattern);
-            if (resources != null && resources.length > 0) {
-                return resources[0];
+            Resource[] resources = patchMatchingResolver.getResources('file:' + pathPattern)
+            if (resources) {
+                return resources[0]
             }
         } catch (IOException e) {
-            return null;
+            return null
         }
-        return null;
+        return null
     }
 
-    public void setResourceLoader(ResourceLoader resourceLoader) {
-        defaultResourceLoader = resourceLoader;
+    void setResourceLoader(ResourceLoader resourceLoader) {
+        defaultResourceLoader = resourceLoader
     }
 
+    @PackageScope([PackageScopeTarget.CLASS, PackageScopeTarget.FIELDS])
     class PluginResourceInfo {
-        String pluginName;
-        String uri;
+        String pluginName
+        String uri
     }
+
 }

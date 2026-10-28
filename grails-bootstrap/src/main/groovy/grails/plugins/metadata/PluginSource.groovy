@@ -16,12 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.plugins.metadata;
+package grails.plugins.metadata
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
 /**
  * Source level annotation that indicates that a given source file is part of a plugin
@@ -30,6 +30,7 @@ import java.lang.annotation.Target;
  * @since 3.1.7
  */
 @Retention(RetentionPolicy.SOURCE)
-@Target({ElementType.TYPE})
-public @interface PluginSource {
+@Target([ElementType.TYPE])
+@interface PluginSource {
+
 }

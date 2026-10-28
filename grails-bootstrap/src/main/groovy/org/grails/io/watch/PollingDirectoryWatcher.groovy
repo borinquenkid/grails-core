@@ -17,16 +17,13 @@
  *  under the License.
  */
 
-package org.grails.io.watch;
+package org.grails.io.watch
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
+
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
 
 /**
  * Implementation of a {@link AbstractDirectoryWatcher} that uses polling.
@@ -36,114 +33,116 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @see WatchServiceDirectoryWatcher
  * @see DirectoryWatcher
  */
+@CompileStatic
+@PackageScope
 class PollingDirectoryWatcher extends AbstractDirectoryWatcher {
 
-    private Collection<String> extensions = new ConcurrentLinkedQueue<>();
+    private Collection<String> extensions = new ConcurrentLinkedQueue<>()
 
-    private Map<File, Long> lastModifiedMap = new ConcurrentHashMap<>();
-    private Map<File, Collection<String>> directoryToExtensionsMap = new ConcurrentHashMap<>();
-    private Map<File, Long> directoryWatch = new ConcurrentHashMap<>();
+    private Map<File, Long> lastModifiedMap = new ConcurrentHashMap<>()
+    private Map<File, Collection<String>> directoryToExtensionsMap = new ConcurrentHashMap<>()
+    private Map<File, Long> directoryWatch = new ConcurrentHashMap<>()
 
     @Override
-    public void run() {
-        int count = 0;
+    void run() {
+        int count = 0
         while (active) {
-            Set<File> files = lastModifiedMap.keySet();
-            for (File file : files) {
-                long currentLastModified = file.lastModified();
-                Long cachedTime = lastModifiedMap.get(file);
+            Set<File> files = lastModifiedMap.keySet()
+            for (File file in files) {
+                long currentLastModified = file.lastModified()
+                Long cachedTime = lastModifiedMap[file]
                 if (currentLastModified > cachedTime) {
-                    lastModifiedMap.put(file, currentLastModified);
-                    fireOnChange(file);
+                    lastModifiedMap.put(file, currentLastModified)
+                    fireOnChange(file)
                 }
             }
             try {
-                count++;
+                count++
                 if (count > 2) {
-                    count = 0;
-                    checkForNewFiles();
+                    count = 0
+                    checkForNewFiles()
                 }
-                Thread.sleep(sleepTime);
-            } catch (InterruptedException e) {
+                Thread.sleep(sleepTime)
+            } catch (InterruptedException ignored) {
                 // ignore
             }
         }
     }
 
     @Override
-    public void addWatchFile(File fileToWatch) {
-        lastModifiedMap.put(fileToWatch, fileToWatch.lastModified());
+    void addWatchFile(File fileToWatch) {
+        lastModifiedMap.put(fileToWatch, fileToWatch.lastModified())
     }
 
     @Override
-    public void addWatchDirectory(File dir, List<String> fileExtensions) {
+    void addWatchDirectory(File dir, List<String> fileExtensions) {
         if (!isValidDirectoryToMonitor(dir)) {
-            return;
+            return
         }
-        trackDirectoryExtensions(dir, fileExtensions);
-        cacheFilesForDirectory(dir, fileExtensions, false);
+        trackDirectoryExtensions(dir, fileExtensions)
+        cacheFilesForDirectory(dir, fileExtensions, false)
     }
 
     private void trackDirectoryExtensions(File dir, List<String> fileExtensions) {
-        Collection<String> existingExtensions = directoryToExtensionsMap.get(dir);
+        Collection<String> existingExtensions = directoryToExtensionsMap[dir]
         if (existingExtensions == null) {
-            directoryToExtensionsMap.put(dir, new ArrayList<>(fileExtensions));
+            directoryToExtensionsMap.put(dir, new ArrayList<>(fileExtensions))
         }
         else {
-            existingExtensions.addAll(fileExtensions);
+            existingExtensions.addAll(fileExtensions)
         }
     }
 
     private void checkForNewFiles() {
-        for (File directory : directoryWatch.keySet()) {
-            final Long currentTimestamp = directoryWatch.get(directory);
+        for (File directory in directoryWatch.keySet()) {
+            final Long currentTimestamp = directoryWatch[directory]
 
             if (currentTimestamp < directory.lastModified()) {
-                Collection<String> extensions = directoryToExtensionsMap.get(directory);
+                Collection<String> extensions = directoryToExtensionsMap[directory]
                 if (extensions == null) {
-                    extensions = this.extensions;
+                    extensions = this.extensions
                 }
-                cacheFilesForDirectory(directory, extensions, true);
+                cacheFilesForDirectory(directory, extensions, true)
             }
         }
     }
 
     private void cacheFilesForDirectory(File directory, Collection<String> fileExtensions, boolean fireEvent) {
-        addExtensions(fileExtensions);
+        addExtensions(fileExtensions)
 
-        directoryWatch.put(directory, directory.lastModified());
-        File[] files = directory.listFiles();
+        directoryWatch.put(directory, directory.lastModified())
+        File[] files = directory.listFiles()
         if (files == null) {
-            return;
+            return
         }
 
-        for (File file : files) {
+        for (File file in files) {
             if (isValidDirectoryToMonitor(file)) {
-                cacheFilesForDirectory(file, fileExtensions, fireEvent);
+                cacheFilesForDirectory(file, fileExtensions, fireEvent)
             }
             else if (isValidFileToMonitor(file, fileExtensions)) {
-                if (!lastModifiedMap.containsKey(file) && fireEvent) {
-                    fireOnNew(file);
+                if (!(file in lastModifiedMap) && fireEvent) {
+                    fireOnNew(file)
                 }
-                lastModifiedMap.put(file, file.lastModified());
+                lastModifiedMap.put(file, file.lastModified())
             }
         }
     }
 
     private void addExtensions(Collection<String> toAdd) {
-        for (String extension : toAdd) {
-            extension = removeStartingDotIfPresent(extension);
-            if (!extensions.contains(extension)) {
-                extensions.add(extension);
+        for (String extension in toAdd) {
+            extension = removeStartingDotIfPresent(extension)
+            if (!(extension in extensions)) {
+                extensions << extension
             }
         }
     }
 
     private String removeStartingDotIfPresent(String extension) {
-        if (extension.startsWith(".")) {
-            extension = extension.substring(1);
+        if (extension.startsWith('.')) {
+            extension = extension.substring(1)
         }
-        return extension;
+        return extension
     }
 
 }

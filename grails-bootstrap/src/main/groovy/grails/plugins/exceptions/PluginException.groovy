@@ -16,25 +16,29 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.plugins.exceptions;
+package grails.plugins.exceptions
 
-public class PluginException extends RuntimeException {
+import groovy.transform.CompileStatic
 
-    private static final long serialVersionUID = -3041972956196552302L;
+@CompileStatic
+class PluginException extends RuntimeException {
 
-    public PluginException() {
-        super();
+    private static final long serialVersionUID = -3041972956196552302L
+
+    PluginException() {
+        super()
     }
 
-    public PluginException(String message, Throwable cause) {
-        super(message, cause);
+    PluginException(String message, Throwable cause) {
+        super(message, cause)
     }
 
-    public PluginException(String message) {
-        super(message);
+    PluginException(String message) {
+        super(message)
     }
 
-    public PluginException(Throwable cause) {
-        super(cause);
+    PluginException(Throwable cause) {
+        super(cause)
     }
+
 }
