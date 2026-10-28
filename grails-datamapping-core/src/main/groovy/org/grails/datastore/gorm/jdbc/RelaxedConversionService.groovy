@@ -16,22 +16,18 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+package org.grails.datastore.gorm.jdbc
 
-package org.grails.datastore.gorm.jdbc;
-
-import java.util.EnumSet;
-import java.util.Set;
-
-import org.jspecify.annotations.Nullable;
-
-import org.springframework.core.convert.ConversionFailedException;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.ConverterFactory;
-import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.util.Assert;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
+import org.springframework.core.convert.ConversionFailedException
+import org.springframework.core.convert.ConversionService
+import org.springframework.core.convert.TypeDescriptor
+import org.springframework.core.convert.converter.Converter
+import org.springframework.core.convert.converter.ConverterFactory
+import org.springframework.core.convert.support.DefaultConversionService
+import org.springframework.core.convert.support.GenericConversionService
+import org.springframework.util.Assert
 
 /**
  * Internal {@link ConversionService} used by {@link RelaxedDataBinder} to support
@@ -41,103 +37,104 @@ import org.springframework.util.Assert;
  * @author Stephane Nicoll
  * @since 1.1.0
  */
+@CompileStatic
 class RelaxedConversionService implements ConversionService {
 
-    private final ConversionService conversionService;
+    private final ConversionService conversionService
 
-    private final GenericConversionService additionalConverters;
+    private final GenericConversionService additionalConverters
 
     /**
      * Create a new {@link RelaxedConversionService} instance.
      * @param conversionService and option root conversion service
      */
     RelaxedConversionService(ConversionService conversionService) {
-        this.conversionService = conversionService;
-        this.additionalConverters = new GenericConversionService();
-        DefaultConversionService.addDefaultConverters(this.additionalConverters);
+        this.conversionService = conversionService
+        this.additionalConverters = new GenericConversionService()
+        DefaultConversionService.addDefaultConverters(this.additionalConverters)
         this.additionalConverters
-                .addConverterFactory(new StringToEnumIgnoringCaseConverterFactory());
-        this.additionalConverters.addConverter(new StringToCharArrayConverter());
+                .addConverterFactory(new StringToEnumIgnoringCaseConverterFactory())
+        this.additionalConverters.addConverter(new StringToCharArrayConverter())
     }
 
     @Override
-    public boolean canConvert(@Nullable Class<?> sourceType, Class<?> targetType) {
+    boolean canConvert(@Nullable Class<?> sourceType, Class<?> targetType) {
         return (this.conversionService != null &&
                 this.conversionService.canConvert(sourceType, targetType)) ||
-                this.additionalConverters.canConvert(sourceType, targetType);
+                this.additionalConverters.canConvert(sourceType, targetType)
     }
 
     @Override
-    public boolean canConvert(@Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
+    boolean canConvert(@Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
         return (this.conversionService != null &&
                 this.conversionService.canConvert(sourceType, targetType)) ||
-                this.additionalConverters.canConvert(sourceType, targetType);
+                this.additionalConverters.canConvert(sourceType, targetType)
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T> @Nullable T convert(@Nullable Object source, Class<T> targetType) {
-        Assert.notNull(targetType, "The targetType to convert to cannot be null");
+    @SuppressWarnings('unchecked')
+    @Nullable
+    def <T> T convert(@Nullable Object source, Class<T> targetType) {
+        Assert.notNull(targetType, 'The targetType to convert to cannot be null')
         return (T) convert(source, TypeDescriptor.forObject(source),
-                TypeDescriptor.valueOf(targetType));
+                TypeDescriptor.valueOf(targetType))
     }
 
     @Override
-    public @Nullable Object convert(@Nullable Object source, @Nullable TypeDescriptor sourceType,
-                          TypeDescriptor targetType) {
+    @Nullable
+    Object convert(@Nullable Object source, @Nullable TypeDescriptor sourceType, TypeDescriptor targetType) {
         if (this.conversionService != null) {
             try {
-                return this.conversionService.convert(source, sourceType, targetType);
+                return this.conversionService.convert(source, sourceType, targetType)
             }
-            catch (ConversionFailedException ex) {
+            catch (ConversionFailedException ignored) {
                 // Ignore and try the additional converters
             }
         }
-        return this.additionalConverters.convert(source, sourceType, targetType);
+        return this.additionalConverters.convert(source, sourceType, targetType)
     }
 
     /**
      * Clone of Spring's package private StringToEnumConverterFactory, but ignoring the
      * case of the source.
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private static class StringToEnumIgnoringCaseConverterFactory
-            implements ConverterFactory<String, Enum> {
+    @SuppressWarnings(['unchecked', 'rawtypes'])
+    private static class StringToEnumIgnoringCaseConverterFactory implements ConverterFactory<String, Enum> {
 
         @Override
-        public <T extends Enum> Converter<String, ? extends @Nullable T> getConverter(Class<T> targetType) {
-            Class<?> enumType = targetType;
+        def <T extends Enum> Converter<String, T> getConverter(Class<T> targetType) {
+            Class<?> enumType = targetType
             while (enumType != null && !enumType.isEnum()) {
-                enumType = enumType.getSuperclass();
+                enumType = enumType.getSuperclass()
             }
-            Assert.notNull(enumType, "The target type " + targetType.getName() +
-                    " does not refer to an enum");
-            return new StringToEnum(enumType);
+            Assert.notNull(enumType, "The target type ${targetType.name} does not refer to an enum")
+            return new StringToEnum(enumType)
         }
 
-        private record StringToEnum<T extends Enum>(Class<T> enumType) implements Converter<String, @Nullable T> {
+        private record StringToEnum<T extends Enum>(Class<T> enumType) implements Converter<String, T> {
 
             @Override
-            public @Nullable T convert(String source) {
+            @Nullable
+            T convert(String source) {
                 if (source.isEmpty()) {
                     // It's an empty enum identifier: reset the enum value to null.
-                    return null;
+                    return null
                 }
-                source = source.trim();
+                source = source.trim()
                 for (T candidate : (Set<T>) EnumSet.allOf(this.enumType)) {
                     RelaxedNames names = new RelaxedNames(
-                            candidate.name().replace("_", "-").toLowerCase());
+                            candidate.name().replace('_', '-').toLowerCase())
                     for (String name : names) {
-                        if (name.equals(source)) {
-                            return candidate;
+                        if (name == source) {
+                            return candidate
                         }
                     }
                     if (candidate.name().equalsIgnoreCase(source)) {
-                        return candidate;
+                        return candidate
                     }
                 }
-                throw new IllegalArgumentException("No enum constant " +
-                        this.enumType.getCanonicalName() + "." + source);
+                throw new IllegalArgumentException(
+                        "No enum constant ${this.enumType.canonicalName}.${source}")
             }
 
         }
@@ -145,9 +142,12 @@ class RelaxedConversionService implements ConversionService {
     }
 
     private static class StringToCharArrayConverter implements Converter<String, char[]> {
+
         @Override
-        public char[] convert(String source) {
-            return source.toCharArray();
+        char[] convert(String source) {
+            return source.toCharArray()
         }
+
     }
+
 }

@@ -16,12 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.gorm.annotation;
+package grails.gorm.annotation
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
 /**
  * A property annotation used to automatically populate a field with the current auditor
@@ -51,6 +51,7 @@ import java.lang.annotation.Target;
  * @see LastModifiedBy
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
-public @interface CreatedBy {
+@Target([ElementType.FIELD])
+@interface CreatedBy {
+
 }

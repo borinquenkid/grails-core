@@ -16,21 +16,20 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+package org.grails.datastore.gorm.jdbc.connections
 
-package org.grails.datastore.gorm.jdbc.connections;
+import java.lang.reflect.Method
 
-import java.io.IOException;
-import java.lang.reflect.Method;
+import javax.sql.DataSource
 
-import javax.sql.DataSource;
+import groovy.transform.CompileStatic
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.datasource.DelegatingDataSource
+import org.springframework.util.ReflectionUtils
 
-import org.springframework.jdbc.datasource.DelegatingDataSource;
-import org.springframework.util.ReflectionUtils;
-
-import org.grails.datastore.mapping.core.connections.DefaultConnectionSource;
+import org.grails.datastore.mapping.core.connections.DefaultConnectionSource
 
 /**
  * A {@link org.grails.datastore.mapping.core.connections.ConnectionSource} for JDBC {@link DataSource} objects. Attempts to close the pool if a "close" method is provided.
@@ -38,37 +37,40 @@ import org.grails.datastore.mapping.core.connections.DefaultConnectionSource;
  * @author Graeme Rocher
  * @since 6.0
  */
-public class DataSourceConnectionSource extends DefaultConnectionSource<DataSource, DataSourceSettings> {
-    private static final Logger LOG = LoggerFactory.getLogger(DataSourceConnectionSource.class);
+@CompileStatic
+class DataSourceConnectionSource extends DefaultConnectionSource<DataSource, DataSourceSettings> {
 
-    public DataSourceConnectionSource(String name, DataSource source, DataSourceSettings settings) {
-        super(name, source, settings);
+    private static final Logger LOG = LoggerFactory.getLogger(DataSourceConnectionSource)
+
+    DataSourceConnectionSource(String name, DataSource source, DataSourceSettings settings) {
+        super(name, source, settings)
     }
 
     @Override
-    public void close() throws IOException {
-        super.close();
+    void close() throws IOException {
+        super.close()
         if (!closed) {
-
-            DataSource source = getSource();
-            Method closeMethod = ReflectionUtils.findMethod(source.getClass(), "close");
+            DataSource source = getSource()
+            Method closeMethod = ReflectionUtils.findMethod(source.getClass(), 'close')
 
             while (closeMethod == null && source instanceof DelegatingDataSource) {
-                source = ((DelegatingDataSource) source).getTargetDataSource();
+                source = ((DelegatingDataSource) source).getTargetDataSource()
                 if (source == null) {
-                    break;
+                    break
                 }
-                closeMethod = ReflectionUtils.findMethod(source.getClass(), "close");
+                closeMethod = ReflectionUtils.findMethod(source.getClass(), 'close')
             }
 
             if (closeMethod != null) {
                 try {
-                    ReflectionUtils.invokeMethod(closeMethod, source);
-                    this.closed = true;
-                } catch (Throwable e) {
-                    LOG.warn("Error closing JDBC connection [{}]: {}", getName(), e.getMessage());
+                    ReflectionUtils.invokeMethod(closeMethod, source)
+                    this.closed = true
+                }
+                catch (Throwable e) {
+                    LOG.warn('Error closing JDBC connection [{}]: {}', getName(), e.getMessage())
                 }
             }
         }
     }
+
 }

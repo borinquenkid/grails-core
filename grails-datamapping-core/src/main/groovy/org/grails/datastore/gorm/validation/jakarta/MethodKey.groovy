@@ -16,11 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+package org.grails.datastore.gorm.validation.jakarta
 
-package org.grails.datastore.gorm.validation.jakarta;
-
-import java.util.Arrays;
-import java.util.Objects;
+import groovy.transform.CompileStatic
 
 /**
  * A method key used to store information about a method
@@ -28,30 +26,38 @@ import java.util.Objects;
  * @author Graeme Rocher
  * @since 6.1
  */
+@CompileStatic
 class MethodKey {
-    private final String name;
-    private final Class<?>[] parameterTypes;
 
-    public MethodKey(String name, Class<?>[] parameterTypes) {
-        this.name = name;
-        this.parameterTypes = parameterTypes;
+    private final String name
+    private final Class<?>[] parameterTypes
+
+    MethodKey(String name, Class<?>[] parameterTypes) {
+        this.name = name
+        this.parameterTypes = parameterTypes
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    boolean equals(Object o) {
+        if (this.is(o)) {
+            return true
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false
+        }
 
-        MethodKey methodKey = (MethodKey) o;
+        MethodKey methodKey = (MethodKey) o
 
-        if (!Objects.equals(name, methodKey.name)) return false;
-        return Arrays.equals(parameterTypes, methodKey.parameterTypes);
+        if (!Objects.equals(name, methodKey.name)) {
+            return false
+        }
+        return Arrays.equals(parameterTypes, methodKey.parameterTypes)
     }
 
     @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + Arrays.hashCode(parameterTypes);
-        return result;
+    int hashCode() {
+        int result = name != null ? name.hashCode() : 0
+        result = 31 * result + Arrays.hashCode(parameterTypes)
+        return result
     }
 }

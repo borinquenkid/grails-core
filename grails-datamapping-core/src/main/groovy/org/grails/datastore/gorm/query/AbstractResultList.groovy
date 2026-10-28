@@ -16,14 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.gorm.query;
 
-import java.io.Closeable;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
+import groovy.transform.CompileStatic;
 
 /**
  * An abstract result list for initializing objects lazily from a cursor
@@ -31,7 +27,11 @@ import java.util.ListIterator;
  * @author Graeme Rocher
  * @since 5.0
  */
-public abstract class AbstractResultList extends AbstractList implements Closeable {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+abstract class AbstractResultList extends AbstractList implements Closeable {
+
     protected int offset = 0;
     protected final List initializedObjects;
     private int internalIndex;
@@ -39,11 +39,11 @@ public abstract class AbstractResultList extends AbstractList implements Closeab
     protected boolean initialized = false;
     protected Iterator<Object> cursor;
 
-    public AbstractResultList(int offset, Iterator<Object> cursor) {
+    AbstractResultList(int offset, Iterator<Object> cursor) {
         this(offset, -1, cursor);
     }
 
-    public AbstractResultList(int offset, Integer size, Iterator<Object> cursor) {
+    AbstractResultList(int offset, Integer size, Iterator<Object> cursor) {
         this.offset = offset;
         boolean hasSize = size != null && size > -1;
         if (hasSize) {
@@ -54,12 +54,14 @@ public abstract class AbstractResultList extends AbstractList implements Closeab
         this.initializedObjects = hasSize ? new ArrayList(size) : new ArrayList();
     }
 
-    public Iterator<Object> getCursor() {
+    Iterator<Object> getCursor() {
         return cursor;
     }
 
     protected void initializeFully() {
-        if (initialized) return;
+        if (initialized) {
+            return;
+        }
 
         while (cursor.hasNext()) {
             convertObject();
@@ -68,7 +70,7 @@ public abstract class AbstractResultList extends AbstractList implements Closeab
     }
 
     @Override
-    public boolean isEmpty() {
+    boolean isEmpty() {
         if (initialized) {
             return initializedObjects.isEmpty();
         }
@@ -77,9 +79,9 @@ public abstract class AbstractResultList extends AbstractList implements Closeab
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     @Override
-    public Object get(int index) {
+    Object get(int index) {
         final List initializedObjects = this.initializedObjects;
         final int initializedSize = initializedObjects.size();
         if (initializedSize > index) {
@@ -117,31 +119,31 @@ public abstract class AbstractResultList extends AbstractList implements Closeab
     protected abstract Object nextDecoded();
 
     @Override
-    public Object set(int index, Object o) {
+    Object set(int index, Object o) {
         Object previous = get(index);
         initializedObjects.set(index, o);
         return previous;
     }
 
     @Override
-    public void add(int index, Object element) {
+    void add(int index, Object element) {
         initializeFully();
         this.initializedObjects.add(index, element);
     }
 
     @Override
-    public Object remove(int index) {
+    Object remove(int index) {
         initializeFully();
         return this.initializedObjects.remove(index);
     }
 
     @Override
-    public ListIterator listIterator() {
+    ListIterator listIterator() {
         return listIterator(0);
     }
 
     @Override
-    public ListIterator listIterator(int index) {
+    ListIterator listIterator(int index) {
         initializeFully();
         return initializedObjects.listIterator(index);
     }
@@ -152,7 +154,7 @@ public abstract class AbstractResultList extends AbstractList implements Closeab
      * @return an iterator over the elements in this list in proper sequence
      */
     @Override
-    public Iterator iterator() {
+    Iterator iterator() {
         if (initialized || !initializedObjects.isEmpty()) {
             if (!initialized) {
                 initializeFully();
@@ -163,7 +165,7 @@ public abstract class AbstractResultList extends AbstractList implements Closeab
         return new Iterator() {
             int iteratorIndex = 0;
             Object current;
-            public boolean hasNext() {
+            boolean hasNext() {
                 if (iteratorIndex < internalIndex) {
                     return true;
                 }
@@ -178,8 +180,8 @@ public abstract class AbstractResultList extends AbstractList implements Closeab
                 return false;
             }
 
-            @SuppressWarnings("unchecked")
-            public Object next() {
+            @SuppressWarnings('unchecked')
+            Object next() {
                 if (iteratorIndex < internalIndex) {
                     current = initializedObjects.get(iteratorIndex);
                 }
@@ -193,7 +195,7 @@ public abstract class AbstractResultList extends AbstractList implements Closeab
                 }
             }
 
-            public void remove() {
+            void remove() {
                 if (current != null) {
                     initializedObjects.remove(current);
                 }
@@ -202,7 +204,7 @@ public abstract class AbstractResultList extends AbstractList implements Closeab
     }
 
     @Override
-    public int size() {
+    int size() {
         if (initialized) {
             return initializedObjects.size();
         }

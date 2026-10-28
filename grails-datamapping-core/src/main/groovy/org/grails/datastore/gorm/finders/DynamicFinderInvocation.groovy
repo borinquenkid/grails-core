@@ -16,11 +16,8 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.gorm.finders;
-
-import java.util.List;
-
-import groovy.lang.Closure;
 
 import grails.gorm.DetachedCriteria;
 
@@ -30,8 +27,9 @@ import grails.gorm.DetachedCriteria;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings("rawtypes")
-public class DynamicFinderInvocation {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'rawtypes'])
+class DynamicFinderInvocation {
 
     private final Class javaClass;
     private final String methodName;
@@ -41,7 +39,7 @@ public class DynamicFinderInvocation {
     private final String operator;
     private DetachedCriteria detachedCriteria;
 
-    public DynamicFinderInvocation(Class javaClass, String methodName, Object[] arguments,
+    DynamicFinderInvocation(Class javaClass, String methodName, Object[] arguments,
                                    List<MethodExpression> expressions, Closure criteria, String operator) {
         this.javaClass = javaClass;
         this.methodName = methodName;
@@ -51,35 +49,35 @@ public class DynamicFinderInvocation {
         this.operator = operator;
     }
 
-    public Class<?> getJavaClass() {
+    Class<?> getJavaClass() {
         return javaClass;
     }
 
-    public String getMethodName() {
+    String getMethodName() {
         return methodName;
     }
 
-    public Object[] getArguments() {
+    Object[] getArguments() {
         return arguments;
     }
 
-    public List<MethodExpression> getExpressions() {
+    List<MethodExpression> getExpressions() {
         return expressions;
     }
 
-    public Closure getCriteria() {
+    Closure getCriteria() {
         return criteria;
     }
 
-    public String getOperator() {
+    String getOperator() {
         return operator;
     }
 
-    public DetachedCriteria getDetachedCriteria() {
+    DetachedCriteria getDetachedCriteria() {
         return detachedCriteria;
     }
 
-    public void setDetachedCriteria(DetachedCriteria detachedCriteria) {
+    void setDetachedCriteria(DetachedCriteria detachedCriteria) {
         this.detachedCriteria = detachedCriteria;
     }
 }

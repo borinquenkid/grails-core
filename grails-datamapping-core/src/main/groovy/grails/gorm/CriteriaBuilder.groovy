@@ -17,14 +17,8 @@
  *  under the License.
  */
 
+@SuppressWarnings('UnnecessarySemicolon')
 package grails.gorm;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 
 import jakarta.persistence.criteria.JoinType;
 
@@ -45,54 +39,55 @@ import static org.grails.datastore.gorm.finders.DynamicFinder.populateArgumentsF
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings("rawtypes")
-public class CriteriaBuilder<T> extends AbstractCriteriaBuilder implements BuildableCriteria, ProjectionList {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'rawtypes'])
+class CriteriaBuilder<T> extends AbstractCriteriaBuilder implements BuildableCriteria, ProjectionList {
 
-    public static final String ORDER_DESCENDING = "desc";
-    public static final String ORDER_ASCENDING = "asc";
+    public static final String ORDER_DESCENDING = 'desc';
+    public static final String ORDER_ASCENDING = 'asc';
 
     protected final Session session;
 
-    public CriteriaBuilder(final Class targetClass, QueryCreator queryCreator, final MappingContext mappingContext) {
+    CriteriaBuilder(final Class targetClass, QueryCreator queryCreator, final MappingContext mappingContext) {
         super(targetClass, queryCreator, mappingContext);
         this.session = null;
     }
 
-    public CriteriaBuilder(final Class targetClass, final Session session) {
+    CriteriaBuilder(final Class targetClass, final Session session) {
         super(targetClass, session, session.getMappingContext());
         this.session = session;
 
     }
 
-    public CriteriaBuilder(final Class targetClass, final Session session, final Query query) {
+    CriteriaBuilder(final Class targetClass, final Session session, final Query query) {
         this(targetClass, session);
         this.query = query;
     }
 
     @Override
-    public BuildableCriteria cache(boolean cache) {
+    BuildableCriteria cache(boolean cache) {
         return (BuildableCriteria) super.cache(cache);
     }
 
     @Override
-    public BuildableCriteria readOnly(boolean readOnly) {
+    BuildableCriteria readOnly(boolean readOnly) {
         return (BuildableCriteria) super.readOnly(readOnly);
     }
 
     @Override
-    public BuildableCriteria join(String property) {
+    BuildableCriteria join(String property) {
         return (BuildableCriteria) super.join(property);
     }
 
     @Override
-    public BuildableCriteria join(String property, JoinType joinType) {
+    BuildableCriteria join(String property, JoinType joinType) {
         ensureQueryIsInitialized();
         query.join(property, joinType);
         return this;
     }
 
     @Override
-    public BuildableCriteria select(String property) {
+    BuildableCriteria select(String property) {
         return (BuildableCriteria) super.select(property);
     }
 
@@ -102,7 +97,7 @@ public class CriteriaBuilder<T> extends AbstractCriteriaBuilder implements Build
      *
      * @return The result list
      */
-    public List list(Closure callable) {
+    List list(Closure callable) {
         ensureQueryIsInitialized();
         invokeClosureNode(callable);
 
@@ -117,7 +112,7 @@ public class CriteriaBuilder<T> extends AbstractCriteriaBuilder implements Build
      *
      * @return A single result
      */
-    public Object get(Closure callable) {
+    Object get(Closure callable) {
         ensureQueryIsInitialized();
         invokeClosureNode(callable);
 
@@ -131,7 +126,7 @@ public class CriteriaBuilder<T> extends AbstractCriteriaBuilder implements Build
      *
      * @return The result list
      */
-    public List listDistinct(Closure callable) {
+    List listDistinct(Closure callable) {
         ensureQueryIsInitialized();
         invokeClosureNode(callable);
 
@@ -139,7 +134,7 @@ public class CriteriaBuilder<T> extends AbstractCriteriaBuilder implements Build
         return query.list();
     }
 
-    public List list(Map paginateParams, Closure callable) {
+    List list(Map paginateParams, Closure callable) {
         ensureQueryIsInitialized();
 
         paginationEnabledList = true;
@@ -158,7 +153,7 @@ public class CriteriaBuilder<T> extends AbstractCriteriaBuilder implements Build
      *
      * @return The result count
      */
-    public Number count(Closure callable) {
+    Number count(Closure callable) {
         ensureQueryIsInitialized();
         invokeClosureNode(callable);
         uniqueResult = true;
@@ -167,7 +162,7 @@ public class CriteriaBuilder<T> extends AbstractCriteriaBuilder implements Build
     }
 
     @Override
-    public Object scroll(@DelegatesTo(Criteria.class) Closure c) {
+    Object scroll(@DelegatesTo(Criteria) Closure c) {
         return executeCriteriaConstruction(c);
     }
 
@@ -177,11 +172,11 @@ public class CriteriaBuilder<T> extends AbstractCriteriaBuilder implements Build
      * @param c The closure
      * @return The result
      */
-    public Object call(@DelegatesTo(Criteria.class) Closure c) {
+    Object call(@DelegatesTo(Criteria) Closure c) {
         ensureQueryIsInitialized();
         uniqueResult = false;
         invokeClosureNode(c);
-        
+
         Object result;
         if (!uniqueResult) {
             result = invokeList();

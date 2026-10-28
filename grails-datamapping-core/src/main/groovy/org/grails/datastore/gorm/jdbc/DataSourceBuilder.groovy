@@ -16,15 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.gorm.jdbc;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 
 import javax.sql.DataSource;
+
+import groovy.transform.CompileStatic;
 
 import org.jspecify.annotations.NonNull;
 
@@ -49,14 +49,17 @@ import org.grails.datastore.mapping.core.exceptions.ConfigurationException;
  * @author Graeme Rocher
  * @since 1.1.0
  */
-public class DataSourceBuilder {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class DataSourceBuilder {
 
     private static final String[] DATA_SOURCE_TYPE_NAMES = new String[]{
-        "org.apache.tomcat.jdbc.pool.DataSource",
-        "com.zaxxer.hikari.HikariDataSource",
-        "org.apache.commons.dbcp.BasicDataSource",
-        "org.apache.commons.dbcp2.BasicDataSource",
-        "org.springframework.jdbc.datasource.DriverManagerDataSource"
+        'org.apache.tomcat.jdbc.pool.DataSource',
+        'com.zaxxer.hikari.HikariDataSource',
+        'org.apache.commons.dbcp.BasicDataSource',
+        'org.apache.commons.dbcp2.BasicDataSource',
+        'org.springframework.jdbc.datasource.DriverManagerDataSource'
     };
 
     private Class<? extends DataSource> type;
@@ -67,19 +70,19 @@ public class DataSourceBuilder {
     private boolean pooled = true;
     private boolean readOnly = false;
 
-    public static DataSourceBuilder create() {
+    static DataSourceBuilder create() {
         return new DataSourceBuilder(null);
     }
 
-    public static DataSourceBuilder create(ClassLoader classLoader) {
+    static DataSourceBuilder create(ClassLoader classLoader) {
         return new DataSourceBuilder(classLoader);
     }
 
-    public DataSourceBuilder(ClassLoader classLoader) {
+    DataSourceBuilder(ClassLoader classLoader) {
         this.classLoader = classLoader;
     }
 
-    public DataSource build() {
+    DataSource build() {
         Class<? extends DataSource> type = getType();
         DataSource result = BeanUtils.instantiateClass(type);
         maybeGetDriverClassName();
@@ -88,38 +91,38 @@ public class DataSourceBuilder {
     }
 
     private void maybeGetDriverClassName() {
-        if (!this.properties.containsKey("driverClassName") &&
-                this.properties.containsKey("url")) {
-            String url = this.properties.get("url");
+        if (!this.properties.containsKey('driverClassName') &&
+                this.properties.containsKey('url')) {
+            String url = this.properties.get('url');
             String driverClass = DatabaseDriver.fromJdbcUrl(url).getDriverClassName();
-            this.properties.put("driverClassName", driverClass);
-            this.properties.put("driver", driverClass);
+            this.properties.put('driverClassName', driverClass);
+            this.properties.put('driver', driverClass);
         }
     }
 
     private void bind(DataSource result) {
-        if (properties.containsKey("dbProperties") && properties.containsKey("dataSourceProperties")) {
-            throw new ConfigurationException("Cannot specify both dbProperties and dataSourceProperties");
+        if (properties.containsKey('dbProperties') && properties.containsKey('dataSourceProperties')) {
+            throw new ConfigurationException('Cannot specify both dbProperties and dataSourceProperties');
         }
-        if (properties.containsKey("healthCheckProperties")) {
-            coerceDbProperties("healthCheckProperties");
+        if (properties.containsKey('healthCheckProperties')) {
+            coerceDbProperties('healthCheckProperties');
         }
-        if (properties.containsKey("dbProperties")) {
-            coerceDbProperties("dbProperties");
+        if (properties.containsKey('dbProperties')) {
+            coerceDbProperties('dbProperties');
         }
-        if (properties.containsKey("dataSourceProperties")) {
-            coerceDbProperties("dataSourceProperties");
+        if (properties.containsKey('dataSourceProperties')) {
+            coerceDbProperties('dataSourceProperties');
         }
         MutablePropertyValues properties = new MutablePropertyValues(this.properties);
-        new RelaxedDataBinder(result).withAlias("url", "jdbcUrl")
-                .withAlias("username", "user")
+        new RelaxedDataBinder(result).withAlias('url', 'jdbcUrl')
+                .withAlias('username', 'user')
                 // The HikariConfig's property name is dataSourceProperties, not dbProperties so support both or either way being defined in config
-                .withAlias("dbProperties", "dataSourceProperties")
-                .withAlias("dataSourceProperties", "dbProperties")
+                .withAlias('dbProperties', 'dataSourceProperties')
+                .withAlias('dataSourceProperties', 'dbProperties')
                 .bind(properties);
     }
 
-    public DataSourceBuilder properties(Map<String, String> properties) {
+    DataSourceBuilder properties(Map<String, String> properties) {
         this.properties.putAll(properties);
         return this;
     }
@@ -136,22 +139,22 @@ public class DataSourceBuilder {
      * <p>When dbProperties originate from YAML configuration, the keys are already flat
      * strings and are simply converted to a Properties object.</p>
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     private void coerceDbProperties(String keyname) {
         Map<String, Object> propertiesMap = (Map<String, Object>) (Map<?, ?>) this.properties;
         Object dbPropertiesObject = propertiesMap.get(keyname);
-        if (dbPropertiesObject instanceof Map<?, ?> dbProperties) {
+        if (dbPropertiesObject instanceof Map dbProperties) {
             Properties properties = new Properties();
-            flattenMap("", dbProperties, properties);
+            flattenMap('', dbProperties, properties);
             propertiesMap.put(keyname, properties);
         }
     }
 
     private void flattenMap(String prefix, Map<?, ?> map, Properties target) {
         for (Map.Entry<?, ?> entry : map.entrySet()) {
-            String key = prefix.isEmpty() ? entry.getKey().toString() : prefix + "." + entry.getKey().toString();
+            String key = prefix.isEmpty() ? entry.getKey().toString() : prefix + '.' + entry.getKey().toString();
             Object value = entry.getValue();
-            if (value instanceof Map<?, ?> nestedMap) {
+            if (value instanceof Map nestedMap) {
                 flattenMap(key, nestedMap, target);
             } else if (value != null) {
                 target.put(key, value.toString());
@@ -159,41 +162,41 @@ public class DataSourceBuilder {
         }
     }
 
-    public DataSourceBuilder type(Class<? extends DataSource> type) {
+    DataSourceBuilder type(Class<? extends DataSource> type) {
         this.type = type;
         return this;
     }
 
-    public DataSourceBuilder url(String url) {
-        this.properties.put("url", url);
+    DataSourceBuilder url(String url) {
+        this.properties.put('url', url);
         return this;
     }
 
-    public DataSourceBuilder driverClassName(String driverClassName) {
-        this.properties.put("driverClassName", driverClassName);
+    DataSourceBuilder driverClassName(String driverClassName) {
+        this.properties.put('driverClassName', driverClassName);
         return this;
     }
 
-    public DataSourceBuilder username(String username) {
-        this.properties.put("username", username);
+    DataSourceBuilder username(String username) {
+        this.properties.put('username', username);
         return this;
     }
 
-    public DataSourceBuilder password(String password) {
-        this.properties.put("password", password);
+    DataSourceBuilder password(String password) {
+        this.properties.put('password', password);
         return this;
     }
 
-    @SuppressWarnings("unchecked")
-    public Class<? extends DataSource> findType() {
+    @SuppressWarnings('unchecked')
+    Class<? extends DataSource> findType() {
 
         if (this.type != null) {
             return this.type;
         } else if (!pooled) {
             if (this.readOnly) {
-                return ReadOnlyDriverManagerDataSource.class;
+                return ReadOnlyDriverManagerDataSource;
             } else {
-                return org.springframework.jdbc.datasource.DriverManagerDataSource.class;
+                return org.springframework.jdbc.datasource.DriverManagerDataSource;
             }
         }
 
@@ -201,11 +204,11 @@ public class DataSourceBuilder {
             try {
                 return (Class<? extends DataSource>) ClassUtils.forName(name,
                         this.classLoader);
-            } catch (Exception ex) {
+            } catch (Exception ignored) {
                 // Swallow and continue
             }
         }
-        throw new ConfigurationException("No connection pool implementation found on classpath (example commons-dbcp, tomcat-pool etc.)");
+        throw new ConfigurationException('No connection pool implementation found on classpath (example commons-dbcp, tomcat-pool etc.)');
     }
 
     private Class<? extends DataSource> getType() {
@@ -213,14 +216,14 @@ public class DataSourceBuilder {
         if (type != null) {
             return type;
         }
-        throw new IllegalStateException("No supported DataSource type found");
+        throw new IllegalStateException('No supported DataSource type found');
     }
 
-    public void setPooled(boolean pooled) {
+    void setPooled(boolean pooled) {
         this.pooled = pooled;
     }
 
-    public void setReadOnly(boolean readOnly) {
+    void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
     }
 

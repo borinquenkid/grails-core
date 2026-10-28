@@ -16,18 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.gorm.finders;
+package org.grails.datastore.gorm.finders
 
-import java.util.regex.Pattern;
+import java.util.regex.Pattern
 
-import groovy.lang.Closure;
-
-import grails.gorm.DetachedCriteria;
-import org.grails.datastore.gorm.DatastoreResolver;
-import org.grails.datastore.mapping.core.Datastore;
-import org.grails.datastore.mapping.core.Session;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.query.Query;
+import grails.gorm.DetachedCriteria
+import org.grails.datastore.gorm.DatastoreResolver
+import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.core.Session
+import org.grails.datastore.mapping.core.SessionCallback
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.query.Query
 
 /**
  * Implements {@code countBy*}. Kept as its own dedicated class rather than a variant of {@link
@@ -42,53 +41,53 @@ import org.grails.datastore.mapping.query.Query;
  * {@code order} never page or order the count. Callers can pass the same pagination parameters
  * to {@code findAllBy*} and {@code countBy*} and still get the total number of matches.
  */
-public class CountFinder implements FinderMethod, QueryBuildingFinder {
+class CountFinder implements FinderMethod, QueryBuildingFinder {
 
-    private static final Pattern METHOD_PATTERN = Pattern.compile("(countBy)(\\w+)");
-    private static final String[] OPERATORS = {"And", "Or"};
-    private static final String OPERATOR_OR = "Or";
+    private static final Pattern METHOD_PATTERN = Pattern.compile('(countBy)(\\w+)')
+    private static final String[] OPERATORS = ['And', 'Or'] as String[]
+    private static final String OPERATOR_OR = 'Or'
 
-    private final DatastoreResolver datastoreResolver;
-    private final DynamicFinder grammar;
+    private final DatastoreResolver datastoreResolver
+    private final DynamicFinder grammar
 
     private CountFinder(DatastoreResolver datastoreResolver, DynamicFinder grammar) {
-        this.datastoreResolver = datastoreResolver;
-        this.grammar = grammar;
+        this.datastoreResolver = datastoreResolver
+        this.grammar = grammar
     }
 
-    public static CountFinder countBy(Datastore datastore) {
-        return countBy(FinderSupport.resolverFor(datastore), datastore.getMappingContext());
+    static CountFinder countBy(Datastore datastore) {
+        return countBy(FinderSupport.resolverFor(datastore), datastore.getMappingContext())
     }
 
-    public static CountFinder countBy(DatastoreResolver datastoreResolver, MappingContext mappingContext) {
-        return new CountFinder(datastoreResolver, new DynamicFinder(METHOD_PATTERN, OPERATORS, mappingContext, false));
+    static CountFinder countBy(DatastoreResolver datastoreResolver, MappingContext mappingContext) {
+        return new CountFinder(datastoreResolver, new DynamicFinder(METHOD_PATTERN, OPERATORS, mappingContext, false))
     }
 
-    public static CountFinder countBy(MappingContext mappingContext) {
-        return countBy(null, mappingContext);
-    }
-
-    @Override
-    public void setPattern(String pattern) {
-        grammar.setPattern(pattern);
+    static CountFinder countBy(MappingContext mappingContext) {
+        return countBy(null, mappingContext)
     }
 
     @Override
-    public boolean isMethodMatch(String methodName) {
-        return grammar.isMethodMatch(methodName);
+    void setPattern(String pattern) {
+        grammar.setPattern(pattern)
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public Object invoke(Class clazz, String methodName, Object[] arguments) {
-        return invoke(clazz, methodName, (Closure) null, arguments);
+    boolean isMethodMatch(String methodName) {
+        return grammar.isMethodMatch(methodName)
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public Object invoke(Class clazz, String methodName, Closure additionalCriteria, Object[] arguments) {
-        DynamicFinderInvocation invocation = grammar.createFinderInvocation(clazz, methodName, additionalCriteria, arguments);
-        return doInvoke(invocation);
+    @SuppressWarnings('rawtypes')
+    Object invoke(Class clazz, String methodName, Object[] arguments) {
+        return invoke(clazz, methodName, (Closure) null, arguments)
+    }
+
+    @Override
+    @SuppressWarnings('rawtypes')
+    Object invoke(Class clazz, String methodName, Closure additionalCriteria, Object[] arguments) {
+        DynamicFinderInvocation invocation = grammar.createFinderInvocation(clazz, methodName, additionalCriteria, arguments)
+        return doInvoke(invocation)
     }
 
     /**
@@ -102,27 +101,27 @@ public class CountFinder implements FinderMethod, QueryBuildingFinder {
      * @param arguments The method call arguments
      * @return The result of the method call
      */
-    @SuppressWarnings("rawtypes")
-    public Object invoke(Class clazz, String methodName, DetachedCriteria detachedCriteria, Object[] arguments) {
-        DynamicFinderInvocation invocation = grammar.createFinderInvocation(clazz, methodName, null, arguments);
+    @SuppressWarnings('rawtypes')
+    Object invoke(Class clazz, String methodName, DetachedCriteria detachedCriteria, Object[] arguments) {
+        DynamicFinderInvocation invocation = grammar.createFinderInvocation(clazz, methodName, null, arguments)
         if (detachedCriteria != null) {
-            invocation.setDetachedCriteria(detachedCriteria);
+            invocation.setDetachedCriteria(detachedCriteria)
         }
-        return doInvoke(invocation);
+        return doInvoke(invocation)
     }
 
     private Object doInvoke(final DynamicFinderInvocation invocation) {
-        return FinderSupport.execute(datastoreResolver, session -> {
-            Query query = buildQuery(invocation, session);
-            return query.singleResult();
-        });
+        return FinderSupport.execute(datastoreResolver, { Session session ->
+            Query query = buildQuery(invocation, session)
+            return query.singleResult()
+        } as SessionCallback<Object>)
     }
 
     @Override
-    public Query buildQuery(DynamicFinderInvocation invocation, Session session) {
-        final Class<?> clazz = invocation.getJavaClass();
-        Query query = session.createQuery(clazz);
-        return applyCriteriaAndCount(invocation, clazz, query);
+    Query buildQuery(DynamicFinderInvocation invocation, Session session) {
+        final Class<?> clazz = invocation.getJavaClass()
+        Query query = session.createQuery(clazz)
+        return applyCriteriaAndCount(invocation, clazz, query)
     }
 
     /**
@@ -137,24 +136,24 @@ public class CountFinder implements FinderMethod, QueryBuildingFinder {
      * @param query The already-created query to apply criteria to
      * @return The same query, for chaining
      */
-    public static Query applyCriteriaAndCount(DynamicFinderInvocation invocation, Class<?> clazz, Query query) {
-        DynamicFinder.applyAdditionalCriteria(query, invocation.getCriteria());
-        DynamicFinder.applyDetachedCriteria(query, invocation.getDetachedCriteria());
+    static Query applyCriteriaAndCount(DynamicFinderInvocation invocation, Class<?> clazz, Query query) {
+        DynamicFinder.applyAdditionalCriteria(query, invocation.getCriteria())
+        DynamicFinder.applyDetachedCriteria(query, invocation.getDetachedCriteria())
 
-        String operatorInUse = invocation.getOperator();
+        String operatorInUse = invocation.getOperator()
         if (OPERATOR_OR.equals(operatorInUse)) {
-            Query.Junction disjunction = query.disjunction();
-            for (MethodExpression expression : invocation.getExpressions()) {
-                query.add(disjunction, expression.createCriterion());
+            Query.Junction disjunction = query.disjunction()
+            for (MethodExpression expression in invocation.getExpressions()) {
+                query.add(disjunction, expression.createCriterion())
             }
         }
         else {
-            for (MethodExpression expression : invocation.getExpressions()) {
-                query.add(expression.createCriterion());
+            for (MethodExpression expression in invocation.getExpressions()) {
+                query.add(expression.createCriterion())
             }
         }
 
-        query.projections().count();
-        return query;
+        query.projections().count()
+        return query
     }
 }

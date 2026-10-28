@@ -16,11 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.gorm.finders;
+package org.grails.datastore.gorm.finders
 
-import groovy.lang.Closure;
-
-import org.grails.datastore.mapping.query.Query;
+import org.grails.datastore.mapping.query.Query
 
 /**
  * The composition seam finder implementations use to parse a dynamic finder method name into a
@@ -29,14 +27,14 @@ import org.grails.datastore.mapping.query.Query;
  * implementations (in this package and in {@code grails-datamapping-rx}) hold a {@code DynamicFinder}
  * instance as a composed collaborator rather than extending it.
  */
-@SuppressWarnings("rawtypes")
-public interface FinderGrammar {
+@SuppressWarnings('rawtypes')
+interface FinderGrammar {
 
     /**
      * @param methodName The method name
      * @return True if the given method name matches this grammar's pattern
      */
-    boolean isMethodMatch(String methodName);
+    boolean isMethodMatch(String methodName)
 
     /**
      * Parses a dynamic finder method invocation into its constituent {@link MethodExpression}s.
@@ -47,7 +45,7 @@ public interface FinderGrammar {
      * @param arguments The method call arguments
      * @return The parsed invocation
      */
-    DynamicFinderInvocation createFinderInvocation(Class clazz, String methodName, Closure additionalCriteria, Object[] arguments);
+    DynamicFinderInvocation createFinderInvocation(Class clazz, String methodName, Closure additionalCriteria, Object[] arguments)
 
     /**
      * Builds the AND/OR junction of criteria for the given invocation.
@@ -55,11 +53,11 @@ public interface FinderGrammar {
      * @param invocation The invocation
      * @return The junction
      */
-    Query.Junction getJunction(DynamicFinderInvocation invocation);
+    Query.Junction getJunction(DynamicFinderInvocation invocation)
 
     /**
      * @return Whether the first parsed expression is a required boolean clause (the
      * "find&lt;booleanProperty&gt;By*"/"findAll&lt;booleanProperty&gt;By*" finder forms)
      */
-    boolean firstExpressionIsRequiredBoolean();
+    boolean firstExpressionIsRequiredBoolean()
 }

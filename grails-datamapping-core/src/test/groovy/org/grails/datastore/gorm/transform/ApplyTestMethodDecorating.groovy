@@ -17,14 +17,14 @@
  *  under the License.
  */
 
-package org.grails.datastore.gorm.transform;
+package org.grails.datastore.gorm.transform
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
-import org.codehaus.groovy.transform.GroovyASTTransformationClass;
+import org.codehaus.groovy.transform.GroovyASTTransformationClass
 
 /**
  * Local marker annotation used only for testing {@link AbstractMethodDecoratingTransformation}
@@ -34,7 +34,7 @@ import org.codehaus.groovy.transform.GroovyASTTransformationClass;
  * so the method-selection logic in {@code weaveClassNode} can be exercised in isolation.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-@GroovyASTTransformationClass("org.grails.datastore.gorm.transform.TestMethodDecoratingTransformation")
-public @interface ApplyTestMethodDecorating {
+@Target([ElementType.TYPE])
+@GroovyASTTransformationClass('org.grails.datastore.gorm.transform.TestMethodDecoratingTransformation')
+@interface ApplyTestMethodDecorating {
 }

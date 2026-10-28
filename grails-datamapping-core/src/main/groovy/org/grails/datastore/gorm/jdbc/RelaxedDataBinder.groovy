@@ -16,33 +16,20 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+package org.grails.datastore.gorm.jdbc
 
-package org.grails.datastore.gorm.jdbc;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.Set;
-
-import org.jspecify.annotations.NonNull;
-
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.InvalidPropertyException;
-import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.PropertyValue;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.DataBinder;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.NonNull
+import org.springframework.beans.BeanWrapper
+import org.springframework.beans.BeanWrapperImpl
+import org.springframework.beans.InvalidPropertyException
+import org.springframework.beans.MutablePropertyValues
+import org.springframework.beans.PropertyValue
+import org.springframework.core.convert.TypeDescriptor
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
+import org.springframework.util.StringUtils
+import org.springframework.validation.DataBinder
 
 /**
  * Binder implementation that allows caller to bind to maps and also allows property names
@@ -55,18 +42,19 @@ import org.springframework.validation.DataBinder;
  * @author Andy Wilkinson
  * @author Graeme Rocher
  */
+@CompileStatic
 class RelaxedDataBinder extends DataBinder {
 
-    private static final Object BLANK = new Object();
+    private static final Object BLANK = new Object()
 
-    private final MultiValueMap<String, String> nameAliases = new LinkedMultiValueMap<>();
+    private final MultiValueMap<String, String> nameAliases = new LinkedMultiValueMap<>()
 
     /**
      * Create a new {@link RelaxedDataBinder} instance.
      * @param target the target into which properties are bound
      */
     RelaxedDataBinder(Object target) {
-        super(wrapTarget(target));
+        super(wrapTarget(target))
     }
 
     /**
@@ -75,16 +63,16 @@ class RelaxedDataBinder extends DataBinder {
      * @param alias aliases for the property names
      * @return this instance
      */
-    public RelaxedDataBinder withAlias(String name, String... alias) {
+    RelaxedDataBinder withAlias(String name, String... alias) {
         for (String value : alias) {
-            this.nameAliases.add(name, value);
+            this.nameAliases.add(name, value)
         }
-        return this;
+        return this
     }
 
     @Override
     protected void doBind(@NonNull MutablePropertyValues propertyValues) {
-        super.doBind(modifyProperties(propertyValues, getTarget()));
+        super.doBind(modifyProperties(propertyValues, getTarget()))
     }
 
     /**
@@ -96,35 +84,34 @@ class RelaxedDataBinder extends DataBinder {
      * @param target the target object
      * @return modified property values
      */
-    private MutablePropertyValues modifyProperties(MutablePropertyValues propertyValues,
-                                                   Object target) {
+    private MutablePropertyValues modifyProperties(MutablePropertyValues propertyValues, Object target) {
         if (target instanceof MapHolder) {
-            propertyValues = addMapPrefix(propertyValues);
+            propertyValues = addMapPrefix(propertyValues)
         }
-        BeanWrapper wrapper = new BeanWrapperImpl(target);
+        BeanWrapper wrapper = new BeanWrapperImpl(target)
         wrapper.setConversionService(
-                new RelaxedConversionService(getConversionService()));
-        wrapper.setAutoGrowNestedPaths(true);
-        List<PropertyValue> sortedValues = new ArrayList<>();
-        Set<String> modifiedNames = new HashSet<>();
-        List<String> sortedNames = getSortedPropertyNames(propertyValues);
-        for (String name : sortedNames) {
-            PropertyValue propertyValue = Objects.requireNonNull(propertyValues.getPropertyValue(name));
-            PropertyValue modifiedProperty = modifyProperty(wrapper, propertyValue);
+                new RelaxedConversionService(getConversionService()))
+        wrapper.setAutoGrowNestedPaths(true)
+        List<PropertyValue> sortedValues = new ArrayList<>()
+        Set<String> modifiedNames = new HashSet<>()
+        List<String> sortedNames = getSortedPropertyNames(propertyValues)
+        for (String name in sortedNames) {
+            PropertyValue propertyValue = Objects.requireNonNull(propertyValues.getPropertyValue(name))
+            PropertyValue modifiedProperty = modifyProperty(wrapper, propertyValue)
             if (modifiedNames.add(modifiedProperty.getName())) {
-                sortedValues.add(modifiedProperty);
+                sortedValues.add(modifiedProperty)
             }
         }
-        return new MutablePropertyValues(sortedValues);
+        return new MutablePropertyValues(sortedValues)
     }
 
     private List<String> getSortedPropertyNames(MutablePropertyValues propertyValues) {
-        List<String> names = new LinkedList<>();
+        List<String> names = new LinkedList<>()
         for (PropertyValue propertyValue : propertyValues.getPropertyValueList()) {
-            names.add(propertyValue.getName());
+            names.add(propertyValue.getName())
         }
-        sortPropertyNames(names);
-        return names;
+        sortPropertyNames(names)
+        return names
     }
 
     /**
@@ -137,35 +124,34 @@ class RelaxedDataBinder extends DataBinder {
      */
     private void sortPropertyNames(List<String> names) {
         for (String name : new ArrayList<>(names)) {
-            int propertyIndex = names.indexOf(name);
-            BeanPath path = new BeanPath(name);
+            int propertyIndex = names.indexOf(name)
+            BeanPath path = new BeanPath(name)
             for (String prefix : path.prefixes()) {
-                int prefixIndex = names.indexOf(prefix);
+                int prefixIndex = names.indexOf(prefix)
                 if (prefixIndex >= propertyIndex) {
                     // The child property has a parent in the list in the wrong order
-                    names.remove(name);
-                    names.add(prefixIndex, name);
+                    names.remove(name)
+                    names.add(prefixIndex, name)
                 }
             }
         }
     }
 
     private MutablePropertyValues addMapPrefix(MutablePropertyValues propertyValues) {
-        MutablePropertyValues rtn = new MutablePropertyValues();
+        MutablePropertyValues rtn = new MutablePropertyValues()
         for (PropertyValue pv : propertyValues.getPropertyValues()) {
-            rtn.add("map." + pv.getName(), pv.getValue());
+            rtn.add("map.${pv.getName()}", pv.getValue())
         }
-        return rtn;
+        return rtn
     }
 
-    private PropertyValue modifyProperty(BeanWrapper target,
-                                         PropertyValue propertyValue) {
-        String name = propertyValue.getName();
-        String normalizedName = normalizePath(target, name);
-        if (!normalizedName.equals(name)) {
-            return new PropertyValue(normalizedName, propertyValue.getValue());
+    private PropertyValue modifyProperty(BeanWrapper target, PropertyValue propertyValue) {
+        String name = propertyValue.getName()
+        String normalizedName = normalizePath(target, name)
+        if (normalizedName != name) {
+            return new PropertyValue(normalizedName, propertyValue.getValue())
         }
-        return propertyValue;
+        return propertyValue
     }
 
     /**
@@ -180,193 +166,191 @@ class RelaxedDataBinder extends DataBinder {
      * @return a transformed path with correct bean wrapper syntax
      */
     private String normalizePath(BeanWrapper wrapper, String path) {
-        return initializePath(wrapper, new BeanPath(path), 0);
+        return initializePath(wrapper, new BeanPath(path), 0)
     }
 
     private String initializePath(BeanWrapper wrapper, BeanPath path, int index) {
-        String prefix = path.prefix(index);
-        String key = path.name(index);
+        String prefix = path.prefix(index)
+        String key = path.name(index)
         if (path.isProperty(index)) {
-            key = getActualPropertyName(wrapper, prefix, key);
-            path.rename(index, key);
+            key = getActualPropertyName(wrapper, prefix, key)
+            path.rename(index, key)
         }
         if (path.name(++index) == null) {
-            return path.toString();
+            return path.toString()
         }
 
-        String name = path.prefix(index);
-        TypeDescriptor descriptor = wrapper.getPropertyTypeDescriptor(name);
+        String name = path.prefix(index)
+        TypeDescriptor descriptor = wrapper.getPropertyTypeDescriptor(name)
         if (descriptor == null || descriptor.isMap()) {
             if (isMapValueStringType(descriptor) || isBlanked(wrapper, name, path.name(index))) {
-                path.collapseKeys(index);
+                path.collapseKeys(index)
             }
-            path.mapIndex(index);
-            extendMapIfNecessary(wrapper, path, index);
+            path.mapIndex(index)
+            extendMapIfNecessary(wrapper, path, index)
         }
         else if (descriptor.isCollection()) {
-            extendCollectionIfNecessary(wrapper, path, index);
+            extendCollectionIfNecessary(wrapper, path, index)
         }
-        else if (descriptor.getType().equals(Object.class)) {
+        else if (descriptor.getType() == Object) {
             if (isBlanked(wrapper, name, path.name(index))) {
-                path.collapseKeys(index);
+                path.collapseKeys(index)
             }
-            path.mapIndex(index);
+            path.mapIndex(index)
             if (path.isLastNode(index)) {
-                wrapper.setPropertyValue(path.toString(), BLANK);
+                wrapper.setPropertyValue(path.toString(), BLANK)
             }
             else {
-                String next = path.prefix(index + 1);
+                String next = path.prefix(index + 1)
                 if (wrapper.getPropertyValue(next) == null) {
-                    wrapper.setPropertyValue(next, new LinkedHashMap<String, Object>());
+                    wrapper.setPropertyValue(next, new LinkedHashMap<String, Object>())
                 }
             }
         }
-        return initializePath(wrapper, path, index);
+        return initializePath(wrapper, path, index)
     }
 
     private boolean isMapValueStringType(TypeDescriptor descriptor) {
         if (descriptor == null || descriptor.getMapValueTypeDescriptor() == null) {
-            return false;
+            return false
         }
-        if (Properties.class.isAssignableFrom(descriptor.getObjectType())) {
+        if (Properties.isAssignableFrom(descriptor.getObjectType())) {
             // Properties is declared as Map<Object,Object> but we know it's really
             // Map<String,String>
-            return true;
+            return true
         }
-        Class<?> valueType = descriptor.getMapValueTypeDescriptor().getObjectType();
-        return CharSequence.class.isAssignableFrom(valueType);
+        Class<?> valueType = descriptor.getMapValueTypeDescriptor().getObjectType()
+        return CharSequence.isAssignableFrom(valueType)
     }
 
     private boolean isBlanked(BeanWrapper wrapper, String propertyName, String key) {
-        Object value = (wrapper.isReadableProperty(propertyName) ? wrapper.getPropertyValue(propertyName) : null);
-        return value instanceof Map<?, ?> map && map.get(key) == BLANK;
+        Object value = (wrapper.isReadableProperty(propertyName) ? wrapper.getPropertyValue(propertyName) : null)
+        return value instanceof Map map && map.get(key) == BLANK
     }
 
-    private void extendCollectionIfNecessary(BeanWrapper wrapper, BeanPath path,
-                                             int index) {
-        String name = path.prefix(index);
-        TypeDescriptor propertyDescriptor = wrapper.getPropertyTypeDescriptor(name);
+    private void extendCollectionIfNecessary(BeanWrapper wrapper, BeanPath path, int index) {
+        String name = path.prefix(index)
+        TypeDescriptor propertyDescriptor = wrapper.getPropertyTypeDescriptor(name)
         if (propertyDescriptor == null) {
-            return;
+            return
         }
-        TypeDescriptor elementDescriptor = propertyDescriptor.getElementTypeDescriptor();
+        TypeDescriptor elementDescriptor = propertyDescriptor.getElementTypeDescriptor()
         if (elementDescriptor == null) {
-            elementDescriptor = TypeDescriptor.valueOf(Object.class);
+            elementDescriptor = TypeDescriptor.valueOf(Object)
         }
         if (!elementDescriptor.isMap() && !elementDescriptor.isCollection() &&
-                !elementDescriptor.getType().equals(Object.class)) {
-            return;
+                elementDescriptor.getType() != Object) {
+            return
         }
-        Object extend = new LinkedHashMap<String, Object>();
+        Object extend = new LinkedHashMap<String, Object>()
         if (!elementDescriptor.isMap() && path.isArrayIndex(index)) {
-            extend = new ArrayList<>();
+            extend = new ArrayList<>()
         }
-        wrapper.setPropertyValue(path.prefix(index + 1), extend);
+        wrapper.setPropertyValue(path.prefix(index + 1), extend)
     }
 
     private void extendMapIfNecessary(BeanWrapper wrapper, BeanPath path, int index) {
-        String name = path.prefix(index);
-        TypeDescriptor parent = wrapper.getPropertyTypeDescriptor(name);
+        String name = path.prefix(index)
+        TypeDescriptor parent = wrapper.getPropertyTypeDescriptor(name)
         if (parent == null) {
-            return;
+            return
         }
-        TypeDescriptor descriptor = parent.getMapValueTypeDescriptor();
+        TypeDescriptor descriptor = parent.getMapValueTypeDescriptor()
         if (descriptor == null) {
-            descriptor = TypeDescriptor.valueOf(Object.class);
+            descriptor = TypeDescriptor.valueOf(Object)
         }
-        if (!descriptor.isMap() && !descriptor.isCollection() && !descriptor.getType().equals(Object.class)) {
-            return;
+        if (!descriptor.isMap() && !descriptor.isCollection() && descriptor.getType() != Object) {
+            return
         }
-        String extensionName = path.prefix(index + 1);
+        String extensionName = path.prefix(index + 1)
         if (wrapper.isReadableProperty(extensionName)) {
-            Object currentValue = wrapper.getPropertyValue(extensionName);
+            Object currentValue = wrapper.getPropertyValue(extensionName)
             if ((descriptor.isCollection() && currentValue instanceof Collection) ||
                     (!descriptor.isCollection() && currentValue instanceof Map)) {
-                return;
+                return
             }
         }
-        Object extend = new LinkedHashMap<String, Object>();
+        Object extend = new LinkedHashMap<String, Object>()
         if (descriptor.isCollection()) {
-            extend = new ArrayList<>();
+            extend = new ArrayList<>()
         }
-        if (descriptor.getType().equals(Object.class) && path.isLastNode(index)) {
-            extend = BLANK;
+        if (descriptor.getType() == Object && path.isLastNode(index)) {
+            extend = BLANK
         }
-        wrapper.setPropertyValue(extensionName, extend);
+        wrapper.setPropertyValue(extensionName, extend)
     }
 
     private String getActualPropertyName(BeanWrapper target, String prefix, String name) {
-        String propertyName = resolvePropertyName(target, prefix, name);
+        String propertyName = resolvePropertyName(target, prefix, name)
         if (propertyName == null) {
-            propertyName = resolveNestedPropertyName(target, prefix, name);
+            propertyName = resolveNestedPropertyName(target, prefix, name)
         }
-        return (propertyName == null ? name : propertyName);
+        return (propertyName == null ? name : propertyName)
     }
 
-    private String resolveNestedPropertyName(BeanWrapper target, String prefix,
-                                             String name) {
-        StringBuilder candidate = new StringBuilder();
-        for (String field : name.split("[_\\-.]")) {
-            candidate.append(!candidate.isEmpty() ? "." : "");
-            candidate.append(field);
-            String nested = resolvePropertyName(target, prefix, candidate.toString());
+    private String resolveNestedPropertyName(BeanWrapper target, String prefix, String name) {
+        StringBuilder candidate = new StringBuilder()
+        for (String field in name.split('[_\\-.]')) {
+            candidate.append(!candidate.isEmpty() ? '.' : '')
+            candidate.append(field)
+            String nested = resolvePropertyName(target, prefix, candidate.toString())
             if (nested != null) {
-                Class<?> type = target.getPropertyType(nested);
-                if ((type != null) && Map.class.isAssignableFrom(type)) {
+                Class<?> type = target.getPropertyType(nested)
+                if ((type != null) && Map.isAssignableFrom(type)) {
                     // Special case for map property (gh-3836).
-                    return nested + "[" + name.substring(candidate.length() + 1) + "]";
+                    return "${nested}[${name.substring(candidate.length() + 1)}]"
                 }
                 String propertyName = resolvePropertyName(target,
                         joinString(prefix, nested),
-                        name.substring(candidate.length() + 1));
+                        name.substring(candidate.length() + 1))
                 if (propertyName != null) {
-                    return joinString(nested, propertyName);
+                    return joinString(nested, propertyName)
                 }
             }
         }
-        return null;
+        return null
     }
 
     private String resolvePropertyName(BeanWrapper target, String prefix, String name) {
-        Iterable<String> names = getNameAndAliases(name);
+        Iterable<String> names = getNameAndAliases(name)
         for (String nameOrAlias : names) {
             for (String candidate : new RelaxedNames(nameOrAlias)) {
                 try {
                     if (target.getPropertyType(joinString(prefix, candidate)) != null) {
-                        return candidate;
+                        return candidate
                     }
                 }
-                catch (InvalidPropertyException ex) {
+                catch (InvalidPropertyException ignored) {
                     // swallow and continue
                 }
             }
         }
-        return null;
+        return null
     }
 
     private String joinString(String prefix, String name) {
-        return (StringUtils.hasLength(prefix) ? prefix + "." + name : name);
+        return (StringUtils.hasLength(prefix) ? "${prefix}.${name}" : name)
     }
 
     private Iterable<String> getNameAndAliases(String name) {
-        List<String> aliases = this.nameAliases.get(name);
+        List<String> aliases = this.nameAliases.get(name)
         if (aliases == null) {
-            return Collections.singleton(name);
+            return Collections.singleton(name)
         }
-        List<String> nameAndAliases;
-        nameAndAliases = new ArrayList<>(aliases.size() + 1);
-        nameAndAliases.add(name);
-        nameAndAliases.addAll(aliases);
-        return nameAndAliases;
+        List<String> nameAndAliases
+        nameAndAliases = new ArrayList<>(aliases.size() + 1)
+        nameAndAliases.add(name)
+        nameAndAliases.addAll(aliases)
+        return nameAndAliases
     }
 
     private static Object wrapTarget(Object target) {
         if (target instanceof Map) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> map = (Map<String, Object>) target;
-            target = new MapHolder(map);
+            @SuppressWarnings('unchecked')
+            Map<String, Object> map = (Map<String, Object>) target
+            target = new MapHolder(map)
         }
-        return target;
+        return target
     }
 
     /**
@@ -374,18 +358,18 @@ class RelaxedDataBinder extends DataBinder {
      */
     static class MapHolder {
 
-        private Map<String, Object> map;
+        private Map<String, Object> map
 
         MapHolder(Map<String, Object> map) {
-            this.map = map;
+            this.map = map
         }
 
-        public void setMap(Map<String, Object> map) {
-            this.map = map;
+        void setMap(Map<String, Object> map) {
+            this.map = map
         }
 
-        public Map<String, Object> getMap() {
-            return this.map;
+        Map<String, Object> getMap() {
+            return this.map
         }
 
     }
@@ -395,128 +379,128 @@ class RelaxedDataBinder extends DataBinder {
      */
     private static class BeanPath {
 
-        private List<PathNode> nodes;
+        private List<PathNode> nodes
 
         BeanPath(String path) {
-            this.nodes = splitPath(path);
+            this.nodes = splitPath(path)
         }
 
         List<String> prefixes() {
-            List<String> prefixes = new ArrayList<>();
+            List<String> prefixes = new ArrayList<>()
             for (int index = 1; index < this.nodes.size(); index++) {
-                prefixes.add(prefix(index));
+                prefixes.add(prefix(index))
             }
-            return prefixes;
+            return prefixes
         }
 
         boolean isLastNode(int index) {
-            return index >= this.nodes.size() - 1;
+            return index >= this.nodes.size() - 1
         }
 
         private List<PathNode> splitPath(String path) {
-            List<PathNode> nodes = new ArrayList<>();
-            String current = extractIndexedPaths(path, nodes);
-            for (String name : StringUtils.delimitedListToStringArray(current, ".")) {
+            List<PathNode> nodes = new ArrayList<>()
+            String current = extractIndexedPaths(path, nodes)
+            for (String name : StringUtils.delimitedListToStringArray(current, '.')) {
                 if (StringUtils.hasText(name)) {
-                    nodes.add(new PropertyNode(name));
+                    nodes.add(new PropertyNode(name))
                 }
             }
-            return nodes;
+            return nodes
         }
 
         private String extractIndexedPaths(String path, List<PathNode> nodes) {
-            int startRef = path.indexOf("[");
-            String current = path;
+            int startRef = path.indexOf('[')
+            String current = path
             while (startRef >= 0) {
                 if (startRef > 0) {
-                    nodes.addAll(splitPath(current.substring(0, startRef)));
+                    nodes.addAll(splitPath(current.substring(0, startRef)))
                 }
-                int endRef = current.indexOf("]", startRef);
+                int endRef = current.indexOf(']', startRef)
                 if (endRef > 0) {
-                    String sub = current.substring(startRef + 1, endRef);
-                    if (sub.matches("[0-9]+")) {
-                        nodes.add(new ArrayIndexNode(sub));
+                    String sub = current.substring(startRef + 1, endRef)
+                    if (sub.matches('[0-9]+')) {
+                        nodes.add(new ArrayIndexNode(sub))
                     }
                     else {
-                        nodes.add(new MapIndexNode(sub));
+                        nodes.add(new MapIndexNode(sub))
                     }
                 }
-                current = current.substring(endRef + 1);
-                startRef = current.indexOf("[");
+                current = current.substring(endRef + 1)
+                startRef = current.indexOf('[')
             }
-            return current;
+            return current
         }
 
         void collapseKeys(int index) {
-            List<PathNode> revised = new ArrayList<>();
+            List<PathNode> revised = new ArrayList<>()
             for (int i = 0; i < index; i++) {
-                revised.add(this.nodes.get(i));
+                revised.add(this.nodes.get(i))
             }
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder()
             for (int i = index; i < this.nodes.size(); i++) {
                 if (i > index) {
-                    builder.append(".");
+                    builder.append('.')
                 }
-                builder.append(this.nodes.get(i).name);
+                builder.append(this.nodes.get(i).name)
             }
-            revised.add(new PropertyNode(builder.toString()));
-            this.nodes = revised;
+            revised.add(new PropertyNode(builder.toString()))
+            this.nodes = revised
         }
 
         void mapIndex(int index) {
-            PathNode node = this.nodes.get(index);
+            PathNode node = this.nodes.get(index)
             if (node instanceof PropertyNode) {
-                node = ((PropertyNode) node).mapIndex();
+                node = ((PropertyNode) node).mapIndex()
             }
-            this.nodes.set(index, node);
+            this.nodes.set(index, node)
         }
 
         String prefix(int index) {
-            return range(index);
+            return range(index)
         }
 
         void rename(int index, String name) {
-            this.nodes.get(index).name = name;
+            this.nodes.get(index).name = name
         }
 
-        public String name(int index) {
+        String name(int index) {
             if (index < this.nodes.size()) {
-                return this.nodes.get(index).name;
+                return this.nodes.get(index).name
             }
-            return null;
+            return null
         }
 
         private String range(int end) {
-            StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder()
             for (int i = 0; i < end; i++) {
-                PathNode node = this.nodes.get(i);
-                builder.append(node);
+                PathNode node = this.nodes.get(i)
+                builder.append(node)
             }
-            if (builder.toString().startsWith(("."))) {
-                builder.replace(0, 1, "");
+            if (builder.toString().startsWith('.')) {
+                builder.replace(0, 1, '')
             }
-            return builder.toString();
+            return builder.toString()
         }
 
         boolean isArrayIndex(int index) {
-            return this.nodes.get(index) instanceof ArrayIndexNode;
+            return this.nodes.get(index) instanceof ArrayIndexNode
         }
 
         boolean isProperty(int index) {
-            return this.nodes.get(index) instanceof PropertyNode;
+            return this.nodes.get(index) instanceof PropertyNode
         }
 
         @Override
-        public String toString() {
-            return prefix(this.nodes.size());
+        String toString() {
+            return prefix(this.nodes.size())
         }
 
         private static class PathNode {
 
-            protected String name;
+            protected String name
 
             PathNode(String name) {
-                this.name = name;
+                this.name = name
             }
 
         }
@@ -524,12 +508,12 @@ class RelaxedDataBinder extends DataBinder {
         private static class ArrayIndexNode extends PathNode {
 
             ArrayIndexNode(String name) {
-                super(name);
+                super(name)
             }
 
             @Override
-            public String toString() {
-                return "[" + this.name + "]";
+            String toString() {
+                return "[${this.name}]"
             }
 
         }
@@ -537,12 +521,12 @@ class RelaxedDataBinder extends DataBinder {
         private static class MapIndexNode extends PathNode {
 
             MapIndexNode(String name) {
-                super(name);
+                super(name)
             }
 
             @Override
-            public String toString() {
-                return "[" + this.name + "]";
+            String toString() {
+                return "[${this.name}]"
             }
 
         }
@@ -550,19 +534,20 @@ class RelaxedDataBinder extends DataBinder {
         private static class PropertyNode extends PathNode {
 
             PropertyNode(String name) {
-                super(name);
+                super(name)
             }
 
             MapIndexNode mapIndex() {
-                return new MapIndexNode(this.name);
+                return new MapIndexNode(this.name)
             }
 
             @Override
-            public String toString() {
-                return "." + this.name;
+            String toString() {
+                return ".${this.name}"
             }
 
         }
 
     }
+
 }

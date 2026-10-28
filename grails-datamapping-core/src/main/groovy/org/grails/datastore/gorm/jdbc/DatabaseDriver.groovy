@@ -16,10 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.gorm.jdbc;
+package org.grails.datastore.gorm.jdbc
 
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import groovy.transform.CompileStatic
+import org.springframework.util.Assert
+import org.springframework.util.StringUtils
 
 /**
  * Enumeration of common database drivers. Forked from Spring Boot logic to avoid hard dependency on Boot.
@@ -30,7 +31,8 @@ import org.springframework.util.StringUtils;
  * @author Stephane Nicoll
  * @since 1.4.0
  */
-public enum DatabaseDriver {
+@CompileStatic
+enum DatabaseDriver {
 
     /**
      * Unknown type.
@@ -40,169 +42,161 @@ public enum DatabaseDriver {
     /**
      * Apache Derby.
      */
-    DERBY("Apache Derby", "org.apache.derby.jdbc.EmbeddedDriver", null,
-            "SELECT 1 FROM SYSIBM.SYSDUMMY1"),
+    DERBY('Apache Derby', 'org.apache.derby.jdbc.EmbeddedDriver', null,
+            'SELECT 1 FROM SYSIBM.SYSDUMMY1'),
 
     /**
      * H2.
      */
-    H2("H2", "org.h2.Driver", "org.h2.jdbcx.JdbcDataSource", "SELECT 1"),
+    H2('H2', 'org.h2.Driver', 'org.h2.jdbcx.JdbcDataSource', 'SELECT 1'),
 
     /**
      * HyperSQL DataBase.
      */
-    HSQLDB("HSQL Database Engine", "org.hsqldb.jdbc.JDBCDriver",
-            "org.hsqldb.jdbc.pool.JDBCXADataSource",
-            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SYSTEM_USERS"),
+    HSQLDB('HSQL Database Engine', 'org.hsqldb.jdbc.JDBCDriver',
+            'org.hsqldb.jdbc.pool.JDBCXADataSource',
+            'SELECT COUNT(*) FROM INFORMATION_SCHEMA.SYSTEM_USERS'),
 
     /**
      * SQL Lite.
      */
-    SQLITE("SQLite", "org.sqlite.JDBC"),
+    SQLITE('SQLite', 'org.sqlite.JDBC'),
 
     /**
      * MySQL.
      */
-    MYSQL("MySQL", "com.mysql.jdbc.Driver",
-            "com.mysql.jdbc.jdbc2.optional.MysqlXADataSource", "SELECT 1"),
+    MYSQL('MySQL', 'com.mysql.jdbc.Driver',
+            'com.mysql.jdbc.jdbc2.optional.MysqlXADataSource', 'SELECT 1'),
 
     /**
      * Maria DB.
      */
-    MARIADB("MySQL", "org.mariadb.jdbc.Driver", "org.mariadb.jdbc.MariaDbDataSource",
-            "SELECT 1"),
+    MARIADB('MySQL', 'org.mariadb.jdbc.Driver', 'org.mariadb.jdbc.MariaDbDataSource',
+            'SELECT 1'),
 
     /**
      * Google App Engine.
      */
-    GAE(null, "com.google.appengine.api.rdbms.AppEngineDriver"),
+    GAE(null, 'com.google.appengine.api.rdbms.AppEngineDriver'),
 
     /**
      * Oracle.
      */
-    ORACLE("Oracle", "oracle.jdbc.OracleDriver",
-            "oracle.jdbc.xa.client.OracleXADataSource", "SELECT 'Hello' from DUAL"),
+    ORACLE('Oracle', 'oracle.jdbc.OracleDriver',
+            'oracle.jdbc.xa.client.OracleXADataSource', "SELECT 'Hello' from DUAL"),
 
     /**
      * Postgres.
      */
-    POSTGRESQL("PostgreSQL", "org.postgresql.Driver", "org.postgresql.xa.PGXADataSource",
-            "SELECT 1"),
+    POSTGRESQL('PostgreSQL', 'org.postgresql.Driver', 'org.postgresql.xa.PGXADataSource',
+            'SELECT 1'),
 
     /**
      * jTDS. As it can be used for several databases, there isn't a single product name we
      * could rely on.
      */
-    JTDS(null, "net.sourceforge.jtds.jdbc.Driver"),
+    JTDS(null, 'net.sourceforge.jtds.jdbc.Driver'),
 
     /**
      * SQL Server.
      */
-    SQLSERVER("SQL SERVER", "com.microsoft.sqlserver.jdbc.SQLServerDriver",
-            "com.microsoft.sqlserver.jdbc.SQLServerXADataSource", "SELECT 1"),
+    SQLSERVER('SQL SERVER', 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+            'com.microsoft.sqlserver.jdbc.SQLServerXADataSource', 'SELECT 1'),
 
     /**
      * Firebird.
      */
-    FIREBIRD("Firebird", "org.firebirdsql.jdbc.FBDriver",
-            "org.firebirdsql.pool.FBConnectionPoolDataSource",
-            "SELECT 1 FROM RDB$DATABASE") {
+    FIREBIRD('Firebird', 'org.firebirdsql.jdbc.FBDriver',
+            'org.firebirdsql.pool.FBConnectionPoolDataSource',
+            'SELECT 1 FROM RDB$DATABASE') {
 
         @Override
         protected boolean matchProductName(String productName) {
             return super.matchProductName(productName) ||
-                    productName.toLowerCase().startsWith("firebird");
+                    productName.toLowerCase().startsWith('firebird')
         }
     },
 
     /**
      * DB2 Server.
      */
-    DB2("DB2", "com.ibm.db2.jcc.DB2Driver", "com.ibm.db2.jcc.DB2XADataSource",
-            "SELECT 1 FROM SYSIBM.SYSDUMMY1") {
+    DB2('DB2', 'com.ibm.db2.jcc.DB2Driver', 'com.ibm.db2.jcc.DB2XADataSource',
+            'SELECT 1 FROM SYSIBM.SYSDUMMY1') {
 
         @Override
         protected boolean matchProductName(String productName) {
             return super.matchProductName(productName) ||
-                    productName.toLowerCase().startsWith("db2/");
+                    productName.toLowerCase().startsWith('db2/')
         }
     },
 
     /**
      * DB2 AS400 Server.
      */
-    DB2_AS400("DB2 UDB for AS/400", "com.ibm.as400.access.AS400JDBCDriver",
-            "com.ibm.as400.access.AS400JDBCXADataSource",
-            "SELECT 1 FROM SYSIBM.SYSDUMMY1") {
+    DB2_AS400('DB2 UDB for AS/400', 'com.ibm.as400.access.AS400JDBCDriver',
+            'com.ibm.as400.access.AS400JDBCXADataSource',
+            'SELECT 1 FROM SYSIBM.SYSDUMMY1') {
 
         @Override
         protected boolean matchProductName(String productName) {
             return super.matchProductName(productName) ||
-                    productName.toLowerCase().contains("as/400");
+                    productName.toLowerCase().contains('as/400')
         }
     },
 
     /**
      * Teradata.
      */
-    TERADATA("Teradata", "com.teradata.jdbc.TeraDriver"),
+    TERADATA('Teradata', 'com.teradata.jdbc.TeraDriver'),
 
     /**
      * Informix.
      */
-    INFORMIX("Informix Dynamic Server", "com.informix.jdbc.IfxDriver", null,
-            "select count(*) from systables");
+    INFORMIX('Informix Dynamic Server', 'com.informix.jdbc.IfxDriver', null,
+            'select count(*) from systables')
 
-    private final String productName;
+    private final String productName
 
-    private final String driverClassName;
+    private final String driverClassName
 
-    private final String xaDataSourceClassName;
+    private final String xaDataSourceClassName
 
-    private final String validationQuery;
-
-    DatabaseDriver(String name, String driverClassName) {
-        this(name, driverClassName, null);
-    }
-
-    DatabaseDriver(String name, String driverClassName, String xaDataSourceClassName) {
-        this(name, driverClassName, xaDataSourceClassName, null);
-    }
+    private final String validationQuery
 
     DatabaseDriver(String productName, String driverClassName,
-                   String xaDataSourceClassName, String validationQuery) {
-        this.productName = productName;
-        this.driverClassName = driverClassName;
-        this.xaDataSourceClassName = xaDataSourceClassName;
-        this.validationQuery = validationQuery;
+                   String xaDataSourceClassName = null, String validationQuery = null) {
+        this.productName = productName
+        this.driverClassName = driverClassName
+        this.xaDataSourceClassName = xaDataSourceClassName
+        this.validationQuery = validationQuery
     }
 
     protected boolean matchProductName(String productName) {
-        return this.productName != null && this.productName.equalsIgnoreCase(productName);
+        return this.productName != null && this.productName.equalsIgnoreCase(productName)
     }
 
     /**
      * Return the driver class name.
      * @return the class name or {@code null}
      */
-    public String getDriverClassName() {
-        return this.driverClassName;
+    String getDriverClassName() {
+        return this.driverClassName
     }
 
     /**
      * Return the XA driver source class name.
      * @return the class name or {@code null}
      */
-    public String getXaDataSourceClassName() {
-        return this.xaDataSourceClassName;
+    String getXaDataSourceClassName() {
+        return this.xaDataSourceClassName
     }
 
     /**
      * Return the validation query.
      * @return the validation query or {@code null}
      */
-    public String getValidationQuery() {
-        return this.validationQuery;
+    String getValidationQuery() {
+        return this.validationQuery
     }
 
     /**
@@ -210,18 +204,18 @@ public enum DatabaseDriver {
      * @param url JDBC URL
      * @return the database driver or {@link #UNKNOWN} if not found
      */
-    public static DatabaseDriver fromJdbcUrl(String url) {
+    static DatabaseDriver fromJdbcUrl(String url) {
         if (StringUtils.hasLength(url)) {
-            Assert.isTrue(url.startsWith("jdbc"), "URL must start with 'jdbc'");
-            String urlWithoutPrefix = url.substring("jdbc".length()).toLowerCase();
+            Assert.isTrue(url.startsWith('jdbc'), "URL must start with 'jdbc'")
+            String urlWithoutPrefix = url.substring('jdbc'.length()).toLowerCase()
             for (DatabaseDriver driver : values()) {
-                String prefix = ":" + driver.name().toLowerCase() + ":";
+                String prefix = ":${driver.name().toLowerCase()}:"
                 if (driver != UNKNOWN && urlWithoutPrefix.startsWith(prefix)) {
-                    return driver;
+                    return driver
                 }
             }
         }
-        return UNKNOWN;
+        return UNKNOWN
     }
 
     /**
@@ -229,15 +223,15 @@ public enum DatabaseDriver {
      * @param productName product name
      * @return the database driver or {@link #UNKNOWN} if not found
      */
-    public static DatabaseDriver fromProductName(String productName) {
+    static DatabaseDriver fromProductName(String productName) {
         if (StringUtils.hasLength(productName)) {
             for (DatabaseDriver candidate : values()) {
                 if (candidate.matchProductName(productName)) {
-                    return candidate;
+                    return candidate
                 }
             }
         }
-        return UNKNOWN;
+        return UNKNOWN
     }
 
 }

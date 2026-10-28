@@ -16,29 +16,22 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.gorm.finders;
+package org.grails.datastore.gorm.finders
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.regex.Pattern;
+import java.util.function.Consumer
+import java.util.function.Function
+import java.util.regex.Pattern
 
-import groovy.lang.Closure;
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaClass;
-import groovy.lang.MissingMethodException;
+import org.springframework.core.convert.ConversionException
 
-import org.springframework.core.convert.ConversionException;
-
-import grails.gorm.DetachedCriteria;
-import org.grails.datastore.gorm.DatastoreResolver;
-import org.grails.datastore.mapping.core.Datastore;
-import org.grails.datastore.mapping.core.Session;
-import org.grails.datastore.mapping.core.exceptions.ConfigurationException;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.query.Query;
+import grails.gorm.DetachedCriteria
+import org.grails.datastore.gorm.DatastoreResolver
+import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.core.Session
+import org.grails.datastore.mapping.core.SessionCallback
+import org.grails.datastore.mapping.core.exceptions.ConfigurationException
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.query.Query
 
 /**
  * Implements every dynamic finder that returns a single result: {@code findBy*}, the
@@ -46,85 +39,85 @@ import org.grails.datastore.mapping.query.Query;
  * {@code findOrSaveBy*} - configured via static factory methods rather than subclassed, composing
  * a {@link DynamicFinder} grammar instead of extending it.
  */
-public class SingleResultFinder implements FinderMethod, QueryBuildingFinder {
+class SingleResultFinder implements FinderMethod, QueryBuildingFinder {
 
-    private static final String FIND_BY_PATTERN = "(findBy)([A-Z]\\w*)";
-    private static final String FIND_BY_BOOLEAN_PATTERN = "(find)((\\w+)(By)([A-Z]\\w*)|(\\w++))";
-    private static final String FIND_OR_CREATE_BY_PATTERN = "(findOrCreateBy)([A-Z]\\w*)";
-    private static final String FIND_OR_SAVE_BY_PATTERN = "(findOrSaveBy)([A-Z]\\w*)";
-    private static final String[] OPERATORS = {"And", "Or"};
-    private static final String OPERATOR_OR = "Or";
+    private static final String FIND_BY_PATTERN = '(findBy)([A-Z]\\w*)'
+    private static final String FIND_BY_BOOLEAN_PATTERN = '(find)((\\w+)(By)([A-Z]\\w*)|(\\w++))'
+    private static final String FIND_OR_CREATE_BY_PATTERN = '(findOrCreateBy)([A-Z]\\w*)'
+    private static final String FIND_OR_SAVE_BY_PATTERN = '(findOrSaveBy)([A-Z]\\w*)'
+    private static final String[] OPERATORS = ['And', 'Or'] as String[]
+    private static final String OPERATOR_OR = 'Or'
 
-    private final DatastoreResolver datastoreResolver;
-    private final DynamicFinder grammar;
-    private final Consumer<DynamicFinderInvocation> validate;
-    private final Function<DynamicFinderInvocation, Object> onNullResult;
+    private final DatastoreResolver datastoreResolver
+    private final DynamicFinder grammar
+    private final Consumer<DynamicFinderInvocation> validate
+    private final Function<DynamicFinderInvocation, Object> onNullResult
 
     private SingleResultFinder(DatastoreResolver datastoreResolver, DynamicFinder grammar,
             Consumer<DynamicFinderInvocation> validate, Function<DynamicFinderInvocation, Object> onNullResult) {
-        this.datastoreResolver = datastoreResolver;
-        this.grammar = grammar;
-        this.validate = validate;
-        this.onNullResult = onNullResult;
+        this.datastoreResolver = datastoreResolver
+        this.grammar = grammar
+        this.validate = validate
+        this.onNullResult = onNullResult
     }
 
-    public static SingleResultFinder findBy(Datastore datastore) {
-        return findBy(FinderSupport.resolverFor(datastore), datastore.getMappingContext());
+    static SingleResultFinder findBy(Datastore datastore) {
+        return findBy(FinderSupport.resolverFor(datastore), datastore.getMappingContext())
     }
 
-    public static SingleResultFinder findBy(DatastoreResolver datastoreResolver, MappingContext mappingContext) {
-        return new SingleResultFinder(datastoreResolver, grammar(FIND_BY_PATTERN, mappingContext, false), null, null);
+    static SingleResultFinder findBy(DatastoreResolver datastoreResolver, MappingContext mappingContext) {
+        return new SingleResultFinder(datastoreResolver, grammar(FIND_BY_PATTERN, mappingContext, false), null, null)
     }
 
-    public static SingleResultFinder findBy(MappingContext mappingContext) {
-        return findBy(null, mappingContext);
+    static SingleResultFinder findBy(MappingContext mappingContext) {
+        return findBy(null, mappingContext)
     }
 
-    public static SingleResultFinder findByBoolean(Datastore datastore) {
-        return findByBoolean(FinderSupport.resolverFor(datastore), datastore.getMappingContext());
+    static SingleResultFinder findByBoolean(Datastore datastore) {
+        return findByBoolean(FinderSupport.resolverFor(datastore), datastore.getMappingContext())
     }
 
-    public static SingleResultFinder findByBoolean(DatastoreResolver datastoreResolver, MappingContext mappingContext) {
-        return new SingleResultFinder(datastoreResolver, grammar(FIND_BY_BOOLEAN_PATTERN, mappingContext, true), null, null);
+    static SingleResultFinder findByBoolean(DatastoreResolver datastoreResolver, MappingContext mappingContext) {
+        return new SingleResultFinder(datastoreResolver, grammar(FIND_BY_BOOLEAN_PATTERN, mappingContext, true), null, null)
     }
 
-    public static SingleResultFinder findByBoolean(MappingContext mappingContext) {
-        return findByBoolean(null, mappingContext);
+    static SingleResultFinder findByBoolean(MappingContext mappingContext) {
+        return findByBoolean(null, mappingContext)
     }
 
-    public static SingleResultFinder findOrCreateBy(Datastore datastore) {
-        return findOrCreateBy(FinderSupport.resolverFor(datastore), datastore.getMappingContext());
+    static SingleResultFinder findOrCreateBy(Datastore datastore) {
+        return findOrCreateBy(FinderSupport.resolverFor(datastore), datastore.getMappingContext())
     }
 
-    public static SingleResultFinder findOrCreateBy(DatastoreResolver datastoreResolver, MappingContext mappingContext) {
-        return findOrCreateOrSave(datastoreResolver, mappingContext, false);
+    static SingleResultFinder findOrCreateBy(DatastoreResolver datastoreResolver, MappingContext mappingContext) {
+        return findOrCreateOrSave(datastoreResolver, mappingContext, false)
     }
 
-    public static SingleResultFinder findOrCreateBy(MappingContext mappingContext) {
-        return findOrCreateBy(null, mappingContext);
+    static SingleResultFinder findOrCreateBy(MappingContext mappingContext) {
+        return findOrCreateBy(null, mappingContext)
     }
 
-    public static SingleResultFinder findOrSaveBy(Datastore datastore) {
-        return findOrSaveBy(FinderSupport.resolverFor(datastore), datastore.getMappingContext());
+    static SingleResultFinder findOrSaveBy(Datastore datastore) {
+        return findOrSaveBy(FinderSupport.resolverFor(datastore), datastore.getMappingContext())
     }
 
-    public static SingleResultFinder findOrSaveBy(DatastoreResolver datastoreResolver, MappingContext mappingContext) {
-        return findOrCreateOrSave(datastoreResolver, mappingContext, true);
+    static SingleResultFinder findOrSaveBy(DatastoreResolver datastoreResolver, MappingContext mappingContext) {
+        return findOrCreateOrSave(datastoreResolver, mappingContext, true)
     }
 
-    public static SingleResultFinder findOrSaveBy(MappingContext mappingContext) {
-        return findOrSaveBy(null, mappingContext);
+    static SingleResultFinder findOrSaveBy(MappingContext mappingContext) {
+        return findOrSaveBy(null, mappingContext)
     }
 
     private static SingleResultFinder findOrCreateOrSave(DatastoreResolver datastoreResolver, MappingContext mappingContext, boolean save) {
-        String pattern = save ? FIND_OR_SAVE_BY_PATTERN : FIND_OR_CREATE_BY_PATTERN;
+        String pattern = save ? FIND_OR_SAVE_BY_PATTERN : FIND_OR_CREATE_BY_PATTERN
         return new SingleResultFinder(datastoreResolver, grammar(pattern, mappingContext, false),
                 SingleResultFinder::rejectOrAndComparisonOperators,
-                invocation -> constructFromEqualExpressions(invocation, save));
+                invocation -> constructFromEqualExpressions(invocation, save))
     }
 
     private static DynamicFinder grammar(String pattern, MappingContext mappingContext, boolean booleanClause) {
-        return new DynamicFinder(Pattern.compile(pattern), OPERATORS, mappingContext, booleanClause);
+        return new DynamicFinder(Pattern.compile(pattern), OPERATORS, mappingContext, booleanClause)
     }
 
     /**
@@ -133,14 +126,14 @@ public class SingleResultFinder implements FinderMethod, QueryBuildingFinder {
      */
     private static void rejectOrAndComparisonOperators(DynamicFinderInvocation invocation) {
         if (OPERATOR_OR.equals(invocation.getOperator())) {
-            throw new MissingMethodException(invocation.getMethodName(), invocation.getJavaClass(), invocation.getArguments());
+            throw new MissingMethodException(invocation.getMethodName(), invocation.getJavaClass(), invocation.getArguments())
         }
-        for (MethodExpression methodExpression : invocation.getExpressions()) {
+        for (MethodExpression methodExpression in invocation.getExpressions()) {
             if (methodExpression instanceof MethodExpression.GreaterThan ||
                     methodExpression instanceof MethodExpression.LessThan ||
                     methodExpression instanceof MethodExpression.GreaterThanEquals ||
                     methodExpression instanceof MethodExpression.LessThanEquals) {
-                throw new ConfigurationException("Only equality-based expressions are supported for " + invocation.getMethodName());
+                throw new ConfigurationException('Only equality-based expressions are supported for ' + invocation.getMethodName())
             }
         }
     }
@@ -151,47 +144,47 @@ public class SingleResultFinder implements FinderMethod, QueryBuildingFinder {
      * it too when {@code save} is true. The single implementation this helper provides is what
      * prevents the two finder kinds from ever diverging into duplicate, driftable copies.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings(['rawtypes', 'unchecked'])
     private static Object constructFromEqualExpressions(DynamicFinderInvocation invocation, boolean save) {
-        Map m = new HashMap();
-        List<MethodExpression> expressions = invocation.getExpressions();
-        for (MethodExpression me : expressions) {
+        Map m = new HashMap()
+        List<MethodExpression> expressions = invocation.getExpressions()
+        for (MethodExpression me in expressions) {
             if (!(me instanceof MethodExpression.Equal)) {
-                throw new MissingMethodException(invocation.getMethodName(), invocation.getJavaClass(), invocation.getArguments());
+                throw new MissingMethodException(invocation.getMethodName(), invocation.getJavaClass(), invocation.getArguments())
             }
-            String propertyName = me.propertyName;
-            Object[] arguments = me.getArguments();
-            m.put(propertyName, arguments[0]);
+            String propertyName = me.propertyName
+            Object[] arguments = me.getArguments()
+            m.put(propertyName, arguments[0])
         }
-        MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(invocation.getJavaClass());
-        Object result = metaClass.invokeConstructor(new Object[]{m});
+        MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(invocation.getJavaClass())
+        Object result = metaClass.invokeConstructor([m] as Object[])
         if (save) {
-            metaClass.invokeMethod(result, "save", null);
+            metaClass.invokeMethod(result, 'save', null)
         }
-        return result;
+        return result
     }
 
     @Override
-    public void setPattern(String pattern) {
-        grammar.setPattern(pattern);
+    void setPattern(String pattern) {
+        grammar.setPattern(pattern)
     }
 
     @Override
-    public boolean isMethodMatch(String methodName) {
-        return grammar.isMethodMatch(methodName);
+    boolean isMethodMatch(String methodName) {
+        return grammar.isMethodMatch(methodName)
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public Object invoke(Class clazz, String methodName, Object[] arguments) {
-        return invoke(clazz, methodName, (Closure) null, arguments);
+    @SuppressWarnings('rawtypes')
+    Object invoke(Class clazz, String methodName, Object[] arguments) {
+        return invoke(clazz, methodName, (Closure) null, arguments)
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public Object invoke(Class clazz, String methodName, Closure additionalCriteria, Object[] arguments) {
-        DynamicFinderInvocation invocation = grammar.createFinderInvocation(clazz, methodName, additionalCriteria, arguments);
-        return doInvoke(invocation);
+    @SuppressWarnings('rawtypes')
+    Object invoke(Class clazz, String methodName, Closure additionalCriteria, Object[] arguments) {
+        DynamicFinderInvocation invocation = grammar.createFinderInvocation(clazz, methodName, additionalCriteria, arguments)
+        return doInvoke(invocation)
     }
 
     /**
@@ -206,40 +199,40 @@ public class SingleResultFinder implements FinderMethod, QueryBuildingFinder {
      * @param arguments The method call arguments
      * @return The result of the method call
      */
-    @SuppressWarnings("rawtypes")
-    public Object invoke(Class clazz, String methodName, DetachedCriteria detachedCriteria, Object[] arguments) {
-        DynamicFinderInvocation invocation = grammar.createFinderInvocation(clazz, methodName, null, arguments);
+    @SuppressWarnings('rawtypes')
+    Object invoke(Class clazz, String methodName, DetachedCriteria detachedCriteria, Object[] arguments) {
+        DynamicFinderInvocation invocation = grammar.createFinderInvocation(clazz, methodName, null, arguments)
         if (detachedCriteria != null) {
-            invocation.setDetachedCriteria(detachedCriteria);
+            invocation.setDetachedCriteria(detachedCriteria)
         }
-        return doInvoke(invocation);
+        return doInvoke(invocation)
     }
 
     private Object doInvoke(final DynamicFinderInvocation invocation) {
         if (validate != null) {
-            validate.accept(invocation);
+            validate.accept(invocation)
         }
-        return FinderSupport.execute(datastoreResolver, session -> {
-            Object result;
+        return FinderSupport.execute(datastoreResolver, { Session session ->
+            Object result
             if (onNullResult != null) {
                 try {
-                    result = buildQuery(invocation, session).singleResult();
+                    result = buildQuery(invocation, session).singleResult()
                 } catch (ConversionException e) {
-                    throw new MissingMethodException(invocation.getMethodName(), invocation.getJavaClass(), invocation.getArguments());
+                    throw new MissingMethodException(invocation.getMethodName(), invocation.getJavaClass(), invocation.getArguments())
                 }
                 if (result == null) {
-                    result = onNullResult.apply(invocation);
+                    result = onNullResult.apply(invocation)
                 }
             }
             else {
-                result = buildQuery(invocation, session).singleResult();
+                result = buildQuery(invocation, session).singleResult()
             }
-            return result;
-        });
+            return result
+        } as SessionCallback<Object>)
     }
 
     @Override
-    public Query buildQuery(DynamicFinderInvocation invocation, Session session) {
-        return grammar.buildQuery(invocation, session);
+    Query buildQuery(DynamicFinderInvocation invocation, Session session) {
+        return grammar.buildQuery(invocation, session)
     }
 }

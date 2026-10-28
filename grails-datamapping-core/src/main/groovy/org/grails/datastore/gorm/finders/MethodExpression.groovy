@@ -16,15 +16,8 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.gorm.finders;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import groovy.lang.Range;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -46,7 +39,9 @@ import org.grails.datastore.mapping.query.Restrictions;
  * shapes reflectively via {@code Class.getConstructor(...).newInstance(...)} - so static usage
  * analysis can't see either call site even though both are genuinely exercised.
  */
-public abstract class MethodExpression {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+abstract class MethodExpression {
 
     protected String propertyName;
     protected Object[] arguments;
@@ -57,9 +52,9 @@ public abstract class MethodExpression {
     @Deprecated
     protected Class<?> targetClass;
 
-    public abstract Query.Criterion createCriterion();
+    abstract Query.Criterion createCriterion();
 
-    protected MethodExpression(@SuppressWarnings("unused") Class<?> targetClass, String propertyName) {
+    protected MethodExpression(@SuppressWarnings('unused') Class<?> targetClass, String propertyName) {
         this.propertyName = propertyName;
     }
 
@@ -67,11 +62,11 @@ public abstract class MethodExpression {
         this.propertyName = propertyName;
     }
 
-    public int getArgumentsRequired() {
+    int getArgumentsRequired() {
         return argumentsRequired;
     }
 
-    public void convertArguments(PersistentEntity persistentEntity) {
+    void convertArguments(PersistentEntity persistentEntity) {
         ConversionService conversionService = persistentEntity
                 .getMappingContext().getConversionService();
         PersistentProperty<?> prop = resolveProperty(persistentEntity, propertyName);
@@ -81,7 +76,7 @@ public abstract class MethodExpression {
                 Object arg = arguments[i];
                 if (arg != null && !type.isAssignableFrom(arg.getClass())) {
                     // Add special handling for GStringImpl
-                    if (arg instanceof CharSequence && arg.getClass() != String.class) {
+                    if (arg instanceof CharSequence && arg.getClass() != String) {
                         arg = arg.toString();
                         arguments[i] = arg;
                         if (type.isAssignableFrom(arg.getClass())) {
@@ -101,146 +96,146 @@ public abstract class MethodExpression {
         }
     }
 
-    public void setArguments(Object[] arguments) {
+    void setArguments(Object[] arguments) {
         this.arguments = arguments;
     }
 
-    public Object[] getArguments() {
+    Object[] getArguments() {
         return Arrays.copyOf(arguments, arguments.length);
     }
 
-    public String getPropertyName() {
+    String getPropertyName() {
         return propertyName;
     }
 
-    public static class GreaterThan extends MethodExpression {
-        public GreaterThan(Class<?> targetClass, String propertyName) {
+    static class GreaterThan extends MethodExpression {
+        GreaterThan(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
         }
 
-        public GreaterThan(String propertyName) {
+        GreaterThan(String propertyName) {
             super(propertyName);
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             return Restrictions.gt(propertyName, arguments[0]);
         }
     }
 
-    public static class GreaterThanEquals extends MethodExpression {
-        public GreaterThanEquals(Class<?> targetClass, String propertyName) {
+    static class GreaterThanEquals extends MethodExpression {
+        GreaterThanEquals(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
         }
 
-        public GreaterThanEquals(String propertyName) {
+        GreaterThanEquals(String propertyName) {
             super(propertyName);
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             return Restrictions.gte(propertyName, arguments[0]);
         }
     }
 
-    public static class LessThan extends MethodExpression {
-        public LessThan(Class<?> targetClass, String propertyName) {
+    static class LessThan extends MethodExpression {
+        LessThan(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
         }
 
-        public LessThan(String propertyName) {
+        LessThan(String propertyName) {
             super(propertyName);
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             return Restrictions.lt(propertyName, arguments[0]);
         }
     }
 
-    public static class LessThanEquals extends MethodExpression {
-        public LessThanEquals(Class<?> targetClass, String propertyName) {
+    static class LessThanEquals extends MethodExpression {
+        LessThanEquals(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
         }
 
-        public LessThanEquals(String propertyName) {
+        LessThanEquals(String propertyName) {
             super(propertyName);
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             return Restrictions.lte(propertyName, arguments[0]);
         }
     }
 
-    public static class Like extends MethodExpression {
-        public Like(Class<?> targetClass, String propertyName) {
+    static class Like extends MethodExpression {
+        Like(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
         }
 
-        public Like(String propertyName) {
+        Like(String propertyName) {
             super(propertyName);
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             return Restrictions.like(propertyName, arguments[0].toString());
         }
     }
 
-    public static class Ilike extends MethodExpression {
-        @SuppressWarnings("unused")
-        public Ilike(Class<?> targetClass, String propertyName) {
+    static class Ilike extends MethodExpression {
+        @SuppressWarnings('unused')
+        Ilike(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
         }
 
-        @SuppressWarnings("unused")
-        public Ilike(String propertyName) {
+        @SuppressWarnings('unused')
+        Ilike(String propertyName) {
             super(propertyName);
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             return Restrictions.ilike(propertyName, arguments[0].toString());
         }
     }
 
-    public static class Rlike extends MethodExpression {
-        @SuppressWarnings("unused")
-        public Rlike(Class<?> targetClass, String propertyName) {
+    static class Rlike extends MethodExpression {
+        @SuppressWarnings('unused')
+        Rlike(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
         }
 
-        @SuppressWarnings("unused")
-        public Rlike(String propertyName) {
+        @SuppressWarnings('unused')
+        Rlike(String propertyName) {
             super(propertyName);
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             return Restrictions.rlike(propertyName, arguments[0].toString());
         }
     }
 
-    public static class NotInList extends MethodExpression {
-        @SuppressWarnings("unused")
-        public NotInList(Class<?> targetClass, String propertyName) {
+    static class NotInList extends MethodExpression {
+        @SuppressWarnings('unused')
+        NotInList(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
         }
 
-        public NotInList(String propertyName) {
+        NotInList(String propertyName) {
             super(propertyName);
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             Query.Negation negation = new Query.Negation();
             negation.add(Restrictions.in(propertyName, (Collection<?>) arguments[0]));
             return negation;
         }
 
         @Override
-        public void setArguments(Object[] arguments) {
+        void setArguments(Object[] arguments) {
             Assert.isTrue(arguments.length > 0,
                     "Only a collection of elements is supported in an 'in' query");
 
@@ -251,32 +246,32 @@ public abstract class MethodExpression {
         }
 
         @Override
-        public void convertArguments(PersistentEntity persistentEntity) {
+        void convertArguments(PersistentEntity persistentEntity) {
             ConversionService conversionService = persistentEntity
                     .getMappingContext().getConversionService();
             PersistentProperty<?> prop = resolveProperty(persistentEntity, propertyName);
-            convertArgumentsForProp(prop, arguments, conversionService);
+            convertArgumentsForProp(prop, this.@arguments, conversionService);
         }
     }
 
-    public static class InList extends MethodExpression {
+    static class InList extends MethodExpression {
 
-        @SuppressWarnings("unused")
-        public InList(Class<?> targetClass, String propertyName) {
+        @SuppressWarnings('unused')
+        InList(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
         }
 
-        public InList(String propertyName) {
+        InList(String propertyName) {
             super(propertyName);
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             return Restrictions.in(propertyName, (Collection<?>) arguments[0]);
         }
 
         @Override
-        public void setArguments(Object[] arguments) {
+        void setArguments(Object[] arguments) {
             Assert.isTrue(arguments.length > 0,
                 "Only a collection of elements is supported in an 'in' query");
 
@@ -287,34 +282,34 @@ public abstract class MethodExpression {
         }
 
         @Override
-        public void convertArguments(PersistentEntity persistentEntity) {
+        void convertArguments(PersistentEntity persistentEntity) {
             ConversionService conversionService = persistentEntity
                     .getMappingContext().getConversionService();
             PersistentProperty<?> prop = resolveProperty(persistentEntity, propertyName);
-            convertArgumentsForProp(prop, arguments, conversionService);
+            convertArgumentsForProp(prop, this.@arguments, conversionService);
         }
 
     }
 
-    public static class Between extends MethodExpression {
+    static class Between extends MethodExpression {
 
-        public Between(Class<?> targetClass, String propertyName) {
+        Between(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
             argumentsRequired = 2;
         }
 
-        public Between(String propertyName) {
+        Between(String propertyName) {
             super(propertyName);
             argumentsRequired = 2;
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             return Restrictions.between(propertyName, arguments[0], arguments[1]);
         }
 
         @Override
-        public void setArguments(Object[] arguments) {
+        void setArguments(Object[] arguments) {
             Assert.isTrue(arguments.length > 1, "A 'between' query requires at least two arguments");
             Assert.isTrue(arguments[0] instanceof Comparable && arguments[1] instanceof Comparable,
                 "A 'between' query requires that both arguments are comparable");
@@ -324,32 +319,32 @@ public abstract class MethodExpression {
 
     }
 
-    public static class InRange extends MethodExpression {
+    static class InRange extends MethodExpression {
 
-        @SuppressWarnings("unused")
-        public InRange(Class<?> targetClass, String propertyName) {
+        @SuppressWarnings('unused')
+        InRange(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
             argumentsRequired = 1;
         }
 
-        public InRange(String propertyName) {
+        InRange(String propertyName) {
             super(propertyName);
             argumentsRequired = 1;
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             Range<?> range = (Range<?>) arguments[0];
             return Restrictions.between(propertyName, range.getFrom(), range.getTo());
         }
 
         @Override
-        public void convertArguments(PersistentEntity persistentEntity) {
+        void convertArguments(PersistentEntity persistentEntity) {
             // setArguments already made sure arguments[0] is a Range...
         }
 
         @Override
-        public void setArguments(Object[] arguments) {
+        void setArguments(Object[] arguments) {
             Assert.isTrue(arguments.length == 1, "An 'inRange' query requires exactly 1 argument");
             Assert.isTrue(arguments[0] instanceof Range,
                     "An 'inRange' query requires a Range argument");
@@ -359,102 +354,102 @@ public abstract class MethodExpression {
 
     }
 
-    public static class IsNull extends MethodExpression {
+    static class IsNull extends MethodExpression {
 
-        @SuppressWarnings("unused")
-        public IsNull(Class<?> targetClass, String propertyName) {
+        @SuppressWarnings('unused')
+        IsNull(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
             argumentsRequired = 0;
         }
 
-        @SuppressWarnings("unused")
-        public IsNull(String propertyName) {
+        @SuppressWarnings('unused')
+        IsNull(String propertyName) {
             super(propertyName);
             argumentsRequired = 0;
         }
 
         @Override
-        public Criterion createCriterion() {
+        Criterion createCriterion() {
             return Restrictions.isNull(propertyName);
         }
 
     }
 
-    public static class IsNotNull extends MethodExpression {
+    static class IsNotNull extends MethodExpression {
 
-        @SuppressWarnings("unused")
-        public IsNotNull(Class<?> targetClass, String propertyName) {
+        @SuppressWarnings('unused')
+        IsNotNull(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
             argumentsRequired = 0;
         }
 
-        @SuppressWarnings("unused")
-        public IsNotNull(String propertyName) {
+        @SuppressWarnings('unused')
+        IsNotNull(String propertyName) {
             super(propertyName);
             argumentsRequired = 0;
         }
 
         @Override
-        public Criterion createCriterion() {
+        Criterion createCriterion() {
             return Restrictions.isNotNull(propertyName);
         }
 
     }
 
-    public static class IsEmpty extends MethodExpression {
+    static class IsEmpty extends MethodExpression {
 
-        @SuppressWarnings("unused")
-        public IsEmpty(Class<?> targetClass, String propertyName) {
+        @SuppressWarnings('unused')
+        IsEmpty(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
             argumentsRequired = 0;
         }
 
-        @SuppressWarnings("unused")
-        public IsEmpty(String propertyName) {
+        @SuppressWarnings('unused')
+        IsEmpty(String propertyName) {
             super(propertyName);
             argumentsRequired = 0;
         }
 
         @Override
-        public Criterion createCriterion() {
+        Criterion createCriterion() {
             return Restrictions.isEmpty(propertyName);
         }
 
     }
 
-    public static class IsNotEmpty extends MethodExpression {
+    static class IsNotEmpty extends MethodExpression {
 
-        @SuppressWarnings("unused")
-        public IsNotEmpty(Class<?> targetClass, String propertyName) {
+        @SuppressWarnings('unused')
+        IsNotEmpty(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
             argumentsRequired = 0;
         }
 
-        @SuppressWarnings("unused")
-        public IsNotEmpty(String propertyName) {
+        @SuppressWarnings('unused')
+        IsNotEmpty(String propertyName) {
             super(propertyName);
             argumentsRequired = 0;
         }
 
         @Override
-        public Criterion createCriterion() {
+        Criterion createCriterion() {
             return Restrictions.isNotEmpty(propertyName);
         }
 
     }
 
-    public static class Equal extends MethodExpression {
+    static class Equal extends MethodExpression {
 
-        public Equal(Class<?> targetClass, String propertyName) {
+        Equal(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
         }
 
-        public Equal(String propertyName) {
+        Equal(String propertyName) {
             super(propertyName);
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             Object argument = arguments[0];
             if (argument != null) {
                 return Restrictions.eq(propertyName, argument);
@@ -465,19 +460,19 @@ public abstract class MethodExpression {
 
     }
 
-    public static class NotEqual extends MethodExpression {
+    static class NotEqual extends MethodExpression {
 
-        @SuppressWarnings("unused")
-        public NotEqual(Class<?> targetClass, String propertyName) {
+        @SuppressWarnings('unused')
+        NotEqual(Class<?> targetClass, String propertyName) {
             super(targetClass, propertyName);
         }
 
-        public NotEqual(String propertyName) {
+        NotEqual(String propertyName) {
             super(propertyName);
         }
 
         @Override
-        public Query.Criterion createCriterion() {
+        Query.Criterion createCriterion() {
             Object argument = arguments[0];
             if (argument != null) {
                 return Restrictions.ne(propertyName, arguments[0]);

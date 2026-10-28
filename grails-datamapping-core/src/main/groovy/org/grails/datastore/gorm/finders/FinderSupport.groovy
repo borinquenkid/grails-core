@@ -16,13 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.gorm.finders;
+package org.grails.datastore.gorm.finders
 
-import org.grails.datastore.gorm.DatastoreResolver;
-import org.grails.datastore.mapping.core.Datastore;
-import org.grails.datastore.mapping.core.DatastoreUtils;
-import org.grails.datastore.mapping.core.SessionCallback;
-import org.grails.datastore.mapping.core.VoidSessionCallback;
+import org.grails.datastore.gorm.DatastoreResolver
+import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.core.DatastoreUtils
+import org.grails.datastore.mapping.core.SessionCallback
+import org.grails.datastore.mapping.core.VoidSessionCallback
 
 /**
  * Shared session-execution helper for the synchronous finder implementations in this package.
@@ -31,9 +31,9 @@ import org.grails.datastore.mapping.core.VoidSessionCallback;
  * every call, so a finder built from a lazy resolver follows whatever datastore the resolver
  * returns at invocation time.
  */
-public final class FinderSupport {
+final class FinderSupport {
 
-    private static final String NULL_DATASTORE_MESSAGE = "Cannot execute session query with null datastore";
+    private static final String NULL_DATASTORE_MESSAGE = 'Cannot execute session query with null datastore'
 
     private FinderSupport() {
     }
@@ -44,8 +44,8 @@ public final class FinderSupport {
      * @param datastore The datastore, or null for stateless mode
      * @return A resolver that always returns the given datastore, or null when the datastore is null
      */
-    public static DatastoreResolver resolverFor(final Datastore datastore) {
-        return datastore == null ? null : () -> datastore;
+    static DatastoreResolver resolverFor(final Datastore datastore) {
+        return datastore == null ? null : () -> datastore
     }
 
     /**
@@ -57,8 +57,8 @@ public final class FinderSupport {
      * @return The callback's result
      * @throws IllegalStateException if no datastore can be resolved (stateless mode)
      */
-    public static <T> T execute(final DatastoreResolver datastoreResolver, final SessionCallback<T> callback) {
-        return DatastoreUtils.execute(resolve(datastoreResolver), callback);
+    static <T> T execute(final DatastoreResolver datastoreResolver, final SessionCallback<T> callback) {
+        return DatastoreUtils.execute(resolve(datastoreResolver), callback)
     }
 
     /**
@@ -68,15 +68,15 @@ public final class FinderSupport {
      * @param callback The callback
      * @throws IllegalStateException if no datastore can be resolved (stateless mode)
      */
-    public static void execute(final DatastoreResolver datastoreResolver, final VoidSessionCallback callback) {
-        DatastoreUtils.execute(resolve(datastoreResolver), callback);
+    static void execute(final DatastoreResolver datastoreResolver, final VoidSessionCallback callback) {
+        DatastoreUtils.execute(resolve(datastoreResolver), callback)
     }
 
     private static Datastore resolve(final DatastoreResolver datastoreResolver) {
-        Datastore datastore = datastoreResolver == null ? null : datastoreResolver.resolve();
+        Datastore datastore = datastoreResolver == null ? null : datastoreResolver.resolve()
         if (datastore == null) {
-            throw new IllegalStateException(NULL_DATASTORE_MESSAGE);
+            throw new IllegalStateException(NULL_DATASTORE_MESSAGE)
         }
-        return datastore;
+        return datastore
     }
 }

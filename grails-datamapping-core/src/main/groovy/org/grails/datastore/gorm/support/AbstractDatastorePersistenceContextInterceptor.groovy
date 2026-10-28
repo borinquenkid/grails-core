@@ -16,7 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.gorm.support;
+
+import groovy.transform.CompileStatic;
 
 import jakarta.persistence.FlushModeType;
 
@@ -36,25 +39,28 @@ import org.grails.datastore.mapping.transactions.SessionHolder;
  * @since 1.0
  * @author Graeme Rocher
  */
-public abstract class AbstractDatastorePersistenceContextInterceptor {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+abstract class AbstractDatastorePersistenceContextInterceptor {
 
-    private static final Log LOG = LogFactory.getLog(AbstractDatastorePersistenceContextInterceptor.class);
+    private static final Log LOG = LogFactory.getLog(AbstractDatastorePersistenceContextInterceptor);
     protected Datastore datastore;
 
-    public AbstractDatastorePersistenceContextInterceptor(Datastore datastore) {
+    AbstractDatastorePersistenceContextInterceptor(Datastore datastore) {
         this.datastore = datastore;
     }
 
-    public void init() {
+    void init() {
 
         final SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(datastore);
         if (sessionHolder == null) {
-            LOG.debug("Opening single Datastore session in DatastorePersistenceContextInterceptor");
+            LOG.debug('Opening single Datastore session in DatastorePersistenceContextInterceptor');
             Session session = getSession();
             session.setFlushMode(FlushModeType.AUTO);
             try {
                 DatastoreUtils.bindSession(session, this);
-            } catch (IllegalStateException e) {
+            } catch (IllegalStateException ignored) {
                 // ignore, already bound
             }
         }
@@ -64,54 +70,54 @@ public abstract class AbstractDatastorePersistenceContextInterceptor {
         return DatastoreUtils.getSession(datastore, true);
     }
 
-    public void destroy() {
+    void destroy() {
         // single session mode
         final SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(datastore);
-        if (sessionHolder != null && this == sessionHolder.getCreator()) {
+        if (sessionHolder != null && this.is(sessionHolder.getCreator())) {
             SessionHolder holder = (SessionHolder) TransactionSynchronizationManager.unbindResource(datastore);
-            LOG.debug("Closing single Datastore session in DatastorePersistenceContextInterceptor");
+            LOG.debug('Closing single Datastore session in DatastorePersistenceContextInterceptor');
             try {
                 Session session = holder.getSession();
                 DatastoreUtils.closeSession(session);
             }
             catch (RuntimeException ex) {
-                LOG.error("Unexpected exception on closing Datastore Session", ex);
+                LOG.error('Unexpected exception on closing Datastore Session', ex);
             }
         }
     }
 
-    public void disconnect() {
+    void disconnect() {
         destroy();
     }
 
-    public void reconnect() {
+    void reconnect() {
         init();
     }
 
-    public void flush() {
+    void flush() {
         Session session = getSession();
         if (session.hasTransaction()) {
             session.flush();
         }
     }
 
-    public void clear() {
+    void clear() {
         getSession().clear();
     }
 
-    public void setReadOnly() {
+    void setReadOnly() {
         getSession().setFlushMode(FlushModeType.COMMIT);
     }
 
-    public void setReadWrite() {
+    void setReadWrite() {
         getSession().setFlushMode(FlushModeType.AUTO);
     }
 
-    public boolean isOpen() {
+    boolean isOpen() {
         try {
             return DatastoreUtils.doGetSession(datastore, false).isConnected();
         }
-        catch (IllegalStateException e) {
+        catch (IllegalStateException ignored) {
             return false;
         }
     }
