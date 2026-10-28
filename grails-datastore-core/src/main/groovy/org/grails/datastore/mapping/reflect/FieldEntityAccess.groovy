@@ -17,29 +17,29 @@
  *  under the License.
  */
 
-package org.grails.datastore.mapping.reflect;
+package org.grails.datastore.mapping.reflect
 
-import java.beans.PropertyDescriptor;
-import java.io.Serializable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.POJO
 
-import org.codehaus.groovy.transform.trait.Traits;
+import java.beans.PropertyDescriptor
+import java.lang.reflect.Field
+import java.lang.reflect.Method
+import java.util.concurrent.ConcurrentHashMap
 
-import org.springframework.cglib.reflect.FastClass;
-import org.springframework.core.convert.ConversionException;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.util.ReflectionUtils;
+import org.codehaus.groovy.transform.trait.Traits
 
-import org.grails.datastore.mapping.dirty.checking.DirtyCheckable;
-import org.grails.datastore.mapping.engine.EntityAccess;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.PersistentProperty;
-import org.grails.datastore.mapping.proxy.ProxyHandler;
+import org.springframework.cglib.reflect.FastClass
+import org.springframework.core.convert.ConversionException
+import org.springframework.core.convert.ConversionService
+import org.springframework.util.ReflectionUtils
+
+import org.grails.datastore.mapping.dirty.checking.DirtyCheckable
+import org.grails.datastore.mapping.engine.EntityAccess
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PersistentProperty
+import org.grails.datastore.mapping.proxy.ProxyHandler
+import org.grails.datastore.mapping.reflect.EntityReflector.PropertyWriter
 
 /**
  * Uses field reflection or CGlib to improve performance
@@ -47,7 +47,11 @@ import org.grails.datastore.mapping.proxy.ProxyHandler;
  * @author Graeme Rocher
  * @since 5.0
  */
-public class FieldEntityAccess implements EntityAccess {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+@POJO
+class FieldEntityAccess implements EntityAccess {
 
     private static Map<String, EntityReflector> REFLECTORS = new ConcurrentHashMap<>();
 
@@ -56,18 +60,18 @@ public class FieldEntityAccess implements EntityAccess {
     private final ConversionService conversionService;
     private final EntityReflector reflector;
 
-    public FieldEntityAccess(PersistentEntity persistentEntity, Object entity, ConversionService conversionService) {
+    FieldEntityAccess(PersistentEntity persistentEntity, Object entity, ConversionService conversionService) {
         this.persistentEntity = persistentEntity;
         this.entity = entity;
         this.conversionService = conversionService;
         this.reflector = getOrIntializeReflector(persistentEntity);
     }
 
-    public static void clearReflectors() {
+    static void clearReflectors() {
         REFLECTORS.clear();
     }
 
-    public static EntityReflector getOrIntializeReflector(PersistentEntity persistentEntity) {
+    static EntityReflector getOrIntializeReflector(PersistentEntity persistentEntity) {
         String entityName = persistentEntity.getName();
         EntityReflector entityReflector = REFLECTORS.get(entityName);
         if (entityReflector == null) {
@@ -77,28 +81,28 @@ public class FieldEntityAccess implements EntityAccess {
         return entityReflector;
     }
 
-    public static EntityReflector getReflector(String name) {
+    static EntityReflector getReflector(String name) {
         return REFLECTORS.get(name);
     }
 
     @Override
-    public Object getEntity() {
+    Object getEntity() {
         return entity;
     }
 
     @Override
-    public Object getProperty(String name) {
+    Object getProperty(String name) {
         Object object = unwrapIfProxy(persistentEntity, entity);
         return reflector.getProperty(object, name);
     }
 
     @Override
-    public Object getPropertyValue(String name) {
+    Object getPropertyValue(String name) {
         return getProperty(name);
     }
 
     @Override
-    public Class getPropertyType(String name) {
+    Class getPropertyType(String name) {
         PersistentProperty property = persistentEntity.getPropertyByName(name);
         if (property != null) {
             return property.getType();
@@ -107,74 +111,77 @@ public class FieldEntityAccess implements EntityAccess {
     }
 
     @Override
-    public void setProperty(String name, Object value) {
-        FieldEntityReflector.PropertyWriter writer = reflector.getPropertyWriter(name);
+    void setProperty(String name, Object value) {
+        PropertyWriter writer = reflector.getPropertyWriter(name);
         Object converted;
         try {
             converted = conversionService.convert(value, writer.propertyType());
         } catch (ConversionException e) {
-            throw new IllegalArgumentException("Cannot assign value [" + value + "] to property [" + name + "] of type [" + writer.propertyType().getName() + "] of class [" + persistentEntity.getName() + "]. The value could not be converted to the appropriate type: " + e.getMessage(), e);
+            throw new IllegalArgumentException('Cannot assign value [' + value + '] to property [' + name + '] of type [' + writer.propertyType().getName() + '] of class [' + persistentEntity.getName() + ']. The value could not be converted to the appropriate type: ' + e.getMessage(), e);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Cannot assign value [" + value + "] to property [" + name + "] of type [" + writer.propertyType().getName() + "] of class [" + persistentEntity.getName() + "]. The value is not an acceptable type: " + e.getMessage(), e);
+            throw new IllegalArgumentException('Cannot assign value [' + value + '] to property [' + name + '] of type [' + writer.propertyType().getName() + '] of class [' + persistentEntity.getName() + ']. The value is not an acceptable type: ' + e.getMessage(), e);
         }
         writer.write(entity, converted);
     }
 
     @Override
-    public Object getIdentifier() {
+    Object getIdentifier() {
         return reflector.getIdentifier(entity);
     }
 
     @Override
-    public void setIdentifier(Object id) {
+    void setIdentifier(Object id) {
         Object converted;
         try {
             converted = conversionService.convert(id, reflector.identifierType());
         } catch (ConversionException e) {
-            throw new IllegalArgumentException("Cannot assign identifier [" + id + "] to property [" + reflector.getIdentifierName() + "] of type [" + reflector.identifierType().getName() + "] of class [" + persistentEntity.getName() + "]. The value could not be converted to the appropriate type: " + e.getMessage(), e);
+            throw new IllegalArgumentException('Cannot assign identifier [' + id + '] to property [' + reflector.getIdentifierName() + '] of type [' + reflector.identifierType().getName() + '] of class [' + persistentEntity.getName() + ']. The value could not be converted to the appropriate type: ' + e.getMessage(), e);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Cannot assign identifier [" + id + "] to property [" + reflector.getIdentifierName() + "] of type [" + reflector.identifierType().getName() + "] of class [" + persistentEntity.getName() + "]. The identifier is not an compatible type: " + e.getMessage(), e);
+            throw new IllegalArgumentException('Cannot assign identifier [' + id + '] to property [' + reflector.getIdentifierName() + '] of type [' + reflector.identifierType().getName() + '] of class [' + persistentEntity.getName() + ']. The identifier is not an compatible type: ' + e.getMessage(), e);
 
         }
         reflector.setIdentifier(entity, converted);
     }
 
     @Override
-    public void setIdentifierNoConversion(Object id) {
+    void setIdentifierNoConversion(Object id) {
         try {
             reflector.setIdentifier(entity, id);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Cannot assign identifier [" + id + "] to property [" + reflector.getIdentifierName() + "] of type [" + reflector.identifierType().getName() + "] of class [" + persistentEntity.getName() + "]. The identifier is not an compatible type: " + e.getMessage(), e);
+            throw new IllegalArgumentException('Cannot assign identifier [' + id + '] to property [' + reflector.getIdentifierName() + '] of type [' + reflector.identifierType().getName() + '] of class [' + persistentEntity.getName() + ']. The identifier is not an compatible type: ' + e.getMessage(), e);
 
         }
     }
 
     @Override
-    public String getIdentifierName() {
+    String getIdentifierName() {
         return reflector.getIdentifierName();
     }
 
     @Override
-    public PersistentEntity getPersistentEntity() {
+    PersistentEntity getPersistentEntity() {
         return persistentEntity;
     }
 
     @Override
-    public void refresh() {
+    void refresh() {
         // no-op
     }
 
     @Override
-    public void setPropertyNoConversion(String name, Object value) {
+    void setPropertyNoConversion(String name, Object value) {
         try {
             reflector.setProperty(entity, name, value);
         } catch (Exception e) {
             String valueType = value != null ? value.getClass().getName() : null;
-            throw new IllegalArgumentException("Cannot assign value [" + value + "] with type [" + valueType + "] to property [" + name + "] of class [" + persistentEntity.getName() + "]. The value is not an acceptable type: " + e.getMessage(), e);
+            throw new IllegalArgumentException('Cannot assign value [' + value + '] with type [' + valueType + '] to property [' + name + '] of class [' + persistentEntity.getName() + ']. The value is not an acceptable type: ' + e.getMessage(), e);
         }
     }
 
+    // TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+    @SuppressWarnings('UnnecessarySemicolon')
     static class FieldEntityReflector implements EntityReflector {
+
         final PersistentEntity entity;
         final PropertyReader[] readers;
         final PropertyWriter[] writers;
@@ -187,10 +194,10 @@ public class FieldEntityAccess implements EntityAccess {
         final Field dirtyCheckingStateField;
         FastClass fastClass;
 
-        public FieldEntityReflector(PersistentEntity entity) {
+        FieldEntityReflector(PersistentEntity entity) {
             this.entity = entity;
             PersistentProperty identity = entity.getIdentity();
-            dirtyCheckingStateField = ReflectionUtils.findField(entity.getJavaClass(), getTraitFieldName(DirtyCheckable.class, "$changedProperties"));
+            dirtyCheckingStateField = ReflectionUtils.findField(entity.getJavaClass(), getTraitFieldName(DirtyCheckable, '$changedProperties'));
             if (dirtyCheckingStateField != null) {
                 ReflectionUtils.makeAccessible(dirtyCheckingStateField);
             }
@@ -248,17 +255,17 @@ public class FieldEntityAccess implements EntityAccess {
             return getTraitFieldName(traitClass, fieldName);
         }
 
-        private String getTraitFieldName(Class traitClass, String fieldName) {
-            return traitClass.getName().replace('.', '_') + "__" + fieldName;
+        String getTraitFieldName(Class traitClass, String fieldName) {
+            return traitClass.getName().replace('.', '_') + '__' + fieldName;
         }
 
         @Override
-        public PersistentEntity getPersitentEntity() {
+        PersistentEntity getPersitentEntity() {
             return this.entity;
         }
 
         @Override
-        public Map<String, Object> getDirtyCheckingState(Object entity) {
+        Map<String, Object> getDirtyCheckingState(Object entity) {
             if (dirtyCheckingStateField != null) {
                 try {
                     return (Map<String, Object>) dirtyCheckingStateField.get(entity);
@@ -270,7 +277,7 @@ public class FieldEntityAccess implements EntityAccess {
         }
 
         @Override
-        public FastClass fastClass() {
+        FastClass fastClass() {
             if (fastClass == null) {
                 fastClass = FastClass.create(entity.getJavaClass());
             }
@@ -278,44 +285,44 @@ public class FieldEntityAccess implements EntityAccess {
         }
 
         @Override
-        public PropertyReader getPropertyReader(String name) {
+        PropertyReader getPropertyReader(String name) {
             final PropertyReader reader = readerMap.get(name);
             if (reader != null) {
                 return reader;
             }
-            throw new IllegalArgumentException("Property [" + name + "] is not a valid property of " + entity.getJavaClass());
+            throw new IllegalArgumentException('Property [' + name + '] is not a valid property of ' + entity.getJavaClass());
 
         }
 
         @Override
-        public PropertyWriter getPropertyWriter(String name) {
+        PropertyWriter getPropertyWriter(String name) {
             final PropertyWriter writer = writerMap.get(name);
             if (writer != null) {
                 return writer;
             }
             else {
-                throw new IllegalArgumentException("Property [" + name + "] is not a valid property of " + entity.getJavaClass());
+                throw new IllegalArgumentException('Property [' + name + '] is not a valid property of ' + entity.getJavaClass());
             }
         }
 
         @Override
-        public Object getProperty(Object object, String name) {
+        Object getProperty(Object object, String name) {
             object = unwrapIfProxy(getPersitentEntity(), object);
             return getPropertyReader(name).read(object);
         }
 
         @Override
-        public void setProperty(Object object, String name, Object value) {
+        void setProperty(Object object, String name, Object value) {
             getPropertyWriter(name).write(object, value);
         }
 
         @Override
-        public Class identifierType() {
+        Class identifierType() {
             return identifierType;
         }
 
         @Override
-        public Serializable getIdentifier(Object object) {
+        Serializable getIdentifier(Object object) {
             if (identifierReader != null && object != null) {
                 return (Serializable) identifierReader.read(object);
             }
@@ -323,159 +330,171 @@ public class FieldEntityAccess implements EntityAccess {
         }
 
         @Override
-        public void setIdentifier(Object object, Object value) {
+        void setIdentifier(Object object, Object value) {
             if (identifierWriter != null) {
                 identifierWriter.write(object, value);
             }
         }
 
         @Override
-        public String getIdentifierName() {
+        String getIdentifierName() {
             return identifierName;
         }
 
         @Override
-        public Iterable<String> getPropertyNames() {
+        Iterable<String> getPropertyNames() {
             return readerMap.keySet();
         }
 
         @Override
-        public Object getProperty(Object object, int index) {
+        Object getProperty(Object object, int index) {
             return readers[index].read(object);
         }
 
         @Override
-        public void setProperty(Object object, int index, Object value) {
+        void setProperty(Object object, int index, Object value) {
             writers[index].write(object, value);
         }
 
+        // TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+        @SuppressWarnings('UnnecessarySemicolon')
         static class ReflectMethodReader implements PropertyReader {
+
             final Method method;
 
-            public ReflectMethodReader(Method method) {
+            ReflectMethodReader(Method method) {
                 this.method = method;
                 ReflectionUtils.makeAccessible(method);
             }
 
             @Override
-            public Field field() {
+            Field field() {
                 return null;
             }
 
             @Override
-            public Method getter() {
+            Method getter() {
                 return method;
             }
 
             @Override
-            public Class propertyType() {
+            Class propertyType() {
                 return method.getReturnType();
             }
 
             @Override
-            public Object read(Object object) {
+            Object read(Object object) {
                 return ReflectionUtils.invokeMethod(method, object);
             }
         }
 
+        // TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+        @SuppressWarnings('UnnecessarySemicolon')
         static class ReflectionMethodWriter implements PropertyWriter {
+
             final Method method;
             final Class propertyType;
 
-            public ReflectionMethodWriter(Method method, Class propertyType) {
+            ReflectionMethodWriter(Method method, Class propertyType) {
                 this.method = method;
                 ReflectionUtils.makeAccessible(method);
                 this.propertyType = propertyType;
             }
 
             @Override
-            public Field field() {
+            Field field() {
                 return null;
             }
 
             @Override
-            public Method setter() {
+            Method setter() {
                 return method;
             }
 
             @Override
-            public Class propertyType() {
+            Class propertyType() {
                 return propertyType;
             }
 
             @Override
-            public void write(Object object, Object value) {
+            void write(Object object, Object value) {
                 ReflectionUtils.invokeMethod(method, object, value);
             }
         }
 
+        // TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+        @SuppressWarnings('UnnecessarySemicolon')
         static class FieldReader implements PropertyReader {
+
             final Field field;
             final Method getter;
 
-            public FieldReader(Field field, Method getter) {
+            FieldReader(Field field, Method getter) {
                 this.field = field;
                 this.getter = getter;
                 ReflectionUtils.makeAccessible(field);
             }
 
             @Override
-            public Field field() {
+            Field field() {
                 return field;
             }
 
             @Override
-            public Method getter() {
+            Method getter() {
                 return getter;
             }
 
             @Override
-            public Class propertyType() {
+            Class propertyType() {
                 return field.getType();
             }
 
             @Override
-            public Object read(Object object) {
+            Object read(Object object) {
                 try {
                     object = unwrapIfProxy(null, object);
                     return field.get(object);
                 } catch (Throwable e) {
-                    throw new IllegalArgumentException("Cannot read field [" + field + "] from object [" + object + "] of type [" + object.getClass() + "]", e);
+                    throw new IllegalArgumentException('Cannot read field [' + field + '] from object [' + object + '] of type [' + object.getClass() + ']', e);
                 }
             }
         }
 
+        // TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+        @SuppressWarnings('UnnecessarySemicolon')
         static class FieldWriter implements PropertyWriter {
+
             final Field field;
             final Method setter;
 
-            public FieldWriter(Field field, Method setter) {
+            FieldWriter(Field field, Method setter) {
                 this.field = field;
                 this.setter = setter;
                 ReflectionUtils.makeAccessible(field);
             }
 
             @Override
-            public Field field() {
+            Field field() {
                 return field;
             }
 
             @Override
-            public Method setter() {
+            Method setter() {
                 return setter;
             }
 
             @Override
-            public Class propertyType() {
+            Class propertyType() {
                 return field.getType();
             }
 
             @Override
-            public void write(Object object, Object value) {
+            void write(Object object, Object value) {
                 try {
                     field.set(object, value);
                 } catch (Throwable e) {
-                    throw new IllegalArgumentException("Cannot set field [" + field.getName() + "] of object [" + object + "] for value [" + value + "] of type [" + value.getClass().getName() + "]", e);
+                    throw new IllegalArgumentException('Cannot set field [' + field.getName() + '] of object [' + object + '] for value [' + value + '] of type [' + value.getClass().getName() + ']', e);
                 }
             }
         }
@@ -486,20 +505,20 @@ public class FieldEntityAccess implements EntityAccess {
             private PropertyReader propertyReader;
             private PropertyWriter propertyWriter;
 
-            public ReaderAndWriterMaker(ClassPropertyFetcher cpf, String propertyName) {
+            ReaderAndWriterMaker(ClassPropertyFetcher cpf, String propertyName) {
                 this.cpf = cpf;
                 this.propertyName = propertyName;
             }
 
-            public PropertyReader getPropertyReader() {
+            PropertyReader getPropertyReader() {
                 return propertyReader;
             }
 
-            public PropertyWriter getPropertyWriter() {
+            PropertyWriter getPropertyWriter() {
                 return propertyWriter;
             }
 
-            public ReaderAndWriterMaker make() {
+            ReaderAndWriterMaker make() {
                 Class javaClass = cpf.getJavaClass();
                 Field field = ReflectionUtils.findField(javaClass, propertyName);
                 if (field != null) {
@@ -511,13 +530,13 @@ public class FieldEntityAccess implements EntityAccess {
                     PropertyDescriptor descriptor = cpf.getPropertyDescriptor(propertyName);
                     Method readMethod = descriptor.getReadMethod();
 
-                    Traits.TraitBridge traitBridge = readMethod.getAnnotation(Traits.TraitBridge.class);
+                    Traits.TraitBridge traitBridge = readMethod.getAnnotation(Traits.TraitBridge);
                     String traitFieldName;
                     if (traitBridge != null) {
                         traitFieldName = getTraitFieldName(traitBridge, propertyName);
                     }
                     else {
-                        Traits.Implemented traitImplemented = readMethod.getAnnotation(Traits.Implemented.class);
+                        Traits.Implemented traitImplemented = readMethod.getAnnotation(Traits.Implemented);
                         if (traitImplemented != null) {
                             traitFieldName = getTraitFieldName(readMethod.getDeclaringClass(), propertyName);
                         }

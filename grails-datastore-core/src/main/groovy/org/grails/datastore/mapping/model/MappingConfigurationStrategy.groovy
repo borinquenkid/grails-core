@@ -4,23 +4,20 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
 
-package org.grails.datastore.mapping.model;
-
-import java.util.List;
-import java.util.Set;
+package org.grails.datastore.mapping.model
 
 /**
  * <p>This interface defines a strategy for reading how
@@ -32,8 +29,8 @@ import java.util.Set;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings("rawtypes")
-public interface MappingConfigurationStrategy {
+@SuppressWarnings('rawtypes')
+interface MappingConfigurationStrategy {
 
     /**
      * Tests whether the given class is a persistent entity
@@ -41,22 +38,22 @@ public interface MappingConfigurationStrategy {
      * @param javaClass The java class
      * @return true if it is a persistent entity
      */
-    boolean isPersistentEntity(Class javaClass);
+    boolean isPersistentEntity(Class javaClass)
 
     /**
      * @see #getPersistentProperties(Class, MappingContext, ClassMapping)
      */
-    List<PersistentProperty> getPersistentProperties(Class javaClass, MappingContext context);
+    List<PersistentProperty> getPersistentProperties(Class javaClass, MappingContext context)
 
     /**
      * @see #getPersistentProperties(Class, MappingContext, ClassMapping)
      */
-    List<PersistentProperty> getPersistentProperties(PersistentEntity entity, MappingContext context, ClassMapping classMapping);
+    List<PersistentProperty> getPersistentProperties(PersistentEntity entity, MappingContext context, ClassMapping classMapping)
 
     /**
      * @see #getPersistentProperties(Class, MappingContext, ClassMapping)
      */
-    List<PersistentProperty> getPersistentProperties(PersistentEntity entity, MappingContext context, ClassMapping classMapping, boolean includeIdentifiers);
+    List<PersistentProperty> getPersistentProperties(PersistentEntity entity, MappingContext context, ClassMapping classMapping, boolean includeIdentifiers)
 
     /**
      * Obtains a List of PersistentProperty instances for the given Mapped class
@@ -66,7 +63,7 @@ public interface MappingConfigurationStrategy {
      * @param mapping The mapping for this class
      * @return The PersistentProperty instances
      */
-    List<PersistentProperty> getPersistentProperties(Class javaClass, MappingContext context, ClassMapping mapping);
+    List<PersistentProperty> getPersistentProperties(Class javaClass, MappingContext context, ClassMapping mapping)
 
     /**
      * Obtains the identity of a persistent entity
@@ -75,7 +72,7 @@ public interface MappingConfigurationStrategy {
      * @param context The MappingContext
      * @return A PersistentProperty instance
      */
-    PersistentProperty getIdentity(Class javaClass, MappingContext context);
+    PersistentProperty getIdentity(Class javaClass, MappingContext context)
 
     /**
      * Obtains the identity of a persistent entity
@@ -84,7 +81,7 @@ public interface MappingConfigurationStrategy {
      * @param context The MappingContext
      * @return A PersistentProperty instance
      */
-    PersistentProperty[] getCompositeIdentity(Class javaClass, MappingContext context);
+    PersistentProperty[] getCompositeIdentity(Class javaClass, MappingContext context)
 
     /**
      * Obtains the default manner in which identifiers are mapped. In GORM
@@ -94,10 +91,10 @@ public interface MappingConfigurationStrategy {
      * @return The default identifier mapping
      * @param classMapping The ClassMapping instance
      */
-    IdentityMapping getDefaultIdentityMapping(ClassMapping classMapping);
+    IdentityMapping getDefaultIdentityMapping(ClassMapping classMapping)
 
     /**
-     * Returns a set of entities that "own" the given entity. Ownership
+     * Returns a set of entities that 'own' the given entity. Ownership
      * dictates default cascade strategies. So if entity A owns entity B
      * then saves, updates and deletes will cascade from A to B
      *
@@ -105,7 +102,7 @@ public interface MappingConfigurationStrategy {
      * @param context The MappingContext
      * @return A Set of owning classes
      */
-    Set getOwningEntities(Class javaClass, MappingContext context);
+    Set getOwningEntities(Class javaClass, MappingContext context)
 
     /**
      * Obtains the identity mapping for the specified class mapping
@@ -113,11 +110,11 @@ public interface MappingConfigurationStrategy {
      * @param classMapping The class mapping
      * @return The identity mapping
      */
-    IdentityMapping getIdentityMapping(ClassMapping classMapping);
+    IdentityMapping getIdentityMapping(ClassMapping classMapping)
 
     /**
      * Whether the strategy can add new entities to the mapping context
      */
-    void setCanExpandMappingContext(boolean canExpandMappingContext);
+    void setCanExpandMappingContext(boolean canExpandMappingContext)
 
 }

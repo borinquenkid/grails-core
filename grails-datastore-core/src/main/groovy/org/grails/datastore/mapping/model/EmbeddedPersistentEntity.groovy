@@ -16,10 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model;
+package org.grails.datastore.mapping.model
 
-import org.grails.datastore.mapping.config.Entity;
-import org.grails.datastore.mapping.reflect.FieldEntityAccess;
+import groovy.transform.CompileStatic
+
+import org.grails.datastore.mapping.config.Entity
+import org.grails.datastore.mapping.reflect.FieldEntityAccess
 
 /**
  * Models an embedded entity
@@ -27,20 +29,23 @@ import org.grails.datastore.mapping.reflect.FieldEntityAccess;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class EmbeddedPersistentEntity<T extends Entity> extends AbstractPersistentEntity<T> {
-    public EmbeddedPersistentEntity(Class type, MappingContext ctx) {
-        super(type, ctx);
+@CompileStatic
+@SuppressWarnings(['rawtypes', 'unchecked'])
+class EmbeddedPersistentEntity<T extends Entity> extends AbstractPersistentEntity<T> {
+
+    EmbeddedPersistentEntity(Class type, MappingContext ctx) {
+        super(type, ctx)
     }
 
     @Override
     protected PersistentProperty resolveIdentifier() {
-        return null; // no identifiers in embedded entities
+        return null // no identifiers in embedded entities
     }
 
     @Override
-    public void initialize() {
-        super.initialize();
-        FieldEntityAccess.getOrIntializeReflector(this);
+    void initialize() {
+        super.initialize()
+        FieldEntityAccess.getOrIntializeReflector(this)
     }
+
 }

@@ -17,22 +17,23 @@
  *  under the License.
  */
 
-package org.grails.datastore.mapping.model.types.conversion;
+package org.grails.datastore.mapping.model.types.conversion
 
-import java.io.Serializable;
+import groovy.transform.CompileStatic
 
-import groovy.lang.GroovyObject;
-
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.format.datetime.DateFormatterRegistrar;
+import org.springframework.core.convert.TypeDescriptor
+import org.springframework.format.datetime.DateFormatterRegistrar
 
 /**
  * Default conversion service th
  * @author Graeme Rocher
  */
-public class DefaultConversionService extends org.springframework.core.convert.support.DefaultConversionService {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class DefaultConversionService extends org.springframework.core.convert.support.DefaultConversionService {
 
-    public DefaultConversionService() {
+    DefaultConversionService() {
         DateFormatterRegistrar.addDateConverters(this);
 
         addConverter(new StringToShortConverter());
@@ -52,31 +53,31 @@ public class DefaultConversionService extends org.springframework.core.convert.s
     }
 
     @Override
-    public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+    Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
         // force converting GStringImpl & StreamCharBuffer to String before conversion
-        if (source instanceof CharSequence && source.getClass() != String.class &&
+        if (source instanceof CharSequence && source.getClass() != String &&
                 targetType != null && targetType.getType() != source.getClass()) {
             source = source.toString();
-            sourceType = TypeDescriptor.valueOf(String.class);
+            sourceType = TypeDescriptor.valueOf(String);
         }
         return super.convert(source, sourceType, targetType);
     }
 
     @Override
-    public boolean canConvert(TypeDescriptor sourceType, TypeDescriptor targetType) {
+    boolean canConvert(TypeDescriptor sourceType, TypeDescriptor targetType) {
         // fix EnumToString conversions for Enums implemented in Groovy
         // see org.springframework.core.convert.support.EnumToStringConverter.match method
         if (targetType != null &&
-                targetType.getType() == String.class &&
+                targetType.getType() == String &&
                 sourceType != null &&
-                (sourceType.getType() == GroovyObject.class ||
-                    sourceType.getType() == Comparable.class ||
-                    sourceType.getType() == Serializable.class)) {
+                (sourceType.getType() == GroovyObject ||
+                    sourceType.getType() == Comparable ||
+                    sourceType.getType() == Serializable)) {
             return false;
         }
         boolean reply = super.canConvert(sourceType, targetType);
-        if (!reply && sourceType != null && CharSequence.class.isAssignableFrom(sourceType.getType())) {
-            reply = super.canConvert(TypeDescriptor.valueOf(String.class), targetType);
+        if (!reply && sourceType != null && CharSequence.isAssignableFrom(sourceType.getType())) {
+            reply = super.canConvert(TypeDescriptor.valueOf(String), targetType);
         }
         return reply;
     }

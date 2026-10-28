@@ -16,16 +16,18 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model.types.mapping;
+package org.grails.datastore.mapping.model.types.mapping
 
-import java.beans.PropertyDescriptor;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.config.Property;
-import org.grails.datastore.mapping.engine.types.CustomTypeMarshaller;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.PropertyMapping;
-import org.grails.datastore.mapping.model.types.Custom;
+import java.beans.PropertyDescriptor
+
+import org.grails.datastore.mapping.config.Property
+import org.grails.datastore.mapping.engine.types.CustomTypeMarshaller
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PropertyMapping
+import org.grails.datastore.mapping.model.types.Custom
 
 /**
  * A {@link org.grails.datastore.mapping.model.types.Custom} property with a {@link org.grails.datastore.mapping.model.PropertyMapping}
@@ -35,25 +37,28 @@ import org.grails.datastore.mapping.model.types.Custom;
  * @author Graeme Rocher
  * @since 1.0
  */
-public class CustomWithMapping<T extends Property> extends Custom<T> implements PropertyWithMapping<T> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class CustomWithMapping<T extends Property> extends Custom<T> implements PropertyWithMapping<T> {
 
     protected PropertyMapping<T> propertyMapping;
 
-    public CustomWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property, CustomTypeMarshaller<?, ?, ?> customTypeMarshaller) {
+    CustomWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property, CustomTypeMarshaller<?, ?, ?> customTypeMarshaller) {
         super(entity, context, property, customTypeMarshaller);
     }
 
-    public CustomWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property, CustomTypeMarshaller<?, ?, ?> customTypeMarshaller, PropertyMapping<T> propertyMapping) {
+    CustomWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property, CustomTypeMarshaller<?, ?, ?> customTypeMarshaller, PropertyMapping<T> propertyMapping) {
         super(entity, context, property, customTypeMarshaller);
         this.propertyMapping = propertyMapping;
     }
 
     @Override
-    public PropertyMapping<T> getMapping() {
+    PropertyMapping<T> getMapping() {
         return propertyMapping;
     }
 
-    public void setMapping(PropertyMapping<T> propertyMapping) {
+    void setMapping(PropertyMapping<T> propertyMapping) {
         this.propertyMapping = propertyMapping;
     }
 }

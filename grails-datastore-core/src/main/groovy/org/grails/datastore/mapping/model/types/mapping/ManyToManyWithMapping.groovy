@@ -16,16 +16,18 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model.types.mapping;
+package org.grails.datastore.mapping.model.types.mapping
 
-import java.beans.PropertyDescriptor;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.config.Property;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.MappingFactory;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.PropertyMapping;
-import org.grails.datastore.mapping.model.types.ManyToMany;
+import java.beans.PropertyDescriptor
+
+import org.grails.datastore.mapping.config.Property
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.MappingFactory
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PropertyMapping
+import org.grails.datastore.mapping.model.types.ManyToMany
 
 /**
  * A {@link org.grails.datastore.mapping.model.types.ManyToMany} property with a {@link org.grails.datastore.mapping.model.PropertyMapping}
@@ -35,25 +37,28 @@ import org.grails.datastore.mapping.model.types.ManyToMany;
  * @author Graeme Rocher
  * @since 1.0
  */
-public class ManyToManyWithMapping<T extends Property> extends ManyToMany<T> implements PropertyWithMapping<T> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class ManyToManyWithMapping<T extends Property> extends ManyToMany<T> implements PropertyWithMapping<T> {
 
     protected PropertyMapping<T> propertyMapping;
 
-    public ManyToManyWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property) {
+    ManyToManyWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property) {
         super(entity, context, property);
     }
 
     @Override
-    public PropertyMapping<T> getMapping() {
+    PropertyMapping<T> getMapping() {
         return propertyMapping;
     }
 
-    public void setMapping(PropertyMapping<T> propertyMapping) {
+    void setMapping(PropertyMapping<T> propertyMapping) {
         this.propertyMapping = propertyMapping;
     }
 
     @Override
-    public String toString() {
-        return MappingFactory.associationtoString("many-to-many: ", this);
+    String toString() {
+        return MappingFactory.associationtoString('many-to-many: ', this);
     }
 }

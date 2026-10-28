@@ -12,26 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.datastore.mapping.collection;
+package org.grails.datastore.mapping.collection
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.core.Session;
-import org.grails.datastore.mapping.engine.AssociationQueryExecutor;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.types.Association;
-import org.grails.datastore.mapping.query.Query;
+import org.grails.datastore.mapping.core.Session
+import org.grails.datastore.mapping.engine.AssociationQueryExecutor
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.types.Association
+import org.grails.datastore.mapping.query.Query
 
 /**
  * Abstract base class for persistent collections.
  *
  * @author Burt Beckwith
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public abstract class AbstractPersistentCollection implements PersistentCollection, Serializable {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'unchecked', 'UnnecessarySemicolon'])
+@CompileStatic
+abstract class AbstractPersistentCollection implements PersistentCollection, Serializable {
+
     protected final transient Session session;
     protected final transient AssociationQueryExecutor indexer;
     protected final transient Class childType;
@@ -65,12 +65,12 @@ public abstract class AbstractPersistentCollection implements PersistentCollecti
         this.indexer = new AssociationQueryExecutor() {
 
             @Override
-            public boolean doesReturnKeys() {
+            boolean doesReturnKeys() {
                 return true;
             }
 
             @Override
-            public List query(Object primaryKey) {
+            List query(Object primaryKey) {
                 Association inverseSide = association.getInverseSide();
                 Query query = session.createQuery(association.getAssociatedEntity().getJavaClass());
                 query.eq(inverseSide.getName(), primaryKey);
@@ -79,7 +79,7 @@ public abstract class AbstractPersistentCollection implements PersistentCollecti
             }
 
             @Override
-            public PersistentEntity getIndexedEntity() {
+            PersistentEntity getIndexedEntity() {
                 return association.getAssociatedEntity();
             }
         };
@@ -108,73 +108,73 @@ public abstract class AbstractPersistentCollection implements PersistentCollecti
      *
      * @param proxyEntities True if you wish to proxy entities
      */
-    public void setProxyEntities(boolean proxyEntities) {
+    void setProxyEntities(boolean proxyEntities) {
         this.proxyEntities = proxyEntities;
     }
 
     @Override
-    public boolean hasChanged() {
+    boolean hasChanged() {
         return isDirty();
     }
 
     @Override
-    public int getOriginalSize() {
+    int getOriginalSize() {
         return originalSize;
     }
 
     @Override
-    public boolean hasGrown() {
+    boolean hasGrown() {
         return isInitialized() && (size() > originalSize);
     }
 
     @Override
-    public boolean hasShrunk() {
+    boolean hasShrunk() {
         return isInitialized() && (size() < originalSize);
     }
 
     @Override
-    public boolean hasChangedSize() {
+    boolean hasChangedSize() {
         return isInitialized() && (size() != originalSize);
     }
 
     /* Collection methods */
 
-    public Iterator iterator() {
+    Iterator iterator() {
         initialize();
 
         final Iterator iterator = collection.iterator();
         return new Iterator() {
-            public boolean hasNext() {
+            boolean hasNext() {
                 return iterator.hasNext();
             }
 
-            public Object next() {
+            Object next() {
                 return iterator.next();
             }
 
-            public void remove() {
+            void remove() {
                 iterator.remove();
                 markDirty();
             }
         };
     }
 
-    public int size() {
+    int size() {
         initialize();
         return collection.size();
     }
 
-    public boolean isEmpty() {
+    boolean isEmpty() {
         initialize();
         return collection.isEmpty();
     }
 
-    public boolean contains(Object o) {
+    boolean contains(Object o) {
         initialize();
         return collection.contains(o);
     }
 
-    public boolean add(Object o) {
+    boolean add(Object o) {
         initialize();
         boolean added = collection.add(o);
         if (added) {
@@ -183,7 +183,7 @@ public abstract class AbstractPersistentCollection implements PersistentCollecti
         return added;
     }
 
-    public boolean remove(Object o) {
+    boolean remove(Object o) {
         initialize();
         boolean remove = collection.remove(o);
         if (remove) {
@@ -192,31 +192,31 @@ public abstract class AbstractPersistentCollection implements PersistentCollecti
         return remove;
     }
 
-    public void clear() {
+    void clear() {
         initialize();
         collection.clear();
         markDirty();
     }
 
     @Override
-    public boolean equals(Object o) {
+    boolean equals(Object o) {
         initialize();
         return collection.equals(o);
     }
 
     @Override
-    public int hashCode() {
+    int hashCode() {
         initialize();
         return collection.hashCode();
     }
 
     @Override
-    public String toString() {
+    String toString() {
         initialize();
         return collection.toString();
     }
 
-    public boolean removeAll(Collection c) {
+    boolean removeAll(Collection c) {
         initialize();
         boolean changed = collection.removeAll(c);
         if (changed) {
@@ -225,22 +225,22 @@ public abstract class AbstractPersistentCollection implements PersistentCollecti
         return changed;
     }
 
-    public Object[] toArray() {
+    Object[] toArray() {
         initialize();
         return collection.toArray();
     }
 
-    public Object[] toArray(Object[] a) {
+    Object[] toArray(Object[] a) {
         initialize();
         return collection.toArray(a);
     }
 
-    public boolean containsAll(Collection c) {
+    boolean containsAll(Collection c) {
         initialize();
         return collection.containsAll(c);
     }
 
-    public boolean addAll(Collection c) {
+    boolean addAll(Collection c) {
         initialize();
         boolean changed = collection.addAll(c);
         if (changed) {
@@ -249,7 +249,7 @@ public abstract class AbstractPersistentCollection implements PersistentCollecti
         return changed;
     }
 
-    public boolean retainAll(Collection c) {
+    boolean retainAll(Collection c) {
         initialize();
         boolean changed = collection.retainAll(c);
         if (changed) {
@@ -260,7 +260,7 @@ public abstract class AbstractPersistentCollection implements PersistentCollecti
 
     /* PersistentCollection methods */
 
-    public boolean isInitialized() {
+    boolean isInitialized() {
         return initialized;
     }
 
@@ -268,7 +268,7 @@ public abstract class AbstractPersistentCollection implements PersistentCollecti
         this.initializing = initializing;
     }
 
-    public void initialize() {
+    void initialize() {
         if (initializing != null) return;
 
         setInitializing(Boolean.TRUE);
@@ -280,7 +280,7 @@ public abstract class AbstractPersistentCollection implements PersistentCollecti
 
             final Session session = this.session;
             if (session == null) {
-                throw new IllegalStateException("PersistentCollection of type " + this.getClass().getName() + " should have been initialized before serialization.");
+                throw new IllegalStateException('PersistentCollection of type ' + this.getClass().getName() + ' should have been initialized before serialization.');
             }
 
             initialized = true;
@@ -334,15 +334,15 @@ public abstract class AbstractPersistentCollection implements PersistentCollecti
         }
     }
 
-    public boolean isDirty() {
+    boolean isDirty() {
         return dirty;
     }
 
-    public void resetDirty() {
+    void resetDirty() {
         dirty = false;
     }
 
-    public void markDirty() {
+    void markDirty() {
         if (!currentlyInitializing()) {
             dirty = true;
         }

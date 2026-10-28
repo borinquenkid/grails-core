@@ -12,17 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.datastore.mapping.collection;
+package org.grails.datastore.mapping.collection
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.ListIterator;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.core.Session;
-import org.grails.datastore.mapping.engine.AssociationQueryExecutor;
-import org.grails.datastore.mapping.model.types.Association;
+import org.grails.datastore.mapping.core.Session
+import org.grails.datastore.mapping.engine.AssociationQueryExecutor
+import org.grails.datastore.mapping.model.types.Association
 
 /**
  * A lazy loaded list.
@@ -30,72 +26,74 @@ import org.grails.datastore.mapping.model.types.Association;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class PersistentList extends AbstractPersistentCollection implements List {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'unchecked', 'UnnecessarySemicolon'])
+@CompileStatic
+class PersistentList extends AbstractPersistentCollection implements List {
 
     private final List list;
 
-    public PersistentList(Class childType, Session session, List collection) {
+    PersistentList(Class childType, Session session, List collection) {
         super(childType, session, collection);
         this.list = collection;
     }
 
-    public PersistentList(Collection keys, Class childType, Session session) {
+    PersistentList(Collection keys, Class childType, Session session) {
         super(keys, childType, session, new ArrayList());
         list = (List) collection;
     }
 
-    public PersistentList(Serializable associationKey, Session session, AssociationQueryExecutor indexer) {
+    PersistentList(Serializable associationKey, Session session, AssociationQueryExecutor indexer) {
         super(associationKey, session, indexer, new ArrayList());
         list = (List) collection;
     }
 
-    public PersistentList(Association association, Serializable associationKey, Session session) {
+    PersistentList(Association association, Serializable associationKey, Session session) {
         super(association, associationKey, session, new ArrayList());
         list = (List) collection;
     }
 
-    public int indexOf(Object o) {
+    int indexOf(Object o) {
         initialize();
         return list.indexOf(o);
     }
 
-    public int lastIndexOf(Object o) {
+    int lastIndexOf(Object o) {
         initialize();
         return list.lastIndexOf(o);
     }
 
-    public Object get(int index) {
+    Object get(int index) {
         initialize();
         return list.get(index);
     }
 
-    public Object set(int index, Object element) {
+    Object set(int index, Object element) {
         initialize();
         Object replaced = list.set(index, element);
-        if (replaced != element) {
+        if (!replaced.is(element)) {
             markDirty();
         }
         return replaced;
     }
 
-    public void add(int index, Object element) {
+    void add(int index, Object element) {
         initialize();
         list.add(index, element);
         markDirty();
     }
 
-    public Object remove(int index) {
+    Object remove(int index) {
         initialize();
         int size = size();
         Object removed = list.remove(index);
-        if (size != size()) {
+        if (size != this.size()) {
             markDirty();
         }
         return removed;
     }
 
-    public boolean addAll(int index, Collection c) {
+    boolean addAll(int index, Collection c) {
         initialize();
         boolean changed = list.addAll(index, c);
         if (changed) {
@@ -104,17 +102,17 @@ public class PersistentList extends AbstractPersistentCollection implements List
         return changed;
     }
 
-    public ListIterator listIterator() {
+    ListIterator listIterator() {
         initialize();
         return new PersistentListIterator(list.listIterator());
     }
 
-    public ListIterator listIterator(int index) {
+    ListIterator listIterator(int index) {
         initialize();
         return new PersistentListIterator(list.listIterator(index));
     }
 
-    public List subList(int fromIndex, int toIndex) {
+    List subList(int fromIndex, int toIndex) {
         initialize();
         return list.subList(fromIndex, toIndex); // not modification-aware
     }
@@ -127,41 +125,41 @@ public class PersistentList extends AbstractPersistentCollection implements List
             this.iterator = iterator;
         }
 
-        public boolean hasNext() {
+        boolean hasNext() {
             return iterator.hasNext();
         }
 
-        public Object next() {
+        Object next() {
             return iterator.next();
         }
 
-        public boolean hasPrevious() {
+        boolean hasPrevious() {
             return iterator.hasPrevious();
         }
 
-        public Object previous() {
+        Object previous() {
             return iterator.previous();
         }
 
-        public int nextIndex() {
+        int nextIndex() {
             return iterator.nextIndex();
         }
 
-        public int previousIndex() {
+        int previousIndex() {
             return iterator.previousIndex();
         }
 
-        public void remove() {
+        void remove() {
             iterator.remove();
             markDirty();
         }
 
-        public void set(Object e) {
+        void set(Object e) {
             iterator.set(e);
             markDirty(); // assume changed
         }
 
-        public void add(Object e) {
+        void add(Object e) {
             iterator.add(e);
             markDirty();
         }

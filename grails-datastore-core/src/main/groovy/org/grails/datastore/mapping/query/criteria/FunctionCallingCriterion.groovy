@@ -16,39 +16,44 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.query.criteria;
+package org.grails.datastore.mapping.query.criteria
 
-import org.grails.datastore.mapping.query.Query;
+import groovy.transform.CompileStatic
+
+import org.grails.datastore.mapping.query.Query
 
 /**
  * This criterion calls a function on the property before apply the appropriate comparison.
  *
  * Example in SQL: year(date) == 2007 where the function is 'year', the property 'date' and the value is '2007'
  */
-public class FunctionCallingCriterion extends Query.PropertyNameCriterion {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class FunctionCallingCriterion extends Query.PropertyNameCriterion {
 
     private String functionName;
     private Query.PropertyCriterion propertyCriterion;
     private boolean onValue;
 
-    public FunctionCallingCriterion(String functionName, Query.PropertyCriterion propertyCriterion) {
+    FunctionCallingCriterion(String functionName, Query.PropertyCriterion propertyCriterion) {
         super(propertyCriterion.getProperty());
         this.functionName = functionName;
         this.propertyCriterion = propertyCriterion;
     }
 
-    public FunctionCallingCriterion(String name, String functionName, Query.PropertyCriterion propertyCriterion, boolean onValue) {
+    FunctionCallingCriterion(String name, String functionName, Query.PropertyCriterion propertyCriterion, boolean onValue) {
         super(name);
         this.functionName = functionName;
         this.propertyCriterion = propertyCriterion;
         this.onValue = onValue;
     }
 
-    public String getFunctionName() {
+    String getFunctionName() {
         return functionName;
     }
 
-    public Query.PropertyCriterion getPropertyCriterion() {
+    Query.PropertyCriterion getPropertyCriterion() {
         return propertyCriterion;
     }
 
@@ -56,7 +61,7 @@ public class FunctionCallingCriterion extends Query.PropertyNameCriterion {
      * Whether the function is called on the value or on the property
      *
      */
-    public boolean isOnValue() {
+    boolean isOnValue() {
         return onValue;
     }
 }

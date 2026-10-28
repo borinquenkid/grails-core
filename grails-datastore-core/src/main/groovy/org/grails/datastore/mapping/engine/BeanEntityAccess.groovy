@@ -12,22 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.datastore.mapping.engine;
+package org.grails.datastore.mapping.engine
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Method;
-import java.util.Set;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.POJO
 
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.PropertyAccessorFactory;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.util.ReflectionUtils;
+import java.beans.PropertyDescriptor
+import java.lang.reflect.Method
 
-import org.grails.datastore.mapping.model.ClassMapping;
-import org.grails.datastore.mapping.model.IdentityMapping;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.PersistentProperty;
-import org.grails.datastore.mapping.reflect.ClassPropertyFetcher;
+import org.springframework.beans.BeanWrapper
+import org.springframework.beans.PropertyAccessorFactory
+import org.springframework.core.convert.ConversionService
+import org.springframework.util.ReflectionUtils
+
+import org.grails.datastore.mapping.model.ClassMapping
+import org.grails.datastore.mapping.model.IdentityMapping
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PersistentProperty
+import org.grails.datastore.mapping.reflect.ClassPropertyFetcher
 
 /**
  * Class used to access properties of an entity. Also responsible for
@@ -36,8 +38,11 @@ import org.grails.datastore.mapping.reflect.ClassPropertyFetcher;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class BeanEntityAccess implements EntityAccess {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'unchecked', 'UnnecessarySemicolon'])
+@CompileStatic
+@POJO
+class BeanEntityAccess implements EntityAccess {
 
     private static final Set EXCLUDED_PROPERTIES = ClassPropertyFetcher.EXCLUDED_PROPERTIES;
 
@@ -45,38 +50,38 @@ public class BeanEntityAccess implements EntityAccess {
     protected BeanWrapper beanWrapper;
     protected PersistentEntity persistentEntity;
 
-    public BeanEntityAccess(PersistentEntity persistentEntity, Object entity) {
+    BeanEntityAccess(PersistentEntity persistentEntity, Object entity) {
         this.entity = entity;
         this.persistentEntity = persistentEntity;
         beanWrapper = PropertyAccessorFactory.forBeanPropertyAccess(entity);
     }
 
     @Override
-    public Object getEntity() {
+    Object getEntity() {
         return entity;
     }
 
-    public void setConversionService(ConversionService conversionService) {
+    void setConversionService(ConversionService conversionService) {
         beanWrapper.setConversionService(conversionService);
     }
 
     @Override
-    public Object getProperty(String name) {
+    Object getProperty(String name) {
         return beanWrapper.getPropertyValue(name);
     }
 
     @Override
-    public Object getPropertyValue(String name) {
+    Object getPropertyValue(String name) {
         return beanWrapper.getPropertyValue(name);
     }
 
     @Override
-    public Class getPropertyType(String name) {
+    Class getPropertyType(String name) {
         return beanWrapper.getPropertyType(name);
     }
 
     @Override
-    public void setProperty(String name, Object value) {
+    void setProperty(String name, Object value) {
         Class type = getPropertyType(name);
         if (value == null) {
             if (!type.isPrimitive()) {
@@ -90,7 +95,7 @@ public class BeanEntityAccess implements EntityAccess {
     }
 
     @Override
-    public Object getIdentifier() {
+    Object getIdentifier() {
         String idName = getIdentifierName(persistentEntity.getMapping());
         if (idName != null) {
             return getProperty(idName);
@@ -103,13 +108,13 @@ public class BeanEntityAccess implements EntityAccess {
     }
 
     @Override
-    public void setIdentifier(Object id) {
+    void setIdentifier(Object id) {
         String idName = getIdentifierName(persistentEntity.getMapping());
         setProperty(idName, id);
     }
 
     @Override
-    public void setIdentifierNoConversion(Object id) {
+    void setIdentifierNoConversion(Object id) {
         String idName = getIdentifierName(persistentEntity.getMapping());
         setPropertyNoConversion(idName, id);
     }
@@ -126,16 +131,16 @@ public class BeanEntityAccess implements EntityAccess {
     }
 
     @Override
-    public String getIdentifierName() {
+    String getIdentifierName() {
         return getIdentifierName(persistentEntity.getMapping());
     }
 
     @Override
-    public PersistentEntity getPersistentEntity() {
+    PersistentEntity getPersistentEntity() {
         return persistentEntity;
     }
 
-    public void setPropertyNoConversion(String name, Object value) {
+    void setPropertyNoConversion(String name, Object value) {
         final PropertyDescriptor pd = beanWrapper.getPropertyDescriptor(name);
         if (pd == null) {
             return;
@@ -150,7 +155,7 @@ public class BeanEntityAccess implements EntityAccess {
      * Refreshes the object from entity state.
      */
     @Override
-    public void refresh() {
+    void refresh() {
         final PropertyDescriptor[] descriptors = beanWrapper.getPropertyDescriptors();
         for (PropertyDescriptor descriptor : descriptors) {
             final String name = descriptor.getName();

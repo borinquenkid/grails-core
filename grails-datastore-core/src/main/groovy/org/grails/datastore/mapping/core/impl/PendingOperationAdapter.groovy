@@ -16,13 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.core.impl;
+package org.grails.datastore.mapping.core.impl
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.model.PersistentEntity;
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  * Base implementation of the {@link PendingOperation} interface.
@@ -32,7 +30,10 @@ import org.grails.datastore.mapping.model.PersistentEntity;
  * @param <E> The native entity type (examples could be Row, Document etc.)
  * @param <K> The native key
  */
-public abstract class PendingOperationAdapter<E, K> implements PendingOperation<E, K> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+abstract class PendingOperationAdapter<E, K> implements PendingOperation<E, K> {
 
     protected PersistentEntity entity;
     protected K nativeKey;
@@ -42,59 +43,59 @@ public abstract class PendingOperationAdapter<E, K> implements PendingOperation<
     private boolean vetoed;
     protected boolean executed;
 
-    public PendingOperationAdapter(PersistentEntity entity, K nativeKey, E nativeEntry) {
+    PendingOperationAdapter(PersistentEntity entity, K nativeKey, E nativeEntry) {
         this.entity = entity;
         this.nativeKey = nativeKey;
         this.nativeEntry = nativeEntry;
     }
 
     @Override
-    public boolean wasExecuted() {
+    boolean wasExecuted() {
         return this.executed;
     }
 
-    public void setExecuted(boolean executed) {
+    void setExecuted(boolean executed) {
         this.executed = executed;
     }
 
-    public boolean isVetoed() {
+    boolean isVetoed() {
         return vetoed;
     }
 
-    public void setVetoed(boolean vetoed) {
+    void setVetoed(boolean vetoed) {
         this.vetoed = vetoed;
     }
 
-    public List<PendingOperation<E, K>> getPreOperations() {
+    List<PendingOperation<E, K>> getPreOperations() {
         return Collections.unmodifiableList(preOperations);
     }
 
-    public void addPreOperation(PendingOperation<E, K> preOperation) {
+    void addPreOperation(PendingOperation<E, K> preOperation) {
         preOperations.add(preOperation);
     }
 
-    public List<PendingOperation<E, K>> getCascadeOperations() {
+    List<PendingOperation<E, K>> getCascadeOperations() {
         return pendingOperations;
     }
 
-    public void addCascadeOperation(PendingOperation<E, K> pendingOperation) {
+    void addCascadeOperation(PendingOperation<E, K> pendingOperation) {
         pendingOperations.add(pendingOperation);
     }
 
-    public K getNativeKey() {
+    K getNativeKey() {
         return nativeKey;
     }
 
-    public PersistentEntity getEntity() {
+    PersistentEntity getEntity() {
         return entity;
     }
 
-    public E getNativeEntry() {
+    E getNativeEntry() {
         return nativeEntry;
     }
 
     @Override
-    public Object getObject() {
+    Object getObject() {
         return nativeEntry;
     }
 }

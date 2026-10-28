@@ -4,23 +4,22 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
 
-package org.grails.datastore.mapping.core.connections;
+package org.grails.datastore.mapping.core.connections
 
-import java.io.Closeable;
-import java.io.IOException;
+import groovy.transform.CompileStatic
 
 /**
  * Abstract implementation of the {@link ConnectionSource} interface
@@ -28,16 +27,17 @@ import java.io.IOException;
  * @author Graeme Rocher
  * @since 6.0
  */
-public class DefaultConnectionSource<T, S extends ConnectionSourceSettings> implements ConnectionSource<T, S> {
+@CompileStatic
+class DefaultConnectionSource<T, S extends ConnectionSourceSettings> implements ConnectionSource<T, S> {
 
-    protected final String name;
-    protected final T source;
-    protected final S settings;
-    protected final boolean closeable;
-    protected boolean closed = false;
+    protected final String name
+    protected final T source
+    protected final S settings
+    protected final boolean closeable
+    protected boolean closed = false
 
-    public DefaultConnectionSource(String name, T source, S settings) {
-        this(name, source, settings, true);
+    DefaultConnectionSource(String name, T source, S settings) {
+        this(name, source, settings, true)
     }
 
     /**
@@ -52,11 +52,11 @@ public class DefaultConnectionSource<T, S extends ConnectionSourceSettings> impl
      *                  GORM does not close a source it did not create.
      * @since 8.0
      */
-    public DefaultConnectionSource(String name, T source, S settings, boolean closeable) {
-        this.name = name;
-        this.source = source;
-        this.settings = settings;
-        this.closeable = closeable;
+    DefaultConnectionSource(String name, T source, S settings, boolean closeable) {
+        this.name = name
+        this.source = source
+        this.settings = settings
+        this.closeable = closeable
     }
 
     /**
@@ -65,47 +65,48 @@ public class DefaultConnectionSource<T, S extends ConnectionSourceSettings> impl
      * GORM will not close it.
      * @since 8.0
      */
-    public boolean isCloseable() {
-        return this.closeable;
+    boolean isCloseable() {
+        return this.closeable
     }
 
     @Override
-    public String getName() {
-        return this.name;
+    String getName() {
+        return this.name
     }
 
     @Override
-    public T getSource() {
-        return this.source;
+    T getSource() {
+        return this.source
     }
 
     @Override
-    public S getSettings() {
-        return this.settings;
+    S getSettings() {
+        return this.settings
     }
 
     @Override
-    public void close() throws IOException {
+    void close() throws IOException {
         if (!closeable) {
-            this.closed = true;
-            return;
+            this.closed = true
+            return
         }
         if (source instanceof Closeable) {
             try {
-                ((Closeable) source).close();
+                ((Closeable) source).close()
             } finally {
-                this.closed = true;
+                this.closed = true
             }
         }
         else if (source instanceof AutoCloseable) {
             try {
-                ((AutoCloseable) source).close();
+                ((AutoCloseable) source).close()
             } catch (Exception e) {
-                throw new IOException("Error closing connection source [" + name + "]:" + e.getMessage(), e);
+                throw new IOException('Error closing connection source [' + name + ']:' + e.getMessage(), e)
             }
             finally {
-                this.closed = true;
+                this.closed = true
             }
         }
     }
+
 }

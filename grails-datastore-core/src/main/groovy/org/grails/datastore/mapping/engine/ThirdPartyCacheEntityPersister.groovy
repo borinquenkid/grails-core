@@ -4,29 +4,28 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.engine;
+package org.grails.datastore.mapping.engine
 
-import java.io.Serializable;
+import groovy.transform.CompileStatic
+import org.springframework.context.ApplicationEventPublisher
 
-import org.springframework.context.ApplicationEventPublisher;
-
-import org.grails.datastore.mapping.cache.TPCacheAdapter;
-import org.grails.datastore.mapping.cache.TPCacheAdapterRepository;
-import org.grails.datastore.mapping.core.Session;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import org.grails.datastore.mapping.cache.TPCacheAdapter
+import org.grails.datastore.mapping.cache.TPCacheAdapterRepository
+import org.grails.datastore.mapping.core.Session
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  *
@@ -35,38 +34,41 @@ import org.grails.datastore.mapping.model.PersistentEntity;
  * @author Graeme Rocher
  * @since 4.1
  */
-public abstract class ThirdPartyCacheEntityPersister<T> extends LockableEntityPersister {
-    protected TPCacheAdapterRepository<T> cacheAdapterRepository;
+@CompileStatic
+abstract class ThirdPartyCacheEntityPersister<T> extends LockableEntityPersister {
 
-    public ThirdPartyCacheEntityPersister(MappingContext mappingContext, PersistentEntity entity, Session session, ApplicationEventPublisher publisher) {
-        super(mappingContext, entity, session, publisher);
+    protected TPCacheAdapterRepository<T> cacheAdapterRepository
+
+    ThirdPartyCacheEntityPersister(MappingContext mappingContext, PersistentEntity entity, Session session, ApplicationEventPublisher publisher) {
+        super(mappingContext, entity, session, publisher)
     }
 
-    public ThirdPartyCacheEntityPersister(MappingContext mappingContext, PersistentEntity entity, Session session, ApplicationEventPublisher publisher, TPCacheAdapterRepository<T> cacheAdapterRepository) {
-        super(mappingContext, entity, session, publisher);
-        this.cacheAdapterRepository = cacheAdapterRepository;
+    ThirdPartyCacheEntityPersister(MappingContext mappingContext, PersistentEntity entity, Session session, ApplicationEventPublisher publisher, TPCacheAdapterRepository<T> cacheAdapterRepository) {
+        super(mappingContext, entity, session, publisher)
+        this.cacheAdapterRepository = cacheAdapterRepository
     }
 
     protected void updateTPCache(PersistentEntity persistentEntity, T e, Serializable id) {
         if (cacheAdapterRepository == null) {
-            return;
+            return
         }
 
-        TPCacheAdapter<T> cacheAdapter = cacheAdapterRepository.getTPCacheAdapter(persistentEntity);
+        TPCacheAdapter<T> cacheAdapter = cacheAdapterRepository.getTPCacheAdapter(persistentEntity)
         if (cacheAdapter != null) {
-            cacheAdapter.cacheEntry(id, e);
+            cacheAdapter.cacheEntry(id, e)
         }
     }
 
     protected T getFromTPCache(PersistentEntity persistentEntity, Serializable id) {
         if (cacheAdapterRepository == null) {
-            return null;
+            return null
         }
 
-        TPCacheAdapter<T> cacheAdapter = cacheAdapterRepository.getTPCacheAdapter(persistentEntity);
+        TPCacheAdapter<T> cacheAdapter = cacheAdapterRepository.getTPCacheAdapter(persistentEntity)
         if (cacheAdapter != null) {
-            return cacheAdapter.getCachedEntry(id);
+            return cacheAdapter.getCachedEntry(id)
         }
-        return null;
+        return null
     }
+
 }

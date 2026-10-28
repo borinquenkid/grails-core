@@ -4,28 +4,24 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
 
-package org.grails.datastore.mapping.multitenancy;
+package org.grails.datastore.mapping.multitenancy
 
-import java.io.Serializable;
-
-import groovy.lang.Closure;
-
-import org.grails.datastore.mapping.core.Datastore;
-import org.grails.datastore.mapping.core.connections.ConnectionSourceSettings;
-import org.grails.datastore.mapping.core.connections.ConnectionSourcesProvider;
+import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.core.connections.ConnectionSourceSettings
+import org.grails.datastore.mapping.core.connections.ConnectionSourcesProvider
 
 /**
  * An implementation that is capable of multi tenancy
@@ -33,17 +29,17 @@ import org.grails.datastore.mapping.core.connections.ConnectionSourcesProvider;
  * @author Graeme Rocher
  * @since 6.0
  */
-public interface MultiTenantCapableDatastore<T, S extends ConnectionSourceSettings> extends Datastore, ConnectionSourcesProvider<T, S> {
+interface MultiTenantCapableDatastore<T, S extends ConnectionSourceSettings> extends Datastore, ConnectionSourcesProvider<T, S> {
 
     /**
      * @return The multi tenancy mode
      */
-    MultiTenancySettings.MultiTenancyMode getMultiTenancyMode();
+    MultiTenancySettings.MultiTenancyMode getMultiTenancyMode()
 
     /**
      * @return Obtain the tenant resolver
      */
-    TenantResolver getTenantResolver();
+    TenantResolver getTenantResolver()
 
     /**
      * Obtains the datastore for the given tenant id. In SINGLE mode
@@ -53,7 +49,7 @@ public interface MultiTenantCapableDatastore<T, S extends ConnectionSourceSettin
      * @param tenantId The tenant id
      * @return The datastore
      */
-    Datastore getDatastoreForTenantId(Serializable tenantId);
+    Datastore getDatastoreForTenantId(Serializable tenantId)
 
     /**
      * Execute a new session with the given tenantId IF the session is not already present. This differs from the regular withNewSession method.
@@ -65,5 +61,6 @@ public interface MultiTenantCapableDatastore<T, S extends ConnectionSourceSettin
      * @param <T1> the return type
      * @return The return value of the closure
      */
-    <T1> T1 withNewSession(Serializable tenantId, Closure<T1> callable);
+    def <T1> T1 withNewSession(Serializable tenantId, Closure<T1> callable)
+
 }

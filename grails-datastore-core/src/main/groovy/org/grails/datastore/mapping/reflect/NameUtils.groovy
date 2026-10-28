@@ -12,30 +12,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.datastore.mapping.reflect;
+package org.grails.datastore.mapping.reflect
 
-import java.beans.Introspector;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import groovy.transform.CompileStatic
 
-import org.apache.groovy.util.BeanUtils;
+import java.beans.Introspector
 
-import org.grails.datastore.mapping.model.config.GormProperties;
+import org.apache.groovy.util.BeanUtils
+
+import org.grails.datastore.mapping.model.config.GormProperties
 
 /**
  * @author Graeme Rocher
  * @since 1.0
  */
-public class NameUtils {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class NameUtils {
 
-    private static final String PROPERTY_SET_PREFIX = "set";
-    private static final String PROPERTY_GET_PREFIX = "get";
-    private static final String PROPERTY_IS_PREFIX = "is";
+    private static final String PROPERTY_SET_PREFIX = 'set';
+    private static final String PROPERTY_GET_PREFIX = 'get';
+    private static final String PROPERTY_IS_PREFIX = 'is';
 
     private static final Set<String> CONFIGURATIONAL_PROPERTIES;
-    public static final String DOLLAR_SEPARATOR = "$";
+    public static final String DOLLAR_SEPARATOR = '$';
 
     static {
         Set<String> configurational = new HashSet<>(Arrays.asList(
@@ -51,20 +52,20 @@ public class NameUtils {
                 GormProperties.MAPPED_BY,
                 GormProperties.BELONGS_TO,
                 GormProperties.ERRORS,
-                "transactionManager",
-                "dataSource",
-                "sessionFactory",
-                "messageSource",
-                "applicationContext",
-                "properties"));
+                'transactionManager',
+                'dataSource',
+                'sessionFactory',
+                'messageSource',
+                'applicationContext',
+                'properties'));
         CONFIGURATIONAL_PROPERTIES = Collections.unmodifiableSet(configurational);
     }
 
-    public static boolean isConfigurational(String name) {
+    static boolean isConfigurational(String name) {
         return CONFIGURATIONAL_PROPERTIES.contains(name);
     }
 
-    public static boolean isNotConfigurational(String name) {
+    static boolean isNotConfigurational(String name) {
         return !isConfigurational(name);
     }
 
@@ -73,7 +74,7 @@ public class NameUtils {
      * @param propertyName The property name
      * @return The setter equivalent
      */
-    public static String getSetterName(String propertyName) {
+    static String getSetterName(String propertyName) {
         return PROPERTY_SET_PREFIX + capitalize(propertyName);
     }
 
@@ -82,7 +83,7 @@ public class NameUtils {
      * @param propertyName The property name
      * @return The getter equivalent
      */
-    public static String getGetterName(String propertyName) {
+    static String getGetterName(String propertyName) {
         return getGetterName(propertyName, false);
     }
 
@@ -92,7 +93,7 @@ public class NameUtils {
      * @param useBooleanPrefix true if property is type of boolean
      * @return The getter equivalent
      */
-    public static String getGetterName(String propertyName, boolean useBooleanPrefix) {
+    static String getGetterName(String propertyName, boolean useBooleanPrefix) {
         String prefix = useBooleanPrefix ? PROPERTY_IS_PREFIX : PROPERTY_GET_PREFIX;
         return prefix + capitalize(propertyName);
     }
@@ -103,7 +104,7 @@ public class NameUtils {
      * @param clazz The class
      * @return The class name
      */
-    public static String getClassName(Class clazz) {
+    static String getClassName(Class clazz) {
         final String sn = clazz.getSimpleName();
         if (sn.contains(DOLLAR_SEPARATOR)) {
             return clazz.getSuperclass().getName();
@@ -116,7 +117,7 @@ public class NameUtils {
      * @param getterOrSetterName The getter or setter name
      * @return The property name
      */
-    public static String getPropertyNameForGetterOrSetter(String getterOrSetterName) {
+    static String getPropertyNameForGetterOrSetter(String getterOrSetterName) {
         if (getterOrSetterName == null || getterOrSetterName.length() == 0) return null;
 
         if (getterOrSetterName.startsWith(PROPERTY_GET_PREFIX) || getterOrSetterName.startsWith(PROPERTY_SET_PREFIX)) {
@@ -133,7 +134,7 @@ public class NameUtils {
      * @param name The class name
      * @return The decapitalized name
      */
-    public static String decapitalize(String name) {
+    static String decapitalize(String name) {
         return Introspector.decapitalize(name);
     }
 
@@ -142,11 +143,11 @@ public class NameUtils {
      * @param name String to be transformed
      * @return Original string with the first char as a lowercase letter
      */
-    public static String decapitalizeFirstChar(String name) {
+    static String decapitalizeFirstChar(String name) {
         if (name == null || name.length() == 0) {
             return name;
         }
-        char chars[] = name.toCharArray();
+        char[] chars = name.toCharArray();
         chars[0] = Character.toLowerCase(chars[0]);
         return new String(chars);
     }
@@ -157,7 +158,7 @@ public class NameUtils {
      * @param name The property name
      * @return The class name
      */
-    public static String capitalize(String name) {
+    static String capitalize(String name) {
         return BeanUtils.capitalize(name);
     }
 
@@ -172,7 +173,7 @@ public class NameUtils {
      * @param path The candidate property path
      * @return {@code true} if the value is a well-formed property path
      */
-    public static boolean isValidPropertyPath(String path) {
+    static boolean isValidPropertyPath(String path) {
         if (path == null || path.isEmpty()) {
             return false;
         }

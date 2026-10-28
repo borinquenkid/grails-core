@@ -16,37 +16,31 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model;
+package org.grails.datastore.mapping.model
 
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import groovy.transform.CompileStatic
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.util.Assert;
+import java.beans.Introspector
+import java.beans.PropertyDescriptor
+import java.lang.annotation.Annotation
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Modifier
 
-import org.grails.datastore.mapping.config.Entity;
-import org.grails.datastore.mapping.core.EntityCreationException;
-import org.grails.datastore.mapping.core.exceptions.ConfigurationException;
-import org.grails.datastore.mapping.model.config.GormProperties;
-import org.grails.datastore.mapping.model.types.Association;
-import org.grails.datastore.mapping.model.types.Embedded;
-import org.grails.datastore.mapping.model.types.Identity;
-import org.grails.datastore.mapping.model.types.OneToMany;
-import org.grails.datastore.mapping.model.types.TenantId;
-import org.grails.datastore.mapping.multitenancy.MultiTenancySettings;
-import org.grails.datastore.mapping.reflect.ClassPropertyFetcher;
-import org.grails.datastore.mapping.reflect.EntityReflector;
+import org.springframework.beans.BeanUtils
+import org.springframework.util.Assert
+
+import org.grails.datastore.mapping.config.Entity
+import org.grails.datastore.mapping.core.EntityCreationException
+import org.grails.datastore.mapping.core.exceptions.ConfigurationException
+import org.grails.datastore.mapping.model.config.GormProperties
+import org.grails.datastore.mapping.model.types.Association
+import org.grails.datastore.mapping.model.types.Embedded
+import org.grails.datastore.mapping.model.types.Identity
+import org.grails.datastore.mapping.model.types.OneToMany
+import org.grails.datastore.mapping.model.types.TenantId
+import org.grails.datastore.mapping.multitenancy.MultiTenancySettings
+import org.grails.datastore.mapping.reflect.ClassPropertyFetcher
+import org.grails.datastore.mapping.reflect.EntityReflector
 
 /**
  * Abstract implementation to be subclasses on a per datastore basis
@@ -54,8 +48,11 @@ import org.grails.datastore.mapping.reflect.EntityReflector;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public abstract class AbstractPersistentEntity<T extends Entity> implements PersistentEntity {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'unchecked', 'UnnecessarySemicolon'])
+@CompileStatic
+abstract class AbstractPersistentEntity<T extends Entity> implements PersistentEntity {
+
     protected final Class javaClass;
     protected final MappingContext context;
     protected List<PersistentProperty> persistentProperties;
@@ -81,56 +78,56 @@ public abstract class AbstractPersistentEntity<T extends Entity> implements Pers
     private final boolean isMultiTenant;
     private TenantId tenantId;
 
-    public AbstractPersistentEntity(Class javaClass, MappingContext context) {
-        Assert.notNull(javaClass, "The argument [javaClass] cannot be null");
+    AbstractPersistentEntity(Class javaClass, MappingContext context) {
+        Assert.notNull(javaClass, 'The argument [javaClass] cannot be null');
         this.javaClass = javaClass;
         this.context = context;
         this.isAbstract = Modifier.isAbstract(javaClass.getModifiers());
         this.isMultiTenant = org.grails.datastore.mapping.reflect.ClassUtils.isMultiTenant(javaClass);
         decapitalizedName = Introspector.decapitalize(javaClass.getSimpleName());
-        String classSpecified = ClassPropertyFetcher.getStaticPropertyValue(javaClass, GormProperties.MAPPING_STRATEGY, String.class);
+        String classSpecified = ClassPropertyFetcher.getStaticPropertyValue(javaClass, GormProperties.MAPPING_STRATEGY, String);
         this.mappingStrategy = classSpecified != null ? classSpecified : GormProperties.DEFAULT_MAPPING_STRATEGY;
     }
 
     @Override
-    public PersistentProperty[] getCompositeIdentity() {
+    PersistentProperty[] getCompositeIdentity() {
         return compositeIdentity;
     }
 
-    public TenantId getTenantId() {
+    TenantId getTenantId() {
         return tenantId;
     }
 
     @Override
-    public boolean isMultiTenant() {
+    boolean isMultiTenant() {
         return this.isMultiTenant;
     }
 
-    public boolean isExternal() {
+    boolean isExternal() {
         return external;
     }
 
-    public boolean isAbstract() {
+    boolean isAbstract() {
         return isAbstract;
     }
 
-    public String getMappingStrategy() {
+    String getMappingStrategy() {
         return this.mappingStrategy;
     }
 
-    public void setExternal(boolean external) {
+    void setExternal(boolean external) {
         this.external = external;
     }
 
-    public MappingContext getMappingContext() {
+    MappingContext getMappingContext() {
         return context;
     }
 
-    public boolean isInitialized() {
+    boolean isInitialized() {
         return initialized;
     }
 
-    public void initialize() {
+    void initialize() {
         ClassMapping<T> mapping = getMapping();
         if (!initialized) {
 
@@ -140,7 +137,7 @@ public abstract class AbstractPersistentEntity<T extends Entity> implements Pers
             owners = mappingSyntaxStrategy.getOwningEntities(javaClass, context);
             Class superClass = javaClass.getSuperclass();
             if (superClass != null &&
-                    !superClass.equals(Object.class)) {
+                    !superClass.equals(Object)) {
 
                 if (mappingSyntaxStrategy.isPersistentEntity(superClass)) {
                     parentEntity = context.addPersistentEntity(superClass);
@@ -201,7 +198,7 @@ public abstract class AbstractPersistentEntity<T extends Entity> implements Pers
             }
 
             if (multiTenancyEnabled && tenantId == null) {
-                throw new ConfigurationException("Class [" + javaClass.getName() + "] is multi tenant but does not specify a tenant identifier property");
+                throw new ConfigurationException('Class [' + javaClass.getName() + '] is multi tenant but does not specify a tenant identifier property');
             }
 
             if (!isExternal()) {
@@ -222,7 +219,7 @@ public abstract class AbstractPersistentEntity<T extends Entity> implements Pers
             final PersistentProperty v = getVersion();
             if (v != null) {
                 final Class type = v.getType();
-                this.versionCompatibleType = Number.class.isAssignableFrom(type) || Date.class.isAssignableFrom(type);
+                this.versionCompatibleType = Number.isAssignableFrom(type) || Date.isAssignableFrom(type);
             }
 
             if (identity != null) {
@@ -271,7 +268,7 @@ public abstract class AbstractPersistentEntity<T extends Entity> implements Pers
     }
 
     @Override
-    public EntityReflector getReflector() {
+    EntityReflector getReflector() {
         return this.entityReflector;
     }
 
@@ -280,7 +277,7 @@ public abstract class AbstractPersistentEntity<T extends Entity> implements Pers
         Annotation[] annotations = superClass.getAnnotations();
         for (Annotation annotation : annotations) {
             String name = annotation.annotationType().getName();
-            if (name.equals("grails.persistence.Entity") || name.equals("grails.gorm.annotation.Entity")) {
+            if (name.equals('grails.persistence.Entity') || name.equals('grails.gorm.annotation.Entity')) {
                 return true;
             }
         }
@@ -295,12 +292,12 @@ public abstract class AbstractPersistentEntity<T extends Entity> implements Pers
         return context.getMappingSyntaxStrategy().getIdentity(javaClass, context);
     }
 
-    public boolean hasProperty(String name, Class type) {
+    boolean hasProperty(String name, Class type) {
         final PropertyDescriptor pd = BeanUtils.getPropertyDescriptor(getJavaClass(), name);
         return pd != null && pd.getPropertyType().equals(type);
     }
 
-    public boolean isIdentityName(String propertyName) {
+    boolean isIdentityName(String propertyName) {
         PersistentProperty identity = getIdentity();
         if (identity != null) {
             return identity.getName().equals(propertyName);
@@ -308,15 +305,15 @@ public abstract class AbstractPersistentEntity<T extends Entity> implements Pers
         return GormProperties.IDENTITY.equals(propertyName);
     }
 
-    public PersistentEntity getParentEntity() {
+    PersistentEntity getParentEntity() {
         return parentEntity;
     }
 
-    public String getDiscriminator() {
+    String getDiscriminator() {
         return getJavaClass().getSimpleName();
     }
 
-    public PersistentEntity getRootEntity() {
+    PersistentEntity getRootEntity() {
         PersistentEntity root = this;
         PersistentEntity parent = getParentEntity();
         while (parent != null) {
@@ -329,78 +326,78 @@ public abstract class AbstractPersistentEntity<T extends Entity> implements Pers
         return root;
     }
 
-    public boolean isRoot() {
+    boolean isRoot() {
         return getParentEntity() == null;
     }
 
-    public boolean isOwningEntity(PersistentEntity owner) {
+    boolean isOwningEntity(PersistentEntity owner) {
         return owner != null && owners.contains(owner.getJavaClass());
     }
 
-    public String getDecapitalizedName() {
+    String getDecapitalizedName() {
         return decapitalizedName;
     }
 
-    public List<String> getPersistentPropertyNames() {
+    List<String> getPersistentPropertyNames() {
         return persistentPropertyNames;
     }
 
-    public ClassMapping<T> getMapping() {
+    ClassMapping<T> getMapping() {
         return (ClassMapping<T>) new AbstractClassMapping<Entity>(this, context) {
             @Override
-            public Entity getMappedForm() {
+            Entity getMappedForm() {
                 return new Entity();
             }
         };
     }
 
-    public Object newInstance() {
+    Object newInstance() {
         try {
             return getJavaClass().getDeclaredConstructor().newInstance();
         } catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            throw new EntityCreationException("Unable to create entity of type [" + getJavaClass().getName() +
-                    "]: " + e.getMessage(), e);
+            throw new EntityCreationException('Unable to create entity of type [' + getJavaClass().getName() +
+                    ']: ' + e.getMessage(), e);
         }
     }
 
-    public String getName() {
+    String getName() {
         return javaClass.getName();
     }
 
-    public PersistentProperty getIdentity() {
+    PersistentProperty getIdentity() {
         return identity;
     }
 
-    public PersistentProperty getVersion() {
+    PersistentProperty getVersion() {
         return version;
     }
 
-    public boolean isVersioned() {
+    boolean isVersioned() {
         return (this.versionCompatibleType || !propertiesInitialized) && versioned;
     }
 
-    public Class<?> getJavaClass() {
+    Class<?> getJavaClass() {
         return javaClass;
     }
 
-    public boolean isInstance(Object obj) {
+    boolean isInstance(Object obj) {
         return getJavaClass().isInstance(obj);
     }
 
-    public List<PersistentProperty> getPersistentProperties() {
+    List<PersistentProperty> getPersistentProperties() {
         return persistentProperties;
     }
 
-    public List<Association> getAssociations() {
+    List<Association> getAssociations() {
         return associations;
     }
 
     @Override
-    public List<Embedded> getEmbedded() {
+    List<Embedded> getEmbedded() {
         return embedded;
     }
 
-    public PersistentProperty getPropertyByName(String name) {
+    PersistentProperty getPropertyByName(String name) {
         PersistentProperty pp = propertiesByName.get(name);
         if (pp != null) {
             return pp;
@@ -413,44 +410,44 @@ public abstract class AbstractPersistentEntity<T extends Entity> implements Pers
         private Boolean version = true;
         private boolean intialized = false;
 
-        public boolean isIntialized() {
+        boolean isIntialized() {
             return intialized;
         }
 
-        public void setIntialized(boolean intialized) {
+        void setIntialized(boolean intialized) {
             this.intialized = intialized;
         }
 
-        public void setVersion(final boolean version) {
+        void setVersion(final boolean version) {
             this.version = version;
         }
 
-        public boolean isVersioned() {
+        boolean isVersioned() {
             return version == null ? true : version;
         }
 
     }
 
     @Override
-    public int hashCode() {
+    int hashCode() {
         return javaClass.hashCode();
     }
 
     @Override
-    public boolean equals(Object o) {
+    boolean equals(Object o) {
         if (o == null || !(o instanceof PersistentEntity)) return false;
-        if (this == o) return true;
+        if (this.is(o)) return true;
 
         PersistentEntity other = (PersistentEntity) o;
         return javaClass.equals(other.getJavaClass());
     }
 
     @Override
-    public String toString() {
+    String toString() {
         return javaClass.getName();
     }
 
-    public boolean addOwner(Class type) {
+    boolean addOwner(Class type) {
         return owners.add(type);
     }
 

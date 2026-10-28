@@ -17,10 +17,12 @@
  *  under the License.
  */
 
-package org.grails.datastore.mapping.core.impl;
+package org.grails.datastore.mapping.core.impl
 
-import org.grails.datastore.mapping.engine.EntityAccess;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import groovy.transform.CompileStatic
+
+import org.grails.datastore.mapping.engine.EntityAccess
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  * Provides a default implementation for the {@link PendingUpdate} interface
@@ -30,31 +32,34 @@ import org.grails.datastore.mapping.model.PersistentEntity;
  * @author Graeme Rocher
  * @since 1.0
  */
-public abstract class PendingUpdateAdapter<E, K> extends PendingOperationAdapter<E, K> implements PendingUpdate<E, K> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+abstract class PendingUpdateAdapter<E, K> extends PendingOperationAdapter<E, K> implements PendingUpdate<E, K> {
 
     private EntityAccess entityAccess;
 
     private boolean vetoed;
 
-    public PendingUpdateAdapter(PersistentEntity entity, K nativeKey, E nativeEntry, EntityAccess ea) {
+    PendingUpdateAdapter(PersistentEntity entity, K nativeKey, E nativeEntry, EntityAccess ea) {
         super(entity, nativeKey, nativeEntry);
         this.entityAccess = ea;
     }
 
-    public boolean isVetoed() {
+    boolean isVetoed() {
         return vetoed;
     }
 
-    public void setVetoed(boolean vetoed) {
+    void setVetoed(boolean vetoed) {
         this.vetoed = vetoed;
     }
 
-    public EntityAccess getEntityAccess() {
+    EntityAccess getEntityAccess() {
         return entityAccess;
     }
 
     @Override
-    public Object getObject() {
+    Object getObject() {
         final EntityAccess ea = getEntityAccess();
         if (ea != null) {
             return ea.getEntity();

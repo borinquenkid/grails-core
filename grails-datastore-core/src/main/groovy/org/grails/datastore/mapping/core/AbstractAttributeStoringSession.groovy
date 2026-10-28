@@ -4,72 +4,73 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
 
-package org.grails.datastore.mapping.core;
+package org.grails.datastore.mapping.core
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap
 
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+import groovy.transform.CompileStatic
+import org.springframework.transaction.support.TransactionSynchronizationManager
 
-import org.grails.datastore.mapping.transactions.SessionHolder;
+import org.grails.datastore.mapping.transactions.SessionHolder
 
-public abstract class AbstractAttributeStoringSession implements Session {
+@CompileStatic
+abstract class AbstractAttributeStoringSession implements Session {
 
-    protected Map<Integer, Map<String, Object>> attributes = new ConcurrentHashMap<>();
-    protected Map<String, Object> sessionPropertyMap = new ConcurrentHashMap<>();
-    private boolean connected = true;
+    protected Map<Integer, Map<String, Object>> attributes = new ConcurrentHashMap<>()
+    protected Map<String, Object> sessionPropertyMap = new ConcurrentHashMap<>()
+    private boolean connected = true
 
-    public void setAttribute(Object entity, String attributeName, Object value) {
+    void setAttribute(Object entity, String attributeName, Object value) {
         if (entity == null) {
-            return;
+            return
         }
 
-        int id = System.identityHashCode(entity);
-        Map<String, Object> attrs = attributes.get(id);
+        int id = System.identityHashCode(entity)
+        Map<String, Object> attrs = attributes.get(id)
         if (attrs == null) {
-            attrs = new ConcurrentHashMap<>();
-            attributes.put(id, attrs);
+            attrs = new ConcurrentHashMap<>()
+            attributes.put(id, attrs)
         }
 
         if (attributeName != null && value != null) {
-            attrs.put(attributeName, value);
+            attrs.put(attributeName, value)
         }
         if (attributeName != null && value == null) {
-            attrs.remove(attributeName);
+            attrs.remove(attributeName)
         }
     }
 
-    public Object getAttribute(Object entity, String attributeName) {
+    Object getAttribute(Object entity, String attributeName) {
         if (entity == null) {
-            return null;
+            return null
         }
 
-        final Map<String, Object> attrs = attributes.get(System.identityHashCode(entity));
+        final Map<String, Object> attrs = attributes.get(System.identityHashCode(entity))
         if (attrs == null || attributeName == null) {
-            return null;
+            return null
         }
 
-        return attrs.get(attributeName);
+        return attrs.get(attributeName)
     }
 
     protected void removeAttributesForEntity(Object entity) {
         if (entity == null) {
-            return;
+            return
         }
-        attributes.remove(System.identityHashCode(entity));
+        attributes.remove(System.identityHashCode(entity))
     }
 
     /**
@@ -79,8 +80,8 @@ public abstract class AbstractAttributeStoringSession implements Session {
      * @param value    The property value.
      */
     @Override
-    public Object setSessionProperty(String property, Object value) {
-        return sessionPropertyMap.put(property, value);
+    Object setSessionProperty(String property, Object value) {
+        return sessionPropertyMap.put(property, value)
     }
 
     /**
@@ -90,8 +91,8 @@ public abstract class AbstractAttributeStoringSession implements Session {
      * @return The value.
      */
     @Override
-    public Object getSessionProperty(String property) {
-        return sessionPropertyMap.get(property);
+    Object getSessionProperty(String property) {
+        return sessionPropertyMap.get(property)
     }
 
     /**
@@ -101,28 +102,28 @@ public abstract class AbstractAttributeStoringSession implements Session {
      * @return The property value, if there was one (or null).
      */
     @Override
-    public Object clearSessionProperty(String property) {
-        return sessionPropertyMap.remove(property);
+    Object clearSessionProperty(String property) {
+        return sessionPropertyMap.remove(property)
     }
 
     /**
      * Performs clear up. Subclasses should always call into this super
      * implementation.
      */
-    public void disconnect() {
-        connected = false;
+    void disconnect() {
+        connected = false
         try {
-            clear();
-            attributes.clear();
+            clear()
+            attributes.clear()
         }
         finally {
-            SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(getDatastore());
+            SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(getDatastore())
             if (sessionHolder != null) {
-                sessionHolder.removeSession(this);
+                sessionHolder.removeSession(this)
                 if (sessionHolder.isEmpty()) {
                     try {
-                        TransactionSynchronizationManager.unbindResource(getDatastore());
-                    } catch (IllegalStateException e) {
+                        TransactionSynchronizationManager.unbindResource(getDatastore())
+                    } catch (IllegalStateException ignored) {
                         // ignore session disconnected by a another thread
                     }
                 }
@@ -130,7 +131,8 @@ public abstract class AbstractAttributeStoringSession implements Session {
         }
     }
 
-    public boolean isConnected() {
-        return connected;
+    boolean isConnected() {
+        return connected
     }
+
 }

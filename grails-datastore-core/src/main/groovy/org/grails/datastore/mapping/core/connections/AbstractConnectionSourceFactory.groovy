@@ -4,28 +4,27 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
 
-package org.grails.datastore.mapping.core.connections;
+package org.grails.datastore.mapping.core.connections
 
-import java.util.List;
+import groovy.transform.CompileStatic
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.PropertyResolver
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.PropertyResolver;
-
-import org.grails.datastore.mapping.engine.types.CustomTypeMarshaller;
-import org.grails.datastore.mapping.multitenancy.TenantResolver;
+import org.grails.datastore.mapping.engine.types.CustomTypeMarshaller
+import org.grails.datastore.mapping.multitenancy.TenantResolver
 
 /**
  * Abstract implementation of the {@link ConnectionSourceFactory} interface
@@ -33,10 +32,11 @@ import org.grails.datastore.mapping.multitenancy.TenantResolver;
  * @author Graeme Rocher
  * @since 6.0
  */
-public abstract class AbstractConnectionSourceFactory<T, S extends ConnectionSourceSettings> implements ConnectionSourceFactory<T, S> {
+@CompileStatic
+abstract class AbstractConnectionSourceFactory<T, S extends ConnectionSourceSettings> implements ConnectionSourceFactory<T, S> {
 
-    private TenantResolver tenantResolver;
-    private List<CustomTypeMarshaller> customTypes;
+    private TenantResolver tenantResolver
+    private List<CustomTypeMarshaller> customTypes
 
     /**
      * The tenant resolver to use
@@ -44,8 +44,8 @@ public abstract class AbstractConnectionSourceFactory<T, S extends ConnectionSou
      * @param tenantResolver The tenant resolver
      */
     @Autowired(required = false)
-    public void setTenantResolver(TenantResolver tenantResolver) {
-        this.tenantResolver = tenantResolver;
+    void setTenantResolver(TenantResolver tenantResolver) {
+        this.tenantResolver = tenantResolver
     }
 
     /**
@@ -54,14 +54,14 @@ public abstract class AbstractConnectionSourceFactory<T, S extends ConnectionSou
      * @param customTypes The custom user types
      */
     @Autowired(required = false)
-    public void setCustomTypes(List<CustomTypeMarshaller> customTypes) {
-        this.customTypes = customTypes;
+    void setCustomTypes(List<CustomTypeMarshaller> customTypes) {
+        this.customTypes = customTypes
     }
 
     @Override
-    public ConnectionSource<T, S> create(String name, PropertyResolver configuration) {
-        ConnectionSourceSettings fallbackSettings = buildFallbackSettings(configuration);
-        return create(name, configuration, fallbackSettings);
+    ConnectionSource<T, S> create(String name, PropertyResolver configuration) {
+        ConnectionSourceSettings fallbackSettings = buildFallbackSettings(configuration)
+        return create(name, configuration, fallbackSettings)
     }
 
     /**
@@ -73,38 +73,39 @@ public abstract class AbstractConnectionSourceFactory<T, S extends ConnectionSou
      * @return The fallback settings
      */
     private ConnectionSourceSettings buildFallbackSettings(PropertyResolver configuration) {
-        ConnectionSourceSettingsBuilder builder = new ConnectionSourceSettingsBuilder(configuration);
-        ConnectionSourceSettings fallbackSettings = builder.build();
+        ConnectionSourceSettingsBuilder builder = new ConnectionSourceSettingsBuilder(configuration)
+        ConnectionSourceSettings fallbackSettings = builder.build()
         if (tenantResolver != null) {
-            fallbackSettings.getMultiTenancy().setTenantResolver(tenantResolver);
+            fallbackSettings.getMultiTenancy().setTenantResolver(tenantResolver)
         }
         if (customTypes != null) {
-            fallbackSettings.getCustom().getTypes().addAll(this.customTypes);
+            fallbackSettings.getCustom().getTypes().addAll(this.customTypes)
         }
-        return fallbackSettings;
+        return fallbackSettings
     }
 
     @Override
-    public ConnectionSource<T, S> create(String name, PropertyResolver configuration, ConnectionSource<T, S> fallbackConnectionSource) {
-        return create(name, configuration, fallbackConnectionSource.getSettings());
+    ConnectionSource<T, S> create(String name, PropertyResolver configuration, ConnectionSource<T, S> fallbackConnectionSource) {
+        return create(name, configuration, fallbackConnectionSource.getSettings())
     }
 
     @Override
-    public final <F extends ConnectionSourceSettings> ConnectionSource<T, S> create(String name, PropertyResolver configuration, F fallbackSettings) {
-        boolean isDefaultDataSource = ConnectionSource.DEFAULT.equals(name);
-        S settings = buildSettings(name, configuration, fallbackSettings, isDefaultDataSource);
-        return create(name, settings);
+    final <F extends ConnectionSourceSettings> ConnectionSource<T, S> create(String name, PropertyResolver configuration, F fallbackSettings) {
+        boolean isDefaultDataSource = ConnectionSource.DEFAULT.equals(name)
+        S settings = buildSettings(name, configuration, fallbackSettings, isDefaultDataSource)
+        return create(name, settings)
     }
 
     @Override
-    public ConnectionSource<T, S> createRuntime(String name, PropertyResolver configuration, S fallbackSettings) {
-        S settings = buildRuntimeSettings(name, configuration, fallbackSettings);
-        return create(name, settings);
+    ConnectionSource<T, S> createRuntime(String name, PropertyResolver configuration, S fallbackSettings) {
+        S settings = buildRuntimeSettings(name, configuration, fallbackSettings)
+        return create(name, settings)
     }
 
-    public <F extends ConnectionSourceSettings> S buildRuntimeSettings(String name, PropertyResolver configuration, F fallbackSettings) {
-        return buildSettings(name, configuration, fallbackSettings, false);
+    def <F extends ConnectionSourceSettings> S buildRuntimeSettings(String name, PropertyResolver configuration, F fallbackSettings) {
+        return buildSettings(name, configuration, fallbackSettings, false)
     }
 
-    protected abstract <F extends ConnectionSourceSettings> S buildSettings(String name, PropertyResolver configuration, F fallbackSettings, boolean isDefaultDataSource);
+    protected abstract <F extends ConnectionSourceSettings> S buildSettings(String name, PropertyResolver configuration, F fallbackSettings, boolean isDefaultDataSource)
+
 }

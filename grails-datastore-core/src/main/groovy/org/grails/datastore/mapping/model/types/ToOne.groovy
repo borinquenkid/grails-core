@@ -16,40 +16,45 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model.types;
+package org.grails.datastore.mapping.model.types
 
-import java.beans.PropertyDescriptor;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.config.Property;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import java.beans.PropertyDescriptor
+
+import org.grails.datastore.mapping.config.Property
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  * @author Graeme Rocher
  * @since 1.1
  */
-public abstract class ToOne<T extends Property> extends Association<T> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+abstract class ToOne<T extends Property> extends Association<T> {
 
     private boolean foreignKeyInChild;
 
-    public ToOne(PersistentEntity owner, MappingContext context, PropertyDescriptor descriptor) {
+    ToOne(PersistentEntity owner, MappingContext context, PropertyDescriptor descriptor) {
         super(owner, context, descriptor);
     }
 
-    public ToOne(PersistentEntity owner, MappingContext context, String name, @SuppressWarnings("rawtypes") Class type) {
+    ToOne(PersistentEntity owner, MappingContext context, String name, @SuppressWarnings('rawtypes') Class type) {
         super(owner, context, name, type);
     }
 
-    public void setForeignKeyInChild(boolean foreignKeyInChild) {
+    void setForeignKeyInChild(boolean foreignKeyInChild) {
         this.foreignKeyInChild = foreignKeyInChild;
     }
 
-    public boolean isForeignKeyInChild() {
+    boolean isForeignKeyInChild() {
         return foreignKeyInChild;
     }
 
     @Override
-    public boolean isOwningSide() {
+    boolean isOwningSide() {
         return super.isOwningSide() || isForeignKeyInChild();
     }
 }

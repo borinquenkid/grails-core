@@ -17,46 +17,49 @@
  *  under the License.
  */
 
-package org.grails.datastore.mapping.engine.event;
+package org.grails.datastore.mapping.engine.event
 
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.core.Datastore;
-import org.grails.datastore.mapping.engine.EntityAccess;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.engine.EntityAccess
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  * @author Burt Beckwith
  */
-public class ValidationEvent extends AbstractPersistenceEvent {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class ValidationEvent extends AbstractPersistenceEvent {
 
     private static final long serialVersionUID = 1;
 
     private List<?> validatedFields;
 
-    public ValidationEvent(final Datastore source, final PersistentEntity entity,
+    ValidationEvent(final Datastore source, final PersistentEntity entity,
             final EntityAccess entityAccess) {
         super(source, entity, entityAccess);
     }
 
-    public ValidationEvent(final Datastore source, final Object entity) {
+    ValidationEvent(final Datastore source, final Object entity) {
         super(source, entity);
     }
 
-    public ValidationEvent(Object source, PersistentEntity entity, EntityAccess entityAccess) {
+    ValidationEvent(Object source, PersistentEntity entity, EntityAccess entityAccess) {
         super(source, entity, entityAccess);
     }
 
-    public List<?> getValidatedFields() {
+    List<?> getValidatedFields() {
         return validatedFields;
     }
 
-    public void setValidatedFields(final List<?> fields) {
+    void setValidatedFields(final List<?> fields) {
         validatedFields = fields;
     }
 
     @Override
-    public EventType getEventType() {
+    EventType getEventType() {
         return EventType.Validation;
     }
 }

@@ -4,27 +4,25 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.core;
+package org.grails.datastore.mapping.core
 
-import groovy.lang.Closure;
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.context.ConfigurableApplicationContext
 
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ConfigurableApplicationContext;
-
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.services.ServiceRegistry;
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.services.ServiceRegistry
 
 /**
  * The <code>Datastore</code> interface is the basic common denominator all NoSQL databases should support:
@@ -37,14 +35,14 @@ import org.grails.datastore.mapping.services.ServiceRegistry;
  * @author Guillaume Laforge
  * @author Graeme Rocher
  */
-public interface Datastore extends ServiceRegistry {
+interface Datastore extends ServiceRegistry {
 
     /**
      * Connects to the datastore with the default connection details, normally provided via the datastore implementations constructor
      *
      * @return The session created using the default connection details.
      */
-    Session connect();
+    Session connect()
 
     /**
      * Obtains the current session (if any)
@@ -52,39 +50,39 @@ public interface Datastore extends ServiceRegistry {
      *
      * @throws ConnectionNotFoundException Thrown if the {@link #connect()} method has not yet been called
      */
-    Session getCurrentSession() throws ConnectionNotFoundException;
+    Session getCurrentSession() throws ConnectionNotFoundException
 
     /**
      * Checks if there is a current session.
      * @return true if there's a bound active session
      */
-    boolean hasCurrentSession();
+    boolean hasCurrentSession()
 
     /**
      * Obtains the MappingContext object
      *
      * @return The MappingContext object
      */
-    MappingContext getMappingContext();
+    MappingContext getMappingContext()
 
     /**
      * Get the application event publisher.
      * @return the publisher
      */
-    ApplicationEventPublisher getApplicationEventPublisher();
+    ApplicationEventPublisher getApplicationEventPublisher()
 
     /**
      * Get the application context.
      * @return the context
      */
-    ConfigurableApplicationContext getApplicationContext();
+    ConfigurableApplicationContext getApplicationContext()
 
     /**
      * Whether the datastore is schema-less. That is it allows changes to the schema runtime, dynamic attributes etc.
      *
      * @return True if it does
      */
-    boolean isSchemaless();
+    boolean isSchemaless()
 
     /**
      * Execute the given closure with a session
@@ -93,6 +91,6 @@ public interface Datastore extends ServiceRegistry {
      * @param <T> The return type
      * @return An instance of the return type
      */
-    public <T> T withSession(Closure<T> callable);
+    def <T> T withSession(Closure<T> callable)
 
 }

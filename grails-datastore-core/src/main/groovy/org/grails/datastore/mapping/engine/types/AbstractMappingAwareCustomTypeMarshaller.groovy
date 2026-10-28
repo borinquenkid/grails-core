@@ -16,15 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.engine.types;
+package org.grails.datastore.mapping.engine.types
 
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.core.Datastore;
-import org.grails.datastore.mapping.engine.internal.MappingUtils;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentProperty;
-import org.grails.datastore.mapping.query.Query;
+import org.springframework.dao.InvalidDataAccessResourceUsageException
+
+import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.engine.internal.MappingUtils
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentProperty
+import org.grails.datastore.mapping.query.Query
 
 /**
  * Abstract implementation of CustomTypeMarshaller interface that handles the details of getting the correct mapped key for a property
@@ -32,47 +34,49 @@ import org.grails.datastore.mapping.query.Query;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings("rawtypes")
-public abstract class AbstractMappingAwareCustomTypeMarshaller<T, N, Q> implements CustomTypeMarshaller<T, N, Q> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'UnnecessarySemicolon'])
+@CompileStatic
+abstract class AbstractMappingAwareCustomTypeMarshaller<T, N, Q> implements CustomTypeMarshaller<T, N, Q> {
 
     private Class<T> targetType;
 
-    public AbstractMappingAwareCustomTypeMarshaller(Class<T> targetType) {
+    AbstractMappingAwareCustomTypeMarshaller(Class<T> targetType) {
         this.targetType = targetType;
     }
 
     @Override
-    public boolean supports(Datastore datastore) {
+    boolean supports(Datastore datastore) {
         return true;
     }
 
-    public boolean supports(MappingContext context) {
+    boolean supports(MappingContext context) {
         return true;
     }
 
-    public Class<T> getTargetType() {
+    Class<T> getTargetType() {
         return this.targetType;
     }
 
-    public Object write(PersistentProperty property, T value, N nativeTarget) {
+    Object write(PersistentProperty property, T value, N nativeTarget) {
         String targetName = MappingUtils.getTargetKey(property);
         return writeInternal(property, targetName, value, nativeTarget);
     }
 
     protected abstract Object writeInternal(PersistentProperty property, String key, T value, N nativeTarget);
 
-    public Q query(PersistentProperty property, Query.PropertyCriterion criterion, Q nativeQuery) {
+    Q query(PersistentProperty property, Query.PropertyCriterion criterion, Q nativeQuery) {
         String targetName = MappingUtils.getTargetKey(property);
         queryInternal(property, targetName, criterion, nativeQuery);
         return nativeQuery;
     }
 
     protected void queryInternal(PersistentProperty property, String key, Query.PropertyCriterion value, Q nativeQuery) {
-        throw new InvalidDataAccessResourceUsageException("Custom type [" + getTargetType().getName() +
-                "] does not support querying");
+        throw new InvalidDataAccessResourceUsageException('Custom type [' + getTargetType().getName() +
+                '] does not support querying');
     }
 
-    public T read(PersistentProperty property, N source) {
+    T read(PersistentProperty property, N source) {
         String targetName = MappingUtils.getTargetKey(property);
         return readInternal(property, targetName, source);
     }

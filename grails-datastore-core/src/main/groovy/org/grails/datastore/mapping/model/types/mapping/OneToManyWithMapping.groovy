@@ -16,16 +16,18 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model.types.mapping;
+package org.grails.datastore.mapping.model.types.mapping
 
-import java.beans.PropertyDescriptor;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.config.Property;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.MappingFactory;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.PropertyMapping;
-import org.grails.datastore.mapping.model.types.OneToMany;
+import java.beans.PropertyDescriptor
+
+import org.grails.datastore.mapping.config.Property
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.MappingFactory
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PropertyMapping
+import org.grails.datastore.mapping.model.types.OneToMany
 
 /**
  * A {@link org.grails.datastore.mapping.model.types.OneToMany} property with a {@link org.grails.datastore.mapping.model.PropertyMapping}
@@ -35,30 +37,33 @@ import org.grails.datastore.mapping.model.types.OneToMany;
  * @author Graeme Rocher
  * @since 1.0
  */
-public class OneToManyWithMapping<T extends Property> extends OneToMany<T> implements PropertyWithMapping<T> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class OneToManyWithMapping<T extends Property> extends OneToMany<T> implements PropertyWithMapping<T> {
 
     protected PropertyMapping<T> propertyMapping;
 
-    public OneToManyWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property) {
+    OneToManyWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property) {
         super(entity, context, property);
     }
 
-    public OneToManyWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property, PropertyMapping<T> propertyMapping) {
+    OneToManyWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property, PropertyMapping<T> propertyMapping) {
         super(entity, context, property);
         this.propertyMapping = propertyMapping;
     }
 
     @Override
-    public PropertyMapping<T> getMapping() {
+    PropertyMapping<T> getMapping() {
         return propertyMapping;
     }
 
-    public void setMapping(PropertyMapping<T> propertyMapping) {
+    void setMapping(PropertyMapping<T> propertyMapping) {
         this.propertyMapping = propertyMapping;
     }
 
     @Override
-    public String toString() {
-        return MappingFactory.associationtoString("one-to-many: ", this);
+    String toString() {
+        return MappingFactory.associationtoString('one-to-many: ', this);
     }
 }

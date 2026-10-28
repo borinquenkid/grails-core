@@ -17,17 +17,13 @@
  *  under the License.
  */
 
-package org.grails.datastore.mapping.collection;
+package org.grails.datastore.mapping.collection
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.core.Session;
-import org.grails.datastore.mapping.engine.AssociationQueryExecutor;
-import org.grails.datastore.mapping.model.types.Association;
+import org.grails.datastore.mapping.core.Session
+import org.grails.datastore.mapping.engine.AssociationQueryExecutor
+import org.grails.datastore.mapping.model.types.Association
 
 /**
  * A lazy loaded sorted set.
@@ -35,25 +31,28 @@ import org.grails.datastore.mapping.model.types.Association;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings({ "rawtypes", "unchecked" })
-public class PersistentSortedSet extends AbstractPersistentCollection implements SortedSet {
-    public PersistentSortedSet(Association association, Serializable associationKey, Session session) {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings([ 'rawtypes', 'unchecked', 'UnnecessarySemicolon'])
+@CompileStatic
+class PersistentSortedSet extends AbstractPersistentCollection implements SortedSet {
+
+    PersistentSortedSet(Association association, Serializable associationKey, Session session) {
         super(association, associationKey, session, new TreeSet());
     }
 
-    public PersistentSortedSet(Class childType, Session session, SortedSet collection) {
+    PersistentSortedSet(Class childType, Session session, SortedSet collection) {
         super(childType, session, collection);
     }
 
-    public PersistentSortedSet(Collection keys, Class childType, Session session) {
+    PersistentSortedSet(Collection keys, Class childType, Session session) {
         super(keys, childType, session, new TreeSet());
     }
 
-    public PersistentSortedSet(Serializable associationKey, Session session, AssociationQueryExecutor indexer) {
+    PersistentSortedSet(Serializable associationKey, Session session, AssociationQueryExecutor indexer) {
         super(associationKey, session, indexer, new TreeSet());
     }
 
-    public Comparator comparator() {
+    Comparator comparator() {
         return getSortedSet().comparator();
     }
 
@@ -62,23 +61,23 @@ public class PersistentSortedSet extends AbstractPersistentCollection implements
         return ((SortedSet) collection);
     }
 
-    public SortedSet subSet(Object o, Object o1) {
+    SortedSet subSet(Object o, Object o1) {
         return getSortedSet().subSet(o, o1);
     }
 
-    public SortedSet headSet(Object o) {
+    SortedSet headSet(Object o) {
         return getSortedSet().headSet(o);
     }
 
-    public SortedSet tailSet(Object o) {
+    SortedSet tailSet(Object o) {
         return getSortedSet().tailSet(o);
     }
 
-    public Object first() {
+    Object first() {
         return getSortedSet().first();
     }
 
-    public Object last() {
+    Object last() {
         return getSortedSet().last();
     }
 }

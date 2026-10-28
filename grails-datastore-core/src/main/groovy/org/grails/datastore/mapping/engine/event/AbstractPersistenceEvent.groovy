@@ -16,35 +16,35 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.engine.event;
+package org.grails.datastore.mapping.engine.event
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEvent
 
-import org.grails.datastore.mapping.core.Datastore;
-import org.grails.datastore.mapping.engine.EntityAccess;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.engine.EntityAccess
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  * @author Burt Beckwith
  */
-@SuppressWarnings("serial")
-public abstract class AbstractPersistenceEvent extends ApplicationEvent {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['serial', 'UnnecessarySemicolon'])
+@CompileStatic
+abstract class AbstractPersistenceEvent extends ApplicationEvent {
 
-    public static final String ONLOAD_EVENT = "onLoad";
-    public static final String ONLOAD_SAVE = "onSave";
-    public static final String BEFORE_LOAD_EVENT = "beforeLoad";
-    public static final String BEFORE_INSERT_EVENT = "beforeInsert";
-    public static final String AFTER_INSERT_EVENT = "afterInsert";
-    public static final String BEFORE_UPDATE_EVENT = "beforeUpdate";
-    public static final String AFTER_UPDATE_EVENT = "afterUpdate";
-    public static final String BEFORE_DELETE_EVENT = "beforeDelete";
-    public static final String AFTER_DELETE_EVENT = "afterDelete";
-    public static final String AFTER_LOAD_EVENT = "afterLoad";
+    public static final String ONLOAD_EVENT = 'onLoad';
+    public static final String ONLOAD_SAVE = 'onSave';
+    public static final String BEFORE_LOAD_EVENT = 'beforeLoad';
+    public static final String BEFORE_INSERT_EVENT = 'beforeInsert';
+    public static final String AFTER_INSERT_EVENT = 'afterInsert';
+    public static final String BEFORE_UPDATE_EVENT = 'beforeUpdate';
+    public static final String AFTER_UPDATE_EVENT = 'afterUpdate';
+    public static final String BEFORE_DELETE_EVENT = 'beforeDelete';
+    public static final String AFTER_DELETE_EVENT = 'afterDelete';
+    public static final String AFTER_LOAD_EVENT = 'afterLoad';
 
     private final PersistentEntity entity;
     private final Object entityObject;
@@ -88,41 +88,41 @@ public abstract class AbstractPersistenceEvent extends ApplicationEvent {
         }
     }
 
-    public Object getEntityObject() {
+    Object getEntityObject() {
         return entityObject;
     }
 
-    public PersistentEntity getEntity() {
+    PersistentEntity getEntity() {
         return entity;
     }
 
-    public EntityAccess getEntityAccess() {
+    EntityAccess getEntityAccess() {
         return entityAccess;
     }
 
-    public void cancel() {
+    void cancel() {
         cancelled = true;
     }
 
-    public boolean isCancelled() {
+    boolean isCancelled() {
         return cancelled;
     }
 
-    public void addExcludedListenerName(final String name) {
+    void addExcludedListenerName(final String name) {
         excludedListenerNames.add(name);
     }
 
-    public boolean isListenerExcluded(final String name) {
+    boolean isListenerExcluded(final String name) {
         return excludedListenerNames.contains(name);
     }
 
-    public void setNativeEvent(final Serializable nativeEvent) {
+    void setNativeEvent(final Serializable nativeEvent) {
         this.nativeEvent = nativeEvent;
     }
 
-    public Serializable getNativeEvent() {
+    Serializable getNativeEvent() {
         return nativeEvent;
     }
 
-    public abstract EventType getEventType();
+    abstract EventType getEventType();
 }

@@ -16,31 +16,24 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.query.jpa;
+package org.grails.datastore.mapping.query.jpa
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import groovy.transform.CompileStatic
 
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.core.convert.ConversionService
+import org.springframework.core.convert.support.GenericConversionService
+import org.springframework.dao.InvalidDataAccessResourceUsageException
 
-import org.grails.datastore.mapping.core.exceptions.ConfigurationException;
-import org.grails.datastore.mapping.model.AbstractPersistentEntity;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.PersistentProperty;
-import org.grails.datastore.mapping.model.types.Association;
-import org.grails.datastore.mapping.model.types.ToOne;
-import org.grails.datastore.mapping.query.AssociationQuery;
-import org.grails.datastore.mapping.query.Query;
-import org.grails.datastore.mapping.query.api.AssociationCriteria;
-import org.grails.datastore.mapping.query.api.QueryableCriteria;
+import org.grails.datastore.mapping.core.exceptions.ConfigurationException
+import org.grails.datastore.mapping.model.AbstractPersistentEntity
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PersistentProperty
+import org.grails.datastore.mapping.model.types.Association
+import org.grails.datastore.mapping.model.types.ToOne
+import org.grails.datastore.mapping.query.AssociationQuery
+import org.grails.datastore.mapping.query.Query
+import org.grails.datastore.mapping.query.api.AssociationCriteria
+import org.grails.datastore.mapping.query.api.QueryableCriteria
 
 /**
  * Builds JPA 1.0 String-based queries from the Query model
@@ -48,29 +41,32 @@ import org.grails.datastore.mapping.query.api.QueryableCriteria;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class JpaQueryBuilder {
-    private static final String DISTINCT_CLAUSE = "DISTINCT ";
-    private static final String SELECT_CLAUSE = "SELECT ";
-    private static final String AS_CLAUSE = " AS ";
-    private static final String FROM_CLAUSE = " FROM ";
-    private static final String ORDER_BY_CLAUSE = " ORDER BY ";
-    private static final String WHERE_CLAUSE = " WHERE ";
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'unchecked', 'UnnecessarySemicolon'])
+@CompileStatic
+class JpaQueryBuilder {
+
+    private static final String DISTINCT_CLAUSE = 'DISTINCT ';
+    private static final String SELECT_CLAUSE = 'SELECT ';
+    private static final String AS_CLAUSE = ' AS ';
+    private static final String FROM_CLAUSE = ' FROM ';
+    private static final String ORDER_BY_CLAUSE = ' ORDER BY ';
+    private static final String WHERE_CLAUSE = ' WHERE ';
     private static final char COMMA = ',';
     private static final char CLOSE_BRACKET = ')';
     private static final char OPEN_BRACKET = '(';
     private static final char SPACE = ' ';
     private static final char QUESTIONMARK = '?';
     private static final char DOT = '.';
-    public static final String NOT_CLAUSE = " NOT";
-    public static final String LOGICAL_AND = " AND ";
-    public static final String UPDATE_CLAUSE = "UPDATE ";
-    public static final String DELETE_CLAUSE = "DELETE FROM ";
+    public static final String NOT_CLAUSE = ' NOT';
+    public static final String LOGICAL_AND = ' AND ';
+    public static final String UPDATE_CLAUSE = 'UPDATE ';
+    public static final String DELETE_CLAUSE = 'DELETE FROM ';
 
-    public static final String LOGICAL_OR = " OR ";
+    public static final String LOGICAL_OR = ' OR ';
     private static final Map<Class, QueryHandler> queryHandlers = new HashMap<>();
-    public static final String PARAMETER_NAME_PREFIX = "p";
-    private static final String PARAMETER_PREFIX = ":p";
+    public static final String PARAMETER_NAME_PREFIX = 'p';
+    private static final String PARAMETER_PREFIX = ':p';
     private PersistentEntity entity;
     private Query.Junction criteria;
     private Query.ProjectionList projectionList = new Query.ProjectionList();
@@ -79,46 +75,46 @@ public class JpaQueryBuilder {
     private ConversionService conversionService = new GenericConversionService();
     private boolean hibernateCompatible;
 
-    public JpaQueryBuilder(QueryableCriteria criteria) {
+    JpaQueryBuilder(QueryableCriteria criteria) {
         this(criteria.getPersistentEntity(), criteria.getCriteria());
     }
 
-    public JpaQueryBuilder(PersistentEntity entity, List<Query.Criterion> criteria) {
+    JpaQueryBuilder(PersistentEntity entity, List<Query.Criterion> criteria) {
         this(entity, new Query.Conjunction(criteria));
     }
 
-    public JpaQueryBuilder(PersistentEntity entity, List<Query.Criterion> criteria, Query.ProjectionList projectionList) {
+    JpaQueryBuilder(PersistentEntity entity, List<Query.Criterion> criteria, Query.ProjectionList projectionList) {
         this(entity, new Query.Conjunction(criteria), projectionList);
     }
 
-    public JpaQueryBuilder(PersistentEntity entity, List<Query.Criterion> criteria, Query.ProjectionList projectionList, List<Query.Order> orders) {
+    JpaQueryBuilder(PersistentEntity entity, List<Query.Criterion> criteria, Query.ProjectionList projectionList, List<Query.Order> orders) {
         this(entity, new Query.Conjunction(criteria), projectionList, orders);
     }
 
-    public JpaQueryBuilder(PersistentEntity entity, Query.Junction criteria) {
+    JpaQueryBuilder(PersistentEntity entity, Query.Junction criteria) {
         if (entity == null) {
-            throw new ConfigurationException("No persistent entity specified for JPA query builder");
+            throw new ConfigurationException('No persistent entity specified for JPA query builder');
         }
         this.entity = entity;
         this.criteria = criteria;
         this.logicalName = entity.getDecapitalizedName();
     }
 
-    public JpaQueryBuilder(PersistentEntity entity, Query.Junction criteria, Query.ProjectionList projectionList) {
+    JpaQueryBuilder(PersistentEntity entity, Query.Junction criteria, Query.ProjectionList projectionList) {
         this(entity, criteria);
         this.projectionList = projectionList;
     }
 
-    public JpaQueryBuilder(PersistentEntity entity, Query.Junction criteria, Query.ProjectionList projectionList, List<Query.Order> orders) {
+    JpaQueryBuilder(PersistentEntity entity, Query.Junction criteria, Query.ProjectionList projectionList, List<Query.Order> orders) {
         this(entity, criteria, projectionList);
         this.orders = orders;
     }
 
-    public void setHibernateCompatible(boolean hibernateCompatible) {
+    void setHibernateCompatible(boolean hibernateCompatible) {
         this.hibernateCompatible = hibernateCompatible;
     }
 
-    public void setConversionService(ConversionService conversionService) {
+    void setConversionService(ConversionService conversionService) {
         this.conversionService = conversionService;
     }
 
@@ -128,9 +124,9 @@ public class JpaQueryBuilder {
      * @param propertiesToUpdate THe properties to update
      * @return The JpaQueryInfo object
      */
-    public JpaQueryInfo buildUpdate(Map<String, Object> propertiesToUpdate) {
+    JpaQueryInfo buildUpdate(Map<String, Object> propertiesToUpdate) {
         if (propertiesToUpdate.isEmpty()) {
-            throw new InvalidDataAccessResourceUsageException("No properties specified to update");
+            throw new InvalidDataAccessResourceUsageException('No properties specified to update');
         }
         StringBuilder queryString = new StringBuilder(UPDATE_CLAUSE).append(entity.getName()).append(SPACE).append(logicalName);
 
@@ -146,7 +142,7 @@ public class JpaQueryBuilder {
      *
      * @return The JpaQueryInfo
      */
-    public JpaQueryInfo buildDelete() {
+    JpaQueryInfo buildDelete() {
         StringBuilder queryString = new StringBuilder(DELETE_CLAUSE).append(entity.getName()).append(SPACE).append(logicalName);
         StringBuilder whereClause = new StringBuilder();
         List parameters = buildWhereClause(entity, criteria, queryString, whereClause, logicalName, false);
@@ -158,7 +154,7 @@ public class JpaQueryBuilder {
      *
      * @return The JpaQueryInfo
      */
-    public JpaQueryInfo buildSelect() {
+    JpaQueryInfo buildSelect() {
         StringBuilder queryString = new StringBuilder(SELECT_CLAUSE);
 
         buildSelectClause(queryString);
@@ -185,7 +181,7 @@ public class JpaQueryBuilder {
                 .append(logicalName);
     }
 
-    private static void buildSelect(StringBuilder queryString, List<Query.Projection> projectionList, String logicalName, PersistentEntity entity) {
+    static void buildSelect(StringBuilder queryString, List<Query.Projection> projectionList, String logicalName, PersistentEntity entity) {
         if (projectionList.isEmpty()) {
             queryString.append(DISTINCT_CLAUSE)
                     .append(logicalName);
@@ -194,7 +190,7 @@ public class JpaQueryBuilder {
             for (Iterator i = projectionList.iterator(); i.hasNext();) {
                 Query.Projection projection = (Query.Projection) i.next();
                 if (projection instanceof Query.CountProjection) {
-                    queryString.append("COUNT(")
+                    queryString.append('COUNT(')
                             .append(logicalName)
                             .append(CLOSE_BRACKET);
                 }
@@ -206,35 +202,35 @@ public class JpaQueryBuilder {
                 else if (projection instanceof Query.PropertyProjection) {
                     Query.PropertyProjection pp = (Query.PropertyProjection) projection;
                     if (projection instanceof Query.AvgProjection) {
-                        queryString.append("AVG(")
+                        queryString.append('AVG(')
                                 .append(logicalName)
                                 .append(DOT)
                                 .append(pp.getPropertyName())
                                 .append(CLOSE_BRACKET);
                     }
                     else if (projection instanceof Query.SumProjection) {
-                        queryString.append("SUM(")
+                        queryString.append('SUM(')
                                 .append(logicalName)
                                 .append(DOT)
                                 .append(pp.getPropertyName())
                                 .append(CLOSE_BRACKET);
                     }
                     else if (projection instanceof Query.MinProjection) {
-                        queryString.append("MIN(")
+                        queryString.append('MIN(')
                                 .append(logicalName)
                                 .append(DOT)
                                 .append(pp.getPropertyName())
                                 .append(CLOSE_BRACKET);
                     }
                     else if (projection instanceof Query.MaxProjection) {
-                        queryString.append("MAX(")
+                        queryString.append('MAX(')
                                 .append(logicalName)
                                 .append(DOT)
                                 .append(pp.getPropertyName())
                                 .append(CLOSE_BRACKET);
                     }
                     else if (projection instanceof Query.CountDistinctProjection) {
-                        queryString.append("COUNT(DISTINCT ")
+                        queryString.append('COUNT(DISTINCT ')
                                 .append(logicalName)
                                 .append(DOT)
                                 .append(pp.getPropertyName())
@@ -254,7 +250,7 @@ public class JpaQueryBuilder {
         }
     }
 
-    static public int appendCriteriaForOperator(StringBuilder q,
+    static int appendCriteriaForOperator(StringBuilder q,
                                                 String logicalName, final String name, int position, String operator, boolean hibernateCompatible) {
         q.append(logicalName)
             .append(DOT)
@@ -267,13 +263,13 @@ public class JpaQueryBuilder {
 
     static {
 
-        queryHandlers.put(AssociationQuery.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion,
+        queryHandlers.put(AssociationQuery, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion,
                               StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters,
                               ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
 
                 if (!allowJoins) {
-                    throw new InvalidDataAccessResourceUsageException("Joins cannot be used in a DELETE or UPDATE operation");
+                    throw new InvalidDataAccessResourceUsageException('Joins cannot be used in a DELETE or UPDATE operation');
                 }
                 AssociationQuery aq = (AssociationQuery) criterion;
                 final Association<?> association = aq.getAssociation();
@@ -284,8 +280,8 @@ public class JpaQueryBuilder {
             }
         });
 
-        queryHandlers.put(Query.Negation.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion,
+        queryHandlers.put(Query.Negation, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion,
                               StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters,
                               ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
 
@@ -300,8 +296,8 @@ public class JpaQueryBuilder {
             }
         });
 
-        queryHandlers.put(Query.Conjunction.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion,
+        queryHandlers.put(Query.Conjunction, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion,
                               StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters,
                               ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 whereClause.append(OPEN_BRACKET);
@@ -314,8 +310,8 @@ public class JpaQueryBuilder {
             }
         });
 
-        queryHandlers.put(Query.Disjunction.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion,
+        queryHandlers.put(Query.Disjunction, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion,
                               StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters,
                               ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 whereClause.append(OPEN_BRACKET);
@@ -328,229 +324,229 @@ public class JpaQueryBuilder {
             }
         });
 
-        queryHandlers.put(Query.Equals.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.Equals, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.Equals eq = (Query.Equals) criterion;
                 final String name = eq.getProperty();
-                PersistentProperty prop = validateProperty(entity, name, Query.Equals.class);
+                PersistentProperty prop = validateProperty(entity, name, Query.Equals);
                 Class propType = prop.getType();
-                position = appendCriteriaForOperator(whereClause, logicalName, name, position, "=", hibernateCompatible);
+                position = appendCriteriaForOperator(whereClause, logicalName, name, position, '=', hibernateCompatible);
                 parameters.add(conversionService.convert(eq.getValue(), propType));
                 return position;
             }
         });
 
-        queryHandlers.put(Query.EqualsProperty.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.EqualsProperty, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.EqualsProperty eq = (Query.EqualsProperty) criterion;
                 final String propertyName = eq.getProperty();
                 String otherProperty = eq.getOtherProperty();
 
-                validateProperty(entity, propertyName, Query.EqualsProperty.class);
-                validateProperty(entity, otherProperty, Query.EqualsProperty.class);
-                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, "=");
+                validateProperty(entity, propertyName, Query.EqualsProperty);
+                validateProperty(entity, otherProperty, Query.EqualsProperty);
+                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, '=');
                 return position;
             }
         });
 
-        queryHandlers.put(Query.NotEqualsProperty.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.NotEqualsProperty, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.PropertyComparisonCriterion eq = (Query.PropertyComparisonCriterion) criterion;
                 final String propertyName = eq.getProperty();
                 String otherProperty = eq.getOtherProperty();
 
-                validateProperty(entity, propertyName, Query.NotEqualsProperty.class);
-                validateProperty(entity, otherProperty, Query.NotEqualsProperty.class);
-                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, "!=");
+                validateProperty(entity, propertyName, Query.NotEqualsProperty);
+                validateProperty(entity, otherProperty, Query.NotEqualsProperty);
+                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, '!=');
                 return position;
             }
         });
 
-        queryHandlers.put(Query.GreaterThanProperty.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.GreaterThanProperty, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.PropertyComparisonCriterion eq = (Query.PropertyComparisonCriterion) criterion;
                 final String propertyName = eq.getProperty();
                 String otherProperty = eq.getOtherProperty();
 
-                validateProperty(entity, propertyName, Query.GreaterThanProperty.class);
-                validateProperty(entity, otherProperty, Query.GreaterThanProperty.class);
-                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, ">");
+                validateProperty(entity, propertyName, Query.GreaterThanProperty);
+                validateProperty(entity, otherProperty, Query.GreaterThanProperty);
+                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, '>');
                 return position;
             }
         });
 
-        queryHandlers.put(Query.GreaterThanEqualsProperty.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.GreaterThanEqualsProperty, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.PropertyComparisonCriterion eq = (Query.PropertyComparisonCriterion) criterion;
                 final String propertyName = eq.getProperty();
                 String otherProperty = eq.getOtherProperty();
 
-                validateProperty(entity, propertyName, Query.GreaterThanEqualsProperty.class);
-                validateProperty(entity, otherProperty, Query.GreaterThanEqualsProperty.class);
-                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, ">=");
+                validateProperty(entity, propertyName, Query.GreaterThanEqualsProperty);
+                validateProperty(entity, otherProperty, Query.GreaterThanEqualsProperty);
+                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, '>=');
                 return position;
             }
         });
 
-        queryHandlers.put(Query.LessThanProperty.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.LessThanProperty, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.PropertyComparisonCriterion eq = (Query.PropertyComparisonCriterion) criterion;
                 final String propertyName = eq.getProperty();
                 String otherProperty = eq.getOtherProperty();
 
-                validateProperty(entity, propertyName, Query.LessThanProperty.class);
-                validateProperty(entity, otherProperty, Query.LessThanProperty.class);
-                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, "<");
+                validateProperty(entity, propertyName, Query.LessThanProperty);
+                validateProperty(entity, otherProperty, Query.LessThanProperty);
+                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, '<');
                 return position;
             }
         });
 
-        queryHandlers.put(Query.LessThanEqualsProperty.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.LessThanEqualsProperty, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.PropertyComparisonCriterion eq = (Query.PropertyComparisonCriterion) criterion;
                 final String propertyName = eq.getProperty();
                 String otherProperty = eq.getOtherProperty();
 
-                validateProperty(entity, propertyName, Query.LessThanEqualsProperty.class);
-                validateProperty(entity, otherProperty, Query.LessThanEqualsProperty.class);
-                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, "<=");
+                validateProperty(entity, propertyName, Query.LessThanEqualsProperty);
+                validateProperty(entity, otherProperty, Query.LessThanEqualsProperty);
+                appendPropertyComparison(whereClause, logicalName, propertyName, otherProperty, '<=');
                 return position;
             }
         });
 
-        queryHandlers.put(Query.IsNull.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.IsNull, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.IsNull isNull = (Query.IsNull) criterion;
                 final String name = isNull.getProperty();
-                validateProperty(entity, name, Query.IsNull.class);
+                validateProperty(entity, name, Query.IsNull);
                 whereClause.append(logicalName)
                            .append(DOT)
                            .append(name)
-                           .append(" IS NULL ");
+                           .append(' IS NULL ');
 
                 return position;
             }
         });
 
-        queryHandlers.put(Query.IsNotNull.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.IsNotNull, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.IsNotNull isNotNull = (Query.IsNotNull) criterion;
                 final String name = isNotNull.getProperty();
-                validateProperty(entity, name, Query.IsNotNull.class);
+                validateProperty(entity, name, Query.IsNotNull);
                 whereClause.append(logicalName)
                            .append(DOT)
                            .append(name)
-                           .append(" IS NOT NULL ");
+                           .append(' IS NOT NULL ');
 
                 return position;
             }
         });
 
-        queryHandlers.put(Query.IsEmpty.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.IsEmpty, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.IsEmpty isEmpty = (Query.IsEmpty) criterion;
                 final String name = isEmpty.getProperty();
-                validateProperty(entity, name, Query.IsEmpty.class);
+                validateProperty(entity, name, Query.IsEmpty);
                 whereClause.append(logicalName)
                            .append(DOT)
                            .append(name)
-                           .append(" IS EMPTY ");
+                           .append(' IS EMPTY ');
 
                 return position;
             }
         });
 
-        queryHandlers.put(Query.IsNotEmpty.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.IsNotEmpty, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.IsNotEmpty isNotEmpty = (Query.IsNotEmpty) criterion;
                 final String name = isNotEmpty.getProperty();
-                validateProperty(entity, name, Query.IsNotEmpty.class);
+                validateProperty(entity, name, Query.IsNotEmpty);
                 whereClause.append(logicalName)
                            .append(DOT)
                            .append(name)
-                           .append(" IS NOT EMPTY ");
+                           .append(' IS NOT EMPTY ');
 
                 return position;
             }
         });
 
-        queryHandlers.put(Query.IdEquals.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.IdEquals, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.IdEquals eq = (Query.IdEquals) criterion;
                 PersistentProperty prop = entity.getIdentity();
                 Class propType = prop.getType();
-                position = appendCriteriaForOperator(whereClause, logicalName, prop.getName(), position, "=", hibernateCompatible);
+                position = appendCriteriaForOperator(whereClause, logicalName, prop.getName(), position, '=', hibernateCompatible);
                 parameters.add(conversionService.convert(eq.getValue(), propType));
                 return position;
             }
         });
 
-        queryHandlers.put(Query.NotEquals.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.NotEquals, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.NotEquals eq = (Query.NotEquals) criterion;
                 final String name = eq.getProperty();
-                PersistentProperty prop = validateProperty(entity, name, Query.NotEquals.class);
+                PersistentProperty prop = validateProperty(entity, name, Query.NotEquals);
                 Class propType = prop.getType();
-                position = appendCriteriaForOperator(whereClause, logicalName, name, position, " != ", hibernateCompatible);
+                position = appendCriteriaForOperator(whereClause, logicalName, name, position, ' != ', hibernateCompatible);
                 parameters.add(conversionService.convert(eq.getValue(), propType));
                 return position;
             }
         });
 
-        queryHandlers.put(Query.GreaterThan.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.GreaterThan, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.GreaterThan eq = (Query.GreaterThan) criterion;
                 final String name = eq.getProperty();
-                PersistentProperty prop = validateProperty(entity, name, Query.GreaterThan.class);
+                PersistentProperty prop = validateProperty(entity, name, Query.GreaterThan);
                 Class propType = prop.getType();
-                position = appendCriteriaForOperator(whereClause, logicalName, name, position, " > ", hibernateCompatible);
+                position = appendCriteriaForOperator(whereClause, logicalName, name, position, ' > ', hibernateCompatible);
                 parameters.add(conversionService.convert(eq.getValue(), propType));
                 return position;
             }
         });
 
-        queryHandlers.put(Query.LessThanEquals.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.LessThanEquals, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.LessThanEquals eq = (Query.LessThanEquals) criterion;
                 final String name = eq.getProperty();
-                PersistentProperty prop = validateProperty(entity, name, Query.LessThanEquals.class);
+                PersistentProperty prop = validateProperty(entity, name, Query.LessThanEquals);
                 Class propType = prop.getType();
-                position = appendCriteriaForOperator(whereClause, logicalName, name, position, " <= ", hibernateCompatible);
+                position = appendCriteriaForOperator(whereClause, logicalName, name, position, ' <= ', hibernateCompatible);
                 parameters.add(conversionService.convert(eq.getValue(), propType));
                 return position;
             }
         });
 
-        queryHandlers.put(Query.GreaterThanEquals.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.GreaterThanEquals, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.GreaterThanEquals eq = (Query.GreaterThanEquals) criterion;
                 final String name = eq.getProperty();
-                PersistentProperty prop = validateProperty(entity, name, Query.GreaterThanEquals.class);
+                PersistentProperty prop = validateProperty(entity, name, Query.GreaterThanEquals);
                 Class propType = prop.getType();
-                position = appendCriteriaForOperator(whereClause, logicalName, name, position, " >= ", hibernateCompatible);
+                position = appendCriteriaForOperator(whereClause, logicalName, name, position, ' >= ', hibernateCompatible);
                 parameters.add(conversionService.convert(eq.getValue(), propType));
                 return position;
             }
         });
 
-        queryHandlers.put(Query.Between.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.Between, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.Between between = (Query.Between) criterion;
                 final Object from = between.getFrom();
                 final Object to = between.getTo();
 
                 final String name = between.getProperty();
-                PersistentProperty prop = validateProperty(entity, name, Query.Between.class);
+                PersistentProperty prop = validateProperty(entity, name, Query.Between);
                 Class propType = prop.getType();
                 final String qualifiedName = logicalName + DOT + name;
                 whereClause.append(OPEN_BRACKET)
                            .append(qualifiedName)
-                           .append(" >= ")
+                           .append(' >= ')
                            .append(PARAMETER_PREFIX)
                            .append(++position);
-                whereClause.append(" AND ")
+                whereClause.append(' AND ')
                            .append(qualifiedName)
-                           .append(" <= ")
+                           .append(' <= ')
                            .append(PARAMETER_PREFIX)
                            .append(++position)
                            .append(CLOSE_BRACKET);
@@ -561,60 +557,60 @@ public class JpaQueryBuilder {
             }
         });
 
-        queryHandlers.put(Query.LessThan.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.LessThan, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.LessThan eq = (Query.LessThan) criterion;
                 final String name = eq.getProperty();
-                PersistentProperty prop = validateProperty(entity, name, Query.LessThan.class);
+                PersistentProperty prop = validateProperty(entity, name, Query.LessThan);
                 Class propType = prop.getType();
-                position = appendCriteriaForOperator(whereClause, logicalName, name, position, " < ", hibernateCompatible);
+                position = appendCriteriaForOperator(whereClause, logicalName, name, position, ' < ', hibernateCompatible);
                 parameters.add(conversionService.convert(eq.getValue(), propType));
                 return position;
             }
         });
 
-        queryHandlers.put(Query.Like.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.Like, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.Like eq = (Query.Like) criterion;
                 final String name = eq.getProperty();
-                PersistentProperty prop = validateProperty(entity, name, Query.Like.class);
+                PersistentProperty prop = validateProperty(entity, name, Query.Like);
                 Class propType = prop.getType();
-                position = appendCriteriaForOperator(whereClause, logicalName, name, position, " like ", hibernateCompatible);
+                position = appendCriteriaForOperator(whereClause, logicalName, name, position, ' like ', hibernateCompatible);
                 parameters.add(conversionService.convert(eq.getValue(), propType));
                 return position;
             }
         });
 
-        queryHandlers.put(Query.ILike.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.ILike, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.ILike eq = (Query.ILike) criterion;
                 final String name = eq.getProperty();
-                PersistentProperty prop = validateProperty(entity, name, Query.ILike.class);
+                PersistentProperty prop = validateProperty(entity, name, Query.ILike);
                 Class propType = prop.getType();
-                whereClause.append("lower(")
+                whereClause.append('lower(')
                     .append(logicalName)
                     .append(DOT)
                     .append(name)
-                    .append(")")
-                    .append(" like lower(")
+                    .append(')')
+                    .append(' like lower(')
                     .append(PARAMETER_PREFIX)
                     .append(++position)
-                    .append(")");
+                    .append(')');
                 parameters.add(conversionService.convert(eq.getValue(), propType));
                 return position;
             }
         });
 
-        queryHandlers.put(Query.In.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.In, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.In inQuery = (Query.In) criterion;
                 final String name = inQuery.getProperty();
-                PersistentProperty prop = validateProperty(entity, name, Query.In.class);
+                PersistentProperty prop = validateProperty(entity, name, Query.In);
                 Class propType = prop.getType();
                 whereClause.append(logicalName)
                            .append(DOT)
                            .append(name)
-                           .append(" IN (");
+                           .append(' IN (');
                 QueryableCriteria subquery = inQuery.getSubquery();
                 if (subquery != null) {
                     buildSubQuery(q, whereClause, position, parameters, conversionService, allowJoins, hibernateCompatible, subquery);
@@ -636,127 +632,127 @@ public class JpaQueryBuilder {
             }
         });
 
-        queryHandlers.put(Query.NotIn.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.NotIn, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.NotIn notIn = (Query.NotIn) criterion;
-                String comparisonExpression = " NOT IN (";
+                String comparisonExpression = ' NOT IN (';
                 return handleSubQuery(entity, q, whereClause, logicalName, position, parameters, conversionService, allowJoins, hibernateCompatible, notIn, comparisonExpression);
             }
         });
 
-        queryHandlers.put(Query.EqualsAll.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.EqualsAll, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.EqualsAll equalsAll = (Query.EqualsAll) criterion;
-                String comparisonExpression = " = ALL (";
+                String comparisonExpression = ' = ALL (';
                 return handleSubQuery(entity, q, whereClause, logicalName, position, parameters, conversionService, allowJoins, hibernateCompatible, equalsAll, comparisonExpression);
             }
         });
 
-        queryHandlers.put(Query.NotEqualsAll.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.NotEqualsAll, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.SubqueryCriterion equalsAll = (Query.SubqueryCriterion) criterion;
-                String comparisonExpression = " != ALL (";
+                String comparisonExpression = ' != ALL (';
                 return handleSubQuery(entity, q, whereClause, logicalName, position, parameters, conversionService, allowJoins, hibernateCompatible, equalsAll, comparisonExpression);
             }
         });
 
-        queryHandlers.put(Query.GreaterThanAll.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.GreaterThanAll, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.SubqueryCriterion equalsAll = (Query.SubqueryCriterion) criterion;
-                String comparisonExpression = " > ALL (";
+                String comparisonExpression = ' > ALL (';
                 return handleSubQuery(entity, q, whereClause, logicalName, position, parameters, conversionService, allowJoins, hibernateCompatible, equalsAll, comparisonExpression);
             }
         });
 
-        queryHandlers.put(Query.GreaterThanSome.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.GreaterThanSome, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.SubqueryCriterion equalsAll = (Query.SubqueryCriterion) criterion;
-                String comparisonExpression = " > SOME (";
+                String comparisonExpression = ' > SOME (';
                 return handleSubQuery(entity, q, whereClause, logicalName, position, parameters, conversionService, allowJoins, hibernateCompatible, equalsAll, comparisonExpression);
             }
         });
 
-        queryHandlers.put(Query.GreaterThanEqualsAll.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.GreaterThanEqualsAll, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.SubqueryCriterion equalsAll = (Query.SubqueryCriterion) criterion;
-                String comparisonExpression = " >= ALL (";
+                String comparisonExpression = ' >= ALL (';
                 return handleSubQuery(entity, q, whereClause, logicalName, position, parameters, conversionService, allowJoins, hibernateCompatible, equalsAll, comparisonExpression);
             }
         });
 
-        queryHandlers.put(Query.GreaterThanEqualsSome.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.GreaterThanEqualsSome, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.SubqueryCriterion equalsAll = (Query.SubqueryCriterion) criterion;
-                String comparisonExpression = " >= SOME (";
+                String comparisonExpression = ' >= SOME (';
                 return handleSubQuery(entity, q, whereClause, logicalName, position, parameters, conversionService, allowJoins, hibernateCompatible, equalsAll, comparisonExpression);
             }
         });
 
-        queryHandlers.put(Query.LessThanAll.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.LessThanAll, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.SubqueryCriterion subqueryCriterion = (Query.SubqueryCriterion) criterion;
-                String comparisonExpression = " < ALL (";
+                String comparisonExpression = ' < ALL (';
                 return handleSubQuery(entity, q, whereClause, logicalName, position, parameters, conversionService, allowJoins, hibernateCompatible, subqueryCriterion, comparisonExpression);
             }
         });
 
-        queryHandlers.put(Query.LessThanSome.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.LessThanSome, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.SubqueryCriterion subqueryCriterion = (Query.SubqueryCriterion) criterion;
-                String comparisonExpression = " < SOME (";
+                String comparisonExpression = ' < SOME (';
                 return handleSubQuery(entity, q, whereClause, logicalName, position, parameters, conversionService, allowJoins, hibernateCompatible, subqueryCriterion, comparisonExpression);
             }
         });
 
-        queryHandlers.put(Query.LessThanEqualsAll.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.LessThanEqualsAll, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.SubqueryCriterion subqueryCriterion = (Query.SubqueryCriterion) criterion;
-                String comparisonExpression = " <= ALL (";
+                String comparisonExpression = ' <= ALL (';
                 return handleSubQuery(entity, q, whereClause, logicalName, position, parameters, conversionService, allowJoins, hibernateCompatible, subqueryCriterion, comparisonExpression);
             }
         });
 
-        queryHandlers.put(Query.LessThanEqualsSome.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        queryHandlers.put(Query.LessThanEqualsSome, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.SubqueryCriterion subqueryCriterion = (Query.SubqueryCriterion) criterion;
-                String comparisonExpression = " <= SOME (";
+                String comparisonExpression = ' <= SOME (';
                 return handleSubQuery(entity, q, whereClause, logicalName, position, parameters, conversionService, allowJoins, hibernateCompatible, subqueryCriterion, comparisonExpression);
             }
         });
 
-        queryHandlers.put(Query.SizeEquals.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
-                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, "=", hibernateCompatible);
+        queryHandlers.put(Query.SizeEquals, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, '=', hibernateCompatible);
             }
         });
 
-        queryHandlers.put(Query.SizeNotEquals.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
-                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, "!=", hibernateCompatible);
+        queryHandlers.put(Query.SizeNotEquals, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, '!=', hibernateCompatible);
             }
         });
 
-        queryHandlers.put(Query.SizeGreaterThan.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
-                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, ">", hibernateCompatible);
+        queryHandlers.put(Query.SizeGreaterThan, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, '>', hibernateCompatible);
             }
         });
 
-        queryHandlers.put(Query.SizeGreaterThanEquals.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
-                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, ">=", hibernateCompatible);
+        queryHandlers.put(Query.SizeGreaterThanEquals, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, '>=', hibernateCompatible);
             }
         });
 
-        queryHandlers.put(Query.SizeLessThan.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
-                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, "<", hibernateCompatible);
+        queryHandlers.put(Query.SizeLessThan, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, '<', hibernateCompatible);
             }
         });
 
-        queryHandlers.put(Query.SizeLessThanEquals.class, new QueryHandler() {
-            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
-                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, "<=", hibernateCompatible);
+        queryHandlers.put(Query.SizeLessThanEquals, new QueryHandler() {
+            int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+                return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, '<=', hibernateCompatible);
             }
         });
 
@@ -764,7 +760,7 @@ public class JpaQueryBuilder {
 
     protected static int handleSubQuery(PersistentEntity entity, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible, Query.SubqueryCriterion equalsAll, String comparisonExpression) {
         final String name = equalsAll.getProperty();
-        validateProperty(entity, name, Query.In.class);
+        validateProperty(entity, name, Query.In);
         QueryableCriteria subquery = equalsAll.getValue();
         whereClause.append(logicalName)
                 .append(DOT)
@@ -780,11 +776,11 @@ public class JpaQueryBuilder {
         validateProperty(entity, name, criterion.getClass());
         Object value = criterion.getValue();
         int size = value instanceof Number ? ((Number) value).intValue() : Integer.parseInt(value.toString());
-        whereClause.append("SIZE(")
+        whereClause.append('SIZE(')
                    .append(logicalName)
                    .append(DOT)
                    .append(name)
-                   .append(") ")
+                   .append(') ')
                    .append(operator)
                    .append(PARAMETER_PREFIX)
                    .append(++position);
@@ -796,13 +792,13 @@ public class JpaQueryBuilder {
         PersistentEntity associatedEntity = subquery.getPersistentEntity();
         String associatedEntityName = associatedEntity.getName();
         String associatedEntityLogicalName = associatedEntity.getDecapitalizedName() + position;
-        whereClause.append("SELECT ");
+        whereClause.append('SELECT ');
         buildSelect(whereClause, subquery.getProjections(), associatedEntityLogicalName, associatedEntity);
-        whereClause.append(" FROM ")
+        whereClause.append(' FROM ')
                 .append(associatedEntityName)
                 .append(' ')
                 .append(associatedEntityLogicalName)
-                .append(" WHERE ");
+                .append(' WHERE ');
         List<Query.Criterion> criteria = subquery.getCriteria();
         for (Query.Criterion subCriteria : criteria) {
             QueryHandler queryHandler = queryHandlers.get(subCriteria.getClass());
@@ -820,7 +816,7 @@ public class JpaQueryBuilder {
         if (association != null) {
             final String associationName = association.getName();
             // TODO: Allow customization of join strategy!
-            String joinType = " INNER JOIN ";
+            String joinType = ' INNER JOIN ';
             query.append(joinType)
                 .append(logicalName)
                 .append(DOT)
@@ -835,7 +831,7 @@ public class JpaQueryBuilder {
     }
 
     private void buildUpdateStatement(StringBuilder queryString, Map<String, Object> propertiesToUpdate, List parameters, boolean hibernateCompatible) {
-        queryString.append(SPACE).append("SET");
+        queryString.append(SPACE).append('SET');
 
         // keys need to be sorted before query is built
         Set<String> keys = new TreeSet<>(propertiesToUpdate.keySet());
@@ -844,7 +840,7 @@ public class JpaQueryBuilder {
         while (iterator.hasNext()) {
             String propertyName = iterator.next();
             PersistentProperty prop = entity.getPropertyByName(propertyName);
-            if (prop == null) throw new InvalidDataAccessResourceUsageException("Property '" + propertyName + "' of class '" + entity.getName() + "' specified in update does not exist");
+            if (prop == null) throw new InvalidDataAccessResourceUsageException('Property \'' + propertyName + '\' of class \'' + entity.getName() + '\' specified in update does not exist');
 
             parameters.add(propertiesToUpdate.get(propertyName));
             queryString.append(SPACE).append(logicalName).append(DOT).append(propertyName).append('=');
@@ -880,14 +876,14 @@ public class JpaQueryBuilder {
         }
         PersistentProperty prop = entity.getPropertyByName(name);
         if (prop == null) {
-            throw new InvalidDataAccessResourceUsageException("Cannot use [" +
-                  criterionType.getSimpleName() + "] criterion on non-existent property: " + name);
+            throw new InvalidDataAccessResourceUsageException('Cannot use [' +
+                  criterionType.getSimpleName() + '] criterion on non-existent property: ' + name);
         }
         return prop;
     }
 
     private static interface QueryHandler {
-        public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible);
+        int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible);
     }
 
     private List buildWhereClause(PersistentEntity entity, Query.Junction criteria, StringBuilder q, StringBuilder whereClause, String logicalName, boolean allowJoins) {
@@ -943,7 +939,7 @@ public class JpaQueryBuilder {
             else if (criterion instanceof AssociationCriteria) {
 
                 if (!allowJoins) {
-                    throw new InvalidDataAccessResourceUsageException("Joins cannot be used in a DELETE or UPDATE operation");
+                    throw new InvalidDataAccessResourceUsageException('Joins cannot be used in a DELETE or UPDATE operation');
                 }
                 AssociationCriteria ac = (AssociationCriteria) criterion;
                 Association association = ac.getAssociation();
@@ -951,7 +947,7 @@ public class JpaQueryBuilder {
                 handleAssociationCriteria(q, whereClause, logicalName, position, parameters, conversionService, allowJoins, association, new Query.Conjunction(), associationCriteriaList, hibernateCompatible);
             }
             else {
-                throw new InvalidDataAccessResourceUsageException("Queries of type " + criterion.getClass().getSimpleName() + " are not supported by this implementation");
+                throw new InvalidDataAccessResourceUsageException('Queries of type ' + criterion.getClass().getSimpleName() + ' are not supported by this implementation');
             }
 
             if (iterator.hasNext()) {

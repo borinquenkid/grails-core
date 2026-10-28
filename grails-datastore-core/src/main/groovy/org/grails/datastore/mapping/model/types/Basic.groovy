@@ -12,21 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.datastore.mapping.model.types;
+package org.grails.datastore.mapping.model.types
 
-import java.beans.PropertyDescriptor;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.config.Property;
-import org.grails.datastore.mapping.engine.internal.MappingUtils;
-import org.grails.datastore.mapping.engine.types.CustomTypeMarshaller;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.config.GormProperties;
-import org.grails.datastore.mapping.reflect.ClassPropertyFetcher;
+import java.beans.PropertyDescriptor
+
+import org.grails.datastore.mapping.config.Property
+import org.grails.datastore.mapping.engine.internal.MappingUtils
+import org.grails.datastore.mapping.engine.types.CustomTypeMarshaller
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.config.GormProperties
+import org.grails.datastore.mapping.reflect.ClassPropertyFetcher
 
 /**
  * Models a basic collection type such as a list of Strings
@@ -34,19 +32,21 @@ import org.grails.datastore.mapping.reflect.ClassPropertyFetcher;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings("rawtypes")
-public abstract class Basic<T extends Property> extends ToMany<T> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'UnnecessarySemicolon'])
+@CompileStatic
+abstract class Basic<T extends Property> extends ToMany<T> {
 
     private CustomTypeMarshaller customTypeMarshaller;
     private Class componentType;
 
-    public Basic(PersistentEntity owner, MappingContext context,
+    Basic(PersistentEntity owner, MappingContext context,
             PropertyDescriptor descriptor) {
         super(owner, context, descriptor);
         initializeComponentType();
     }
 
-    public Basic(PersistentEntity owner, MappingContext context, String name, Class type) {
+    Basic(PersistentEntity owner, MappingContext context, String name, Class type) {
         super(owner, context, name, type);
         initializeComponentType();
     }
@@ -54,10 +54,10 @@ public abstract class Basic<T extends Property> extends ToMany<T> {
     private void initializeComponentType() {
         final Class type = getType();
         final Class ownerClass = getOwner().getJavaClass();
-        if (Map.class.isAssignableFrom(type)) {
+        if (Map.isAssignableFrom(type)) {
             this.componentType = MappingUtils.getGenericTypeForMapProperty(ownerClass, getName(), false);
         }
-        else if (Collection.class.isAssignableFrom(type)) {
+        else if (Collection.isAssignableFrom(type)) {
             this.componentType = MappingUtils.getGenericTypeForProperty(ownerClass, getName());
         }
         else if (type.isArray()) {
@@ -65,7 +65,7 @@ public abstract class Basic<T extends Property> extends ToMany<T> {
         }
 
         if (componentType == null) {
-            List<Map> maps = ClassPropertyFetcher.getStaticPropertyValuesFromInheritanceHierarchy(ownerClass, GormProperties.HAS_MANY, Map.class);
+            List<Map> maps = ClassPropertyFetcher.getStaticPropertyValuesFromInheritanceHierarchy(ownerClass, GormProperties.HAS_MANY, Map);
 
             for (Map map : maps) {
                 if (map.containsKey(getName())) {
@@ -77,49 +77,49 @@ public abstract class Basic<T extends Property> extends ToMany<T> {
                 }
             }
             if (componentType == null) {
-                this.componentType = Object.class;
+                this.componentType = Object;
             }
         }
 
     }
 
-    public Class getComponentType() {
+    Class getComponentType() {
         return componentType;
     }
 
-    public boolean isEnum() {
+    boolean isEnum() {
         return Optional.ofNullable(componentType).map(Class::isEnum).orElse(false);
     }
 
     @Override
-    public Association getInverseSide() {
+    Association getInverseSide() {
         return null; // basic collection types have no inverse side
     }
 
     @Override
-    public boolean isOwningSide() {
+    boolean isOwningSide() {
         return true;
     }
 
     @Override
-    public void setOwningSide(boolean owningSide) {
+    void setOwningSide(boolean owningSide) {
         // noop
     }
 
     @Override
-    public PersistentEntity getAssociatedEntity() {
+    PersistentEntity getAssociatedEntity() {
         return null; // basic collection types have no associated entity
     }
 
     /**
      * @return The type converter for this custom type
      */
-    @SuppressWarnings("rawtypes")
-    public CustomTypeMarshaller getCustomTypeMarshaller() {
+    @SuppressWarnings('rawtypes')
+    CustomTypeMarshaller getCustomTypeMarshaller() {
         return customTypeMarshaller;
     }
 
-    public void setCustomTypeMarshaller(CustomTypeMarshaller customTypeMarshaller) {
+    void setCustomTypeMarshaller(CustomTypeMarshaller customTypeMarshaller) {
         this.customTypeMarshaller = customTypeMarshaller;
     }
 }

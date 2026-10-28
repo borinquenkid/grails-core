@@ -12,40 +12,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.datastore.mapping.core;
+package org.grails.datastore.mapping.core
 
-import java.util.ArrayList;
-import java.util.Map;
+import groovy.transform.CompileStatic
 
-import groovy.lang.Closure;
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaClassRegistry;
+import jakarta.annotation.PreDestroy
 
-import jakarta.annotation.PreDestroy;
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.core.convert.converter.ConverterRegistry
+import org.springframework.core.env.PropertyResolver
+import org.springframework.transaction.support.TransactionSynchronizationManager
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.core.env.PropertyResolver;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
-import org.grails.datastore.mapping.cache.TPCacheAdapterRepository;
-import org.grails.datastore.mapping.config.Property;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.PersistentProperty;
-import org.grails.datastore.mapping.model.PropertyMapping;
-import org.grails.datastore.mapping.model.types.BasicTypeConverterRegistrar;
-import org.grails.datastore.mapping.reflect.FieldEntityAccess;
-import org.grails.datastore.mapping.services.DefaultServiceRegistry;
-import org.grails.datastore.mapping.services.Service;
-import org.grails.datastore.mapping.services.ServiceNotFoundException;
-import org.grails.datastore.mapping.services.ServiceRegistry;
-import org.grails.datastore.mapping.transactions.SessionHolder;
+import org.grails.datastore.mapping.cache.TPCacheAdapterRepository
+import org.grails.datastore.mapping.config.Property
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PersistentProperty
+import org.grails.datastore.mapping.model.PropertyMapping
+import org.grails.datastore.mapping.model.types.BasicTypeConverterRegistrar
+import org.grails.datastore.mapping.reflect.FieldEntityAccess
+import org.grails.datastore.mapping.services.DefaultServiceRegistry
+import org.grails.datastore.mapping.services.Service
+import org.grails.datastore.mapping.services.ServiceNotFoundException
+import org.grails.datastore.mapping.services.ServiceRegistry
+import org.grails.datastore.mapping.transactions.SessionHolder
 
 /**
  * Abstract Datastore implementation that deals with binding the Session to thread locale upon creation.
@@ -53,9 +48,12 @@ import org.grails.datastore.mapping.transactions.SessionHolder;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public abstract class AbstractDatastore implements Datastore, StatelessDatastore, ServiceRegistry {
-    protected static final Logger LOG = LoggerFactory.getLogger(AbstractDatastore.class);
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'unchecked', 'UnnecessarySemicolon'])
+@CompileStatic
+abstract class AbstractDatastore implements Datastore, StatelessDatastore, ServiceRegistry {
+
+    protected static final Logger LOG = LoggerFactory.getLogger(AbstractDatastore);
 
     private ApplicationContext applicationContext;
     protected ApplicationEventPublisher applicationEventPublisher;
@@ -76,7 +74,7 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
      * {@link SessionHolder}/{@link TransactionSynchronizationManager} state used elsewhere for
      * this datastore. The same instance is returned on every call.
      */
-    public SessionResolver getSessionResolver() {
+    SessionResolver getSessionResolver() {
         SessionResolver resolver = this.sessionResolver;
         if (resolver == null) {
             synchronized (this) {
@@ -90,21 +88,21 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
         return resolver;
     }
 
-    public AbstractDatastore(MappingContext mappingContext) {
+    AbstractDatastore(MappingContext mappingContext) {
         this(mappingContext, (PropertyResolver) null, null);
     }
 
-    public AbstractDatastore(MappingContext mappingContext, Map<String, Object> connectionDetails,
+    AbstractDatastore(MappingContext mappingContext, Map<String, Object> connectionDetails,
               ConfigurableApplicationContext ctx) {
         this(mappingContext, connectionDetails, ctx, null);
     }
 
-    public AbstractDatastore(MappingContext mappingContext, PropertyResolver connectionDetails,
+    AbstractDatastore(MappingContext mappingContext, PropertyResolver connectionDetails,
                              ConfigurableApplicationContext ctx) {
         this(mappingContext, connectionDetails, ctx, null);
     }
 
-    public AbstractDatastore(MappingContext mappingContext, PropertyResolver connectionDetails,
+    AbstractDatastore(MappingContext mappingContext, PropertyResolver connectionDetails,
                              ConfigurableApplicationContext ctx, TPCacheAdapterRepository cacheAdapterRepository) {
         this.mappingContext = mappingContext;
         this.connectionDetails = connectionDetails;
@@ -115,7 +113,7 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
         defaultServiceRegistry.initialize();
     }
 
-    public AbstractDatastore(MappingContext mappingContext, Map<String, Object> connectionDetails,
+    AbstractDatastore(MappingContext mappingContext, Map<String, Object> connectionDetails,
               ConfigurableApplicationContext ctx, TPCacheAdapterRepository cacheAdapterRepository) {
         this(mappingContext, mapToPropertyResolver(connectionDetails), ctx, cacheAdapterRepository);
     }
@@ -125,12 +123,12 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
     }
 
     @Override
-    public <T> T getService(Class<T> interfaceType) throws ServiceNotFoundException {
+    <T> T getService(Class<T> interfaceType) throws ServiceNotFoundException {
         return serviceRegistry.getService(interfaceType);
     }
 
     @Override
-    public <T extends Service> Iterable<T> getServices() {
+    <T extends Service> Iterable<T> getServices() {
         return serviceRegistry.getServices();
     }
 
@@ -143,12 +141,12 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
      * will operate on them during commit or rollback.
      */
     @PreDestroy
-    public void destroy() {
+    void destroy() {
         Object resource = TransactionSynchronizationManager.hasResource(this) ?
                 TransactionSynchronizationManager.getResource(this) : null;
         if (resource instanceof SessionHolder && !((SessionHolder) resource).isSynchronizedWithTransaction()) {
             TransactionSynchronizationManager.unbindResource(this);
-            for (Session session : new ArrayList<>(((SessionHolder) resource).getSessions())) {
+            for (Session session : new ArrayList<Session>(((SessionHolder) resource).getSessions())) {
                 DatastoreUtils.closeSession(session);
             }
         }
@@ -159,21 +157,21 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
             try {
                 registry.removeMetaClass(cls);
             } catch (Exception e) {
-                LOG.error("There was an error shutting down GORM for entity [" + cls.getName() + "]: " + e.getMessage(), e);
+                LOG.error('There was an error shutting down GORM for entity [' + cls.getName() + ']: ' + e.getMessage(), e);
             }
         }
     }
 
-    public void setApplicationContext(ApplicationContext ctx) {
+    void setApplicationContext(ApplicationContext ctx) {
         applicationContext = ctx;
         this.applicationEventPublisher = ctx;
     }
 
-    public Session connect() {
+    Session connect() {
         return connect(connectionDetails);
     }
 
-    public final Session connect(PropertyResolver connDetails) {
+    final Session connect(PropertyResolver connDetails) {
         Session session = createSession(connDetails);
         publishSessionCreationEvent(session);
         return session;
@@ -187,7 +185,7 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
     }
 
     @Override
-    public Session connectStateless() {
+    Session connectStateless() {
         Session session = createStatelessSession(connectionDetails);
         publishSessionCreationEvent(session);
         return session;
@@ -211,7 +209,7 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
         return createSession(connectionDetails);
     }
 
-    public Session getCurrentSession() throws ConnectionNotFoundException {
+    Session getCurrentSession() throws ConnectionNotFoundException {
         return DatastoreUtils.doGetSession(this, false);
     }
 
@@ -223,7 +221,7 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
      * unbinds an empty holder, so it is safe to call for routing/discovery purposes on a
      * datastore whose session state this call has no other reason to touch.
      */
-    public boolean hasCurrentSession() {
+    boolean hasCurrentSession() {
         return getSessionResolver().hasResolvedSession();
     }
 
@@ -232,8 +230,8 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
      * @return The session instance
      * @throws ConnectionNotFoundException If no session has been created
      */
-    public static Session retrieveSession() throws ConnectionNotFoundException {
-        return retrieveSession(Datastore.class);
+    static Session retrieveSession() throws ConnectionNotFoundException {
+        return retrieveSession(Datastore);
     }
 
     /**
@@ -242,7 +240,7 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
      * @return The session instance
      * @throws ConnectionNotFoundException If no session has been created
      */
-    public static Session retrieveSession(Class datastoreClass) throws ConnectionNotFoundException {
+    static Session retrieveSession(Class datastoreClass) throws ConnectionNotFoundException {
         final Map<Object, Object> resourceMap = TransactionSynchronizationManager.getResourceMap();
         Session session = null;
 
@@ -258,12 +256,12 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
         }
 
         if (session == null) {
-            throw new ConnectionNotFoundException("No datastore session found. Call Datastore.connect(..) before calling Datastore.getCurrentSession()");
+            throw new ConnectionNotFoundException('No datastore session found. Call Datastore.connect(..) before calling Datastore.getCurrentSession()');
         }
         return session;
     }
 
-    public MappingContext getMappingContext() {
+    MappingContext getMappingContext() {
         return mappingContext;
     }
 
@@ -271,7 +269,7 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
      * @deprecated  Deprecated, will be removed in a future version of GORM
      */
     @Deprecated
-    public ConfigurableApplicationContext getApplicationContext() {
+    ConfigurableApplicationContext getApplicationContext() {
         return (ConfigurableApplicationContext) applicationContext;
     }
 
@@ -279,7 +277,7 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
      * @return The event publisher, or {@code null} if this datastore was constructed without an
      * {@link ApplicationContext} and no subclass provides its own publisher
      */
-    public ApplicationEventPublisher getApplicationEventPublisher() {
+    ApplicationEventPublisher getApplicationEventPublisher() {
         return applicationEventPublisher;
     }
 
@@ -295,15 +293,15 @@ public abstract class AbstractDatastore implements Datastore, StatelessDatastore
         return keyValue != null && keyValue.isIndex();
     }
 
-    public boolean isSchemaless() {
+    boolean isSchemaless() {
         return false;
     }
 
     @Override
-    public <T> T withSession(final Closure<T> callable) {
+    <T> T withSession(final Closure<T> callable) {
         return DatastoreUtils.execute(this, new SessionCallback<>() {
             @Override
-            public T doInSession(Session session) {
+            T doInSession(Session session) {
                 return callable.call(session);
             }
         });

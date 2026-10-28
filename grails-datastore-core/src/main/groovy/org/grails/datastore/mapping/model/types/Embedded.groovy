@@ -16,13 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model.types;
+package org.grails.datastore.mapping.model.types
 
-import java.beans.PropertyDescriptor;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.config.Property;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import java.beans.PropertyDescriptor
+
+import org.grails.datastore.mapping.config.Property
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  * Models an embedded component
@@ -30,18 +32,21 @@ import org.grails.datastore.mapping.model.PersistentEntity;
  * @author Graeme Rocher
  * @since 1.0
  */
-public abstract class Embedded<T extends Property> extends ToOne<T> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+abstract class Embedded<T extends Property> extends ToOne<T> {
 
-    public Embedded(PersistentEntity owner, MappingContext context, PropertyDescriptor descriptor) {
+    Embedded(PersistentEntity owner, MappingContext context, PropertyDescriptor descriptor) {
         super(owner, context, descriptor);
     }
 
-    public Embedded(PersistentEntity owner, MappingContext context, String name, @SuppressWarnings("rawtypes") Class type) {
+    Embedded(PersistentEntity owner, MappingContext context, String name, @SuppressWarnings('rawtypes') Class type) {
         super(owner, context, name, type);
     }
 
     @Override
-    public boolean isOwningSide() {
+    boolean isOwningSide() {
         return true; // embedded instances are always owned
     }
 }

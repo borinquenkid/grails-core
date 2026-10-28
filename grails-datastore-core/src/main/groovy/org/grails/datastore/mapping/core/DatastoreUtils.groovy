@@ -1,57 +1,48 @@
-/* Copyright (C) 2010-2025 the original author or authors.
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one
+ *  or more contributor license agreements.  See the NOTICE file
+ *  distributed with this work for additional information
+ *  regarding copyright ownership.  The ASF licenses this file
+ *  to you under the Apache License, Version 2.0 (the
+ *  "License"); you may not use this file except in compliance
+ *  with the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    https://www.apache.org/licenses/LICENSE-2.0
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
  */
-package org.grails.datastore.mapping.core;
+package org.grails.datastore.mapping.core
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
+import groovy.transform.stc.POJO
+import org.codehaus.groovy.runtime.DefaultGroovyMethods
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.core.NamedThreadLocal
+import org.springframework.core.convert.ConversionException
+import org.springframework.core.convert.converter.Converter
+import org.springframework.core.env.ConfigurableEnvironment
+import org.springframework.core.env.EnumerablePropertySource
+import org.springframework.core.env.MapPropertySource
+import org.springframework.core.env.MutablePropertySources
+import org.springframework.core.env.PropertyResolver
+import org.springframework.core.env.PropertySource
+import org.springframework.core.io.Resource
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver
+import org.springframework.dao.DataAccessResourceFailureException
+import org.springframework.transaction.support.TransactionSynchronizationManager
+import org.springframework.util.Assert
+import org.springframework.util.ClassUtils
 
-import groovy.lang.Closure;
-import groovy.util.ConfigObject;
-import groovy.util.ConfigSlurper;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.core.NamedThreadLocal;
-import org.springframework.core.convert.ConversionException;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.EnumerablePropertySource;
-import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.env.PropertyResolver;
-import org.springframework.core.env.PropertySource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-
-import org.grails.datastore.mapping.config.DatastoreEnvironment;
-import org.grails.datastore.mapping.transactions.SessionHolder;
-import org.grails.datastore.mapping.transactions.support.SpringSessionSynchronization;
+import org.grails.datastore.mapping.config.DatastoreEnvironment
+import org.grails.datastore.mapping.transactions.SessionHolder
+import org.grails.datastore.mapping.transactions.support.SpringSessionSynchronization
 
 /**
  * Helper class for obtaining Datastore sessions. Based on similar work
@@ -60,15 +51,16 @@ import org.grails.datastore.mapping.transactions.support.SpringSessionSynchroniz
  * @author Juergen Hoeller
  * @author Graeme Rocher
  */
-@SuppressWarnings("rawtypes")
-public abstract class DatastoreUtils {
+@CompileStatic
+@SuppressWarnings('rawtypes')
+abstract class DatastoreUtils {
 
-    private static final Logger logger = LoggerFactory.getLogger(DatastoreUtils.class);
-    private static final String DATASTORE_CONFIG_FLAT = "datastoreConfigFlat";
+    private static final Logger LOGGER = LoggerFactory.getLogger(DatastoreUtils)
+    private static final String DATASTORE_CONFIG_FLAT = 'datastoreConfigFlat'
     private static final ThreadLocal<Map<Datastore, Set<Session>>> deferredCloseHolder =
-            new NamedThreadLocal<>(
-                    "Datastore Sessions registered for deferred close");
-    private static final String DATASTORE_CONFIG = "datastoreConfig";
+            new NamedThreadLocal<Map<Datastore, Set<Session>>>(
+                    'Datastore Sessions registered for deferred close')
+    private static final String DATASTORE_CONFIG = 'datastoreConfig'
 
     /**
      * Get a Datastore Session for the given Datastore. Is aware of and will
@@ -87,14 +79,13 @@ public abstract class DatastoreUtils {
      * @throws IllegalStateException if no thread-bound Session found and
      * "allowCreate" is <code>false</code>
      */
-    public static Session getSession(Datastore datastore, boolean allowCreate)
+    static Session getSession(Datastore datastore, boolean allowCreate)
             throws DataAccessResourceFailureException, IllegalStateException {
-
         try {
-            return doGetSession(datastore, allowCreate);
+            return doGetSession(datastore, allowCreate)
         }
         catch (Exception ex) {
-            throw new DataAccessResourceFailureException("Could not open Datastore Session", ex);
+            throw new DataAccessResourceFailureException('Could not open Datastore Session', ex)
         }
     }
 
@@ -112,76 +103,74 @@ public abstract class DatastoreUtils {
      * @throws IllegalStateException if no thread-bound Session found and
      * "allowCreate" is <code>false</code>
      */
-    public static Session doGetSession(Datastore datastore, boolean allowCreate) {
+    static Session doGetSession(Datastore datastore, boolean allowCreate) {
+        Assert.notNull(datastore, 'No Datastore specified')
 
-        Assert.notNull(datastore, "No Datastore specified");
-
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(datastore);
+        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(datastore)
 
         if (sessionHolder != null && !sessionHolder.isEmpty()) {
             // pre-bound Datastore Session
-            Session session;
+            Session session
             if (TransactionSynchronizationManager.isSynchronizationActive() &&
                     sessionHolder.doesNotHoldNonDefaultSession()) {
                 // Spring transaction management is active ->
                 // register pre-bound Session with it for transactional flushing.
-                session = sessionHolder.getValidatedSession();
+                session = sessionHolder.getValidatedSession()
                 if (session != null && !sessionHolder.isSynchronizedWithTransaction()) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Registering Spring transaction synchronization for existing Datastore Session");
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug('Registering Spring transaction synchronization for existing Datastore Session')
                     }
                     TransactionSynchronizationManager.registerSynchronization(
-                            new SpringSessionSynchronization(sessionHolder, datastore, false));
-                    sessionHolder.setSynchronizedWithTransaction(true);
-
+                            new SpringSessionSynchronization(sessionHolder, datastore, false))
+                    sessionHolder.setSynchronizedWithTransaction(true)
                 }
                 if (session != null) {
-                    return session;
+                    return session
                 }
             }
             else {
-                session = sessionHolder.getValidatedSession();
+                session = sessionHolder.getValidatedSession()
                 if (session != null) {
-                    return session;
+                    return session
                 }
             }
         }
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Opening Datastore Session");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug('Opening Datastore Session')
         }
-        Session session = datastore.connect();
+        Session session = datastore.connect()
 
         // Use same Session for further Datastore actions within the transaction.
         // Thread object will get removed by synchronization at transaction completion.
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             // We're within a Spring-managed transaction, possibly from JtaTransactionManager.
-            if (logger.isDebugEnabled()) {
-                logger.debug("Registering Spring transaction synchronization for new Datastore Session");
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug('Registering Spring transaction synchronization for new Datastore Session')
             }
-            SessionHolder holderToUse = sessionHolder;
+            SessionHolder holderToUse = sessionHolder
             if (holderToUse == null) {
-                holderToUse = new SessionHolder(session);
+                holderToUse = new SessionHolder(session)
             }
             else {
-                holderToUse.addSession(session);
+                holderToUse.addSession(session)
             }
             TransactionSynchronizationManager.registerSynchronization(
-                    new SpringSessionSynchronization(holderToUse, datastore, true));
-            holderToUse.setSynchronizedWithTransaction(true);
-            if (holderToUse != sessionHolder) {
-                TransactionSynchronizationManager.bindResource(datastore, holderToUse);
+                    new SpringSessionSynchronization(holderToUse, datastore, true))
+            holderToUse.setSynchronizedWithTransaction(true)
+            if (!holderToUse.is(sessionHolder)) {
+                TransactionSynchronizationManager.bindResource(datastore, holderToUse)
             }
         }
 
         // Check whether we are allowed to return the Session.
         if (!allowCreate && !isSessionTransactional(session, datastore)) {
-            closeSession(session);
-            throw new IllegalStateException("No Datastore Session bound to thread, " +
-                "and configuration does not allow creation of non-transactional one here");
+            closeSession(session)
+            throw new IllegalStateException('No Datastore Session bound to thread, ' +
+                'and configuration does not allow creation of non-transactional one here')
         }
 
-        return session;
+        return session
     }
 
     /**
@@ -192,13 +181,13 @@ public abstract class DatastoreUtils {
      * (may be <code>null</code>)
      * @return whether the Session is transactional
      */
-    public static boolean isSessionTransactional(Session session, Datastore datastore) {
+    static boolean isSessionTransactional(Session session, Datastore datastore) {
         if (datastore == null) {
-            return false;
+            return false
         }
         SessionHolder sessionHolder =
-                (SessionHolder) TransactionSynchronizationManager.getResource(datastore);
-        return (sessionHolder != null && sessionHolder.containsSession(session));
+                (SessionHolder) TransactionSynchronizationManager.getResource(datastore)
+        return (sessionHolder != null && sessionHolder.containsSession(session))
     }
 
     /**
@@ -206,17 +195,17 @@ public abstract class DatastoreUtils {
      * catching and logging any cleanup exceptions thrown.
      * @param session The Session instance
      */
-    public static void closeSession(Session session) {
+    static void closeSession(Session session) {
         if (session == null) {
-            return;
+            return
         }
 
-        logger.debug("Closing Datastore Session");
+        LOGGER.debug('Closing Datastore Session')
         try {
-            session.disconnect();
+            session.disconnect()
         }
         catch (Throwable ex) {
-            logger.debug("Unexpected exception on closing Datastore Session", ex);
+            LOGGER.debug('Unexpected exception on closing Datastore Session', ex)
         }
     }
 
@@ -227,13 +216,13 @@ public abstract class DatastoreUtils {
      * @param datastore Datastore that the Session was created with
      * (may be <code>null</code>)
      */
-    public static void releaseSession(Session session, Datastore datastore) {
+    static void releaseSession(Session session, Datastore datastore) {
         if (session == null) {
-            return;
+            return
         }
         // Only close non-transactional Sessions.
         if (!isSessionTransactional(session, datastore)) {
-            closeSessionOrRegisterDeferredClose(session, datastore);
+            closeSessionOrRegisterDeferredClose(session, datastore)
         }
     }
 
@@ -244,21 +233,21 @@ public abstract class DatastoreUtils {
      * @see #initDeferredClose
      * @see #releaseSession
      */
-    public static void processDeferredClose(Datastore datastore) {
-        Assert.notNull(datastore, "No Datastore specified");
-        Map<Datastore, Set<Session>> holderMap = deferredCloseHolder.get();
+    static void processDeferredClose(Datastore datastore) {
+        Assert.notNull(datastore, 'No Datastore specified')
+        Map<Datastore, Set<Session>> holderMap = deferredCloseHolder.get()
         if (holderMap == null || !holderMap.containsKey(datastore)) {
-            throw new IllegalStateException("Deferred close not active for Datastore [" + datastore + "]");
+            throw new IllegalStateException('Deferred close not active for Datastore [' + datastore + ']')
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Processing deferred close of Datastore Sessions");
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug('Processing deferred close of Datastore Sessions')
         }
-        Set<Session> sessions = holderMap.remove(datastore);
-        for (Session session : sessions) {
-            closeSession(session);
+        Set<Session> sessions = holderMap.remove(datastore)
+        for (Session session in sessions) {
+            closeSession(session)
         }
         if (holderMap.isEmpty()) {
-            deferredCloseHolder.remove();
+            deferredCloseHolder.remove()
         }
     }
 
@@ -271,15 +260,15 @@ public abstract class DatastoreUtils {
      * @see #processDeferredClose
      * @see #releaseSession
      */
-    public static void initDeferredClose(Datastore datastore) {
-        Assert.notNull(datastore, "No Datastore specified");
-        logger.debug("Initializing deferred close of Datastore Sessions");
-        Map<Datastore, Set<Session>> holderMap = deferredCloseHolder.get();
+    static void initDeferredClose(Datastore datastore) {
+        Assert.notNull(datastore, 'No Datastore specified')
+        LOGGER.debug('Initializing deferred close of Datastore Sessions')
+        Map<Datastore, Set<Session>> holderMap = deferredCloseHolder.get()
         if (holderMap == null) {
-            holderMap = new HashMap<>();
-            deferredCloseHolder.set(holderMap);
+            holderMap = new HashMap<>()
+            deferredCloseHolder.set(holderMap)
         }
-        holderMap.put(datastore, new LinkedHashSet<>(4));
+        holderMap.put(datastore, new LinkedHashSet<Session>(4))
     }
 
     /**
@@ -290,14 +279,14 @@ public abstract class DatastoreUtils {
      * @see #initDeferredClose
      * @see #processDeferredClose
      */
-    public static void closeSessionOrRegisterDeferredClose(Session session, Datastore datastore) {
-        Map<Datastore, Set<Session>> holderMap = deferredCloseHolder.get();
+    static void closeSessionOrRegisterDeferredClose(Session session, Datastore datastore) {
+        Map<Datastore, Set<Session>> holderMap = deferredCloseHolder.get()
         if (holderMap != null && datastore != null && holderMap.containsKey(datastore)) {
-            logger.debug("Registering Datastore Session for deferred close");
-            holderMap.get(datastore).add(session);
+            LOGGER.debug('Registering Datastore Session for deferred close')
+            holderMap.get(datastore).add(session)
         }
         else {
-            closeSession(session);
+            closeSession(session)
         }
     }
 
@@ -307,15 +296,15 @@ public abstract class DatastoreUtils {
      * @param c the closure to execute
      * @return the return value from the closure
      */
-    public static Object doWithSession(final Datastore datastore, final Closure c) {
-        boolean existing = datastore.hasCurrentSession();
-        Session session = existing ? datastore.getCurrentSession() : bindNewSession(datastore.connect());
+    static Object doWithSession(final Datastore datastore, final Closure c) {
+        boolean existing = datastore.hasCurrentSession()
+        Session session = existing ? datastore.getCurrentSession() : bindNewSession(datastore.connect())
         try {
-            return c.call(session);
+            return c.call(session)
         }
         finally {
             if (!existing) {
-                unbindSession(session);
+                unbindSession(session)
             }
         }
     }
@@ -327,15 +316,15 @@ public abstract class DatastoreUtils {
      * @param callback the callback to execute
      * @return the return value from the callback
      */
-    public static <T> T execute(final Datastore datastore, final SessionCallback<T> callback) {
-        boolean existing = datastore.hasCurrentSession();
-        Session session = existing ? datastore.getCurrentSession() : bindNewSession(datastore.connect());
+    static <T> T execute(final Datastore datastore, final SessionCallback<T> callback) {
+        boolean existing = datastore.hasCurrentSession()
+        Session session = existing ? datastore.getCurrentSession() : bindNewSession(datastore.connect())
         try {
-            return callback.doInSession(session);
+            return callback.doInSession(session)
         }
         finally {
             if (!existing) {
-                unbindSession(session);
+                unbindSession(session)
             }
         }
     }
@@ -345,15 +334,15 @@ public abstract class DatastoreUtils {
      * @param datastore the datastore
      * @param callback the callback to execute
      */
-    public static void execute(final Datastore datastore, final VoidSessionCallback callback) {
-        boolean existing = datastore.hasCurrentSession();
-        Session session = existing ? datastore.getCurrentSession() : bindNewSession(datastore.connect());
+    static void execute(final Datastore datastore, final VoidSessionCallback callback) {
+        boolean existing = datastore.hasCurrentSession()
+        Session session = existing ? datastore.getCurrentSession() : bindNewSession(datastore.connect())
         try {
-            callback.doInSession(session);
+            callback.doInSession(session)
         }
         finally {
             if (!existing) {
-                unbindSession(session);
+                unbindSession(session)
             }
         }
     }
@@ -365,13 +354,13 @@ public abstract class DatastoreUtils {
      * @param <T> The return type
      * @return The result of the callback
      */
-    public static <T> T executeWithNewSession(Datastore datastore, SessionCallback<T> callback) {
-        Session session = bindNewSession(datastore.connect());
+    static <T> T executeWithNewSession(Datastore datastore, SessionCallback<T> callback) {
+        Session session = bindNewSession(datastore.connect())
         try {
-            return callback.doInSession(session);
+            return callback.doInSession(session)
         }
         finally {
-            unbindSession(session);
+            unbindSession(session)
         }
     }
 
@@ -380,11 +369,11 @@ public abstract class DatastoreUtils {
      * @param datastore The datastore
      * @param callback The callback
      */
-    public static void executeWithNewSession(Datastore datastore, VoidSessionCallback callback) {
-        executeWithNewSession(datastore, (SessionCallback<Void>) session -> {
-            callback.doInSession(session);
-            return null;
-        });
+    static void executeWithNewSession(Datastore datastore, VoidSessionCallback callback) {
+        executeWithNewSession(datastore, { Session session ->
+            callback.doInSession(session)
+            return null
+        } as SessionCallback<Void>)
     }
 
     /**
@@ -392,9 +381,9 @@ public abstract class DatastoreUtils {
      * @param session the session
      * @return the session (for method chaining)
      */
-    public static Session bindSession(final Session session) {
-        TransactionSynchronizationManager.bindResource(session.getDatastore(), new SessionHolder(session));
-        return session;
+    static Session bindSession(final Session session) {
+        TransactionSynchronizationManager.bindResource(session.getDatastore(), new SessionHolder(session))
+        return session
     }
 
     /**
@@ -402,9 +391,9 @@ public abstract class DatastoreUtils {
      * @param session the session
      * @return the session (for method chaining)
      */
-    public static Session bindSession(final Session session, Object creator) {
-        TransactionSynchronizationManager.bindResource(session.getDatastore(), new SessionHolder(session, creator));
-        return session;
+    static Session bindSession(final Session session, Object creator) {
+        TransactionSynchronizationManager.bindResource(session.getDatastore(), new SessionHolder(session, creator))
+        return session
     }
 
     /**
@@ -413,14 +402,14 @@ public abstract class DatastoreUtils {
      * @param session the session
      * @return the session
      */
-    public static Session bindNewSession(final Session session) {
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(session.getDatastore());
+    static Session bindNewSession(final Session session) {
+        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(session.getDatastore())
         if (sessionHolder == null) {
-            return bindSession(session);
+            return bindSession(session)
         }
 
-        sessionHolder.addSession(session);
-        return session;
+        sessionHolder.addSession(session)
+        return session
     }
 
     /**
@@ -428,30 +417,30 @@ public abstract class DatastoreUtils {
      * the SessionHolder, otherwise just removes the session from the holder's list.
      * @param session the session
      */
-    public static void unbindSession(final Session session) {
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(session.getDatastore());
+    static void unbindSession(final Session session) {
+        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.getResource(session.getDatastore())
         if (sessionHolder == null) {
-            if (logger.isWarnEnabled()) {
-                logger.warn("Cannot unbind session, there's no SessionHolder registered");
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("Cannot unbind session, there's no SessionHolder registered")
             }
-            return;
+            return
         }
 
         if (!sessionHolder.containsSession(session)) {
-            if (logger.isWarnEnabled()) {
-                logger.warn("Cannot unbind session, it's not registered in a SessionHolder");
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("Cannot unbind session, it's not registered in a SessionHolder")
             }
-            return;
+            return
         }
 
         if (sessionHolder.size() > 1) {
-            sessionHolder.removeSession(session);
+            sessionHolder.removeSession(session)
         }
         else {
-            TransactionSynchronizationManager.unbindResource(session.getDatastore());
+            TransactionSynchronizationManager.unbindResource(session.getDatastore())
         }
 
-        closeSessionOrRegisterDeferredClose(session, session.getDatastore());
+        closeSessionOrRegisterDeferredClose(session, session.getDatastore())
     }
 
     /**
@@ -460,8 +449,8 @@ public abstract class DatastoreUtils {
      * @param propertyResolver The property resolver
      * @return The property resolver
      */
-    public static PropertyResolver preparePropertyResolver(PropertyResolver propertyResolver) {
-        return preparePropertyResolver(propertyResolver, "grails");
+    static PropertyResolver preparePropertyResolver(PropertyResolver propertyResolver) {
+        return preparePropertyResolver(propertyResolver, 'grails')
     }
 
     /**
@@ -471,35 +460,35 @@ public abstract class DatastoreUtils {
      * @param keyPrefixes The configuration prefixes
      * @return The property resolver
      */
-    public static PropertyResolver preparePropertyResolver(PropertyResolver propertyResolver, String... keyPrefixes) {
+    static PropertyResolver preparePropertyResolver(PropertyResolver propertyResolver, String... keyPrefixes) {
         // if it is a map then it is a Grails configuration object, therefore it is already prepared
         if ((propertyResolver instanceof Map) || (propertyResolver instanceof DatastoreEnvironment)) {
-            return propertyResolver;
+            return propertyResolver
         }
         else if (propertyResolver instanceof ConfigurableEnvironment) {
             // Spring Boot Environment config
-            ConfigurableEnvironment env = (ConfigurableEnvironment) propertyResolver;
-            List<PropertySource<?>> propertySources = DefaultGroovyMethods.asList(env.getPropertySources());
-            Collections.reverse(propertySources);
-            Map<String, Object> configuration = new LinkedHashMap<>();
-            for (PropertySource<?> propertySource : propertySources) {
+            ConfigurableEnvironment env = (ConfigurableEnvironment) propertyResolver
+            List<PropertySource<?>> propertySources = DefaultGroovyMethods.asList(env.getPropertySources())
+            Collections.reverse(propertySources)
+            Map<String, Object> configuration = new LinkedHashMap<>()
+            for (PropertySource<?> propertySource in propertySources) {
                 if (propertySource instanceof EnumerablePropertySource) {
-                    EnumerablePropertySource eps = (EnumerablePropertySource) propertySource;
-                    String[] propertyNames = eps.getPropertyNames();
-                    for (String propertyName : propertyNames) {
-                        for (String keyPrefix : keyPrefixes) {
+                    EnumerablePropertySource eps = (EnumerablePropertySource) propertySource
+                    String[] propertyNames = eps.getPropertyNames()
+                    for (String propertyName in propertyNames) {
+                        for (String keyPrefix in keyPrefixes) {
                             if (propertyName.startsWith(keyPrefix)) {
-                                configuration.put(propertyName, eps.getProperty(propertyName));
-                                break;
+                                configuration.put(propertyName, eps.getProperty(propertyName))
+                                break
                             }
                         }
                     }
                 }
             }
-            return createPropertyResolver(configuration);
+            return createPropertyResolver(configuration)
         }
         else {
-            return propertyResolver;
+            return propertyResolver
         }
     }
 
@@ -509,15 +498,14 @@ public abstract class DatastoreUtils {
      *
      * @return A {@link PropertyResolver} instance
      */
-    public static PropertyResolver createPropertyResolver(Map<String, Object> configuration) {
+    static PropertyResolver createPropertyResolver(Map<String, Object> configuration) {
         if (configuration instanceof PropertyResolver) {
-            return (PropertyResolver) configuration;
+            return (PropertyResolver) configuration
         }
         else {
-
-            Map<String, Object>[] configurations = new Map[1];
-            configurations[0] = configuration;
-            return createPropertyResolvers(configurations);
+            List<Map<String, Object>> configurations = new ArrayList<>(1)
+            configurations.add(configuration)
+            return createPropertyResolvers(configurations)
         }
     }
 
@@ -527,8 +515,8 @@ public abstract class DatastoreUtils {
      *
      * @return A {@link PropertyResolver} instance
      */
-    public static PropertyResolver createPropertyResolvers(Map<String, Object>... configurations) {
-        return createPropertyResolvers(Arrays.asList(configurations));
+    static PropertyResolver createPropertyResolvers(Map<String, Object>... configurations) {
+        return createPropertyResolvers(Arrays.asList(configurations))
     }
 
     /**
@@ -537,116 +525,122 @@ public abstract class DatastoreUtils {
      *
      * @return A {@link PropertyResolver} instance
      */
-    public static PropertyResolver createPropertyResolvers(Collection<Map<String, Object>> configurations) {
-        DatastoreEnvironment env = new DatastoreEnvironment();
+    static PropertyResolver createPropertyResolvers(Collection<Map<String, Object>> configurations) {
+        DatastoreEnvironment env = new DatastoreEnvironment()
         env.getConversionService().addConverter(new Converter<String, Class>() {
             @Override
-            public Class convert(String source) {
+            Class convert(String source) {
                 try {
-                    return ClassUtils.forName(source, getClass().getClassLoader());
-                } catch (ClassNotFoundException e) {
-                    throw new ConversionException("Cannot convert String [" + source + "] to class. The class was not found.", e) {};
+                    return ClassUtils.forName(source, getClass().getClassLoader())
+                }
+                catch (ClassNotFoundException e) {
+                    throw new ConversionException('Cannot convert String [' + source + '] to class. The class was not found.', e) { }
                 }
             }
-        });
+        })
         env.getConversionService().addConverter(new Converter<String, Resource>() {
             @Override
-            public Resource convert(String source) {
-                return new PathMatchingResourcePatternResolver().getResource(source);
+            Resource convert(String source) {
+                return new PathMatchingResourcePatternResolver().getResource(source)
             }
-        });
-        int i = 0;
-        for (Map<String, Object> configuration : configurations) {
-            i++;
+        })
+        int i = 0
+        for (Map<String, Object> configuration in configurations) {
+            i++
             if (configuration != null) {
-                MutablePropertySources propertySources = env.getPropertySources();
+                MutablePropertySources propertySources = env.getPropertySources()
 
                 if (configuration instanceof ConfigObject) {
-                    ConfigObject existingConfig = (ConfigObject) configuration;
-                    ConfigObject cloned = existingConfig.clone();
-                    propertySources.addFirst(new ConfigObjectPropertySource(DATASTORE_CONFIG + i, cloned));
-                    propertySources.addFirst(new ConfigObjectPropertySource(DATASTORE_CONFIG_FLAT + i, createFlatConfig(cloned)));
+                    ConfigObject existingConfig = (ConfigObject) configuration
+                    ConfigObject cloned = existingConfig.clone()
+                    propertySources.addFirst(new ConfigObjectPropertySource(DATASTORE_CONFIG + i, cloned))
+                    propertySources.addFirst(new ConfigObjectPropertySource(DATASTORE_CONFIG_FLAT + i, createFlatConfig(cloned)))
                 }
                 else {
-                    ConfigSlurper configSlurper = new ConfigSlurper();
-                    Properties properties = new Properties();
-                    Map<String, Object> finalConfig = new LinkedHashMap<>();
-                    for (String name : configuration.keySet()) {
-                        Object value = configuration.get(name);
+                    ConfigSlurper configSlurper = new ConfigSlurper()
+                    Properties properties = new Properties()
+                    Map<String, Object> finalConfig = new LinkedHashMap<>()
+                    for (String name in configuration.keySet()) {
+                        Object value = configuration.get(name)
                         if (value != null) {
-                            finalConfig.put(name, value);
+                            finalConfig.put(name, value)
                         }
                     }
-                    properties.putAll(finalConfig);
-                    ConfigObject configObject = configSlurper.parse(properties);
-                    ConfigObject flatConfigObject = new ConfigObject();
-                    configObject.flatten(flatConfigObject);
-                    flatConfigObject.merge(configObject);
-                    propertySources.addFirst(new ConfigObjectPropertySource(DATASTORE_CONFIG + i, configObject));
-                    propertySources.addFirst(new ConfigObjectPropertySource(DATASTORE_CONFIG_FLAT + i, createFlatConfig(flatConfigObject)));
+                    properties.putAll(finalConfig)
+                    ConfigObject configObject = configSlurper.parse(properties)
+                    ConfigObject flatConfigObject = new ConfigObject()
+                    configObject.flatten(flatConfigObject)
+                    flatConfigObject.merge(configObject)
+                    propertySources.addFirst(new ConfigObjectPropertySource(DATASTORE_CONFIG + i, configObject))
+                    propertySources.addFirst(new ConfigObjectPropertySource(DATASTORE_CONFIG_FLAT + i, createFlatConfig(flatConfigObject)))
                 }
             }
         }
 
-        return env;
+        return env
     }
 
     private static Map<String, Object> createFlatConfig(ConfigObject configuration) {
-        Map<String, Object> flatConfig = new LinkedHashMap<>();
-        String prefix = "";
+        Map<String, Object> flatConfig = new LinkedHashMap<>()
+        String prefix = ''
 
-        createFlatConfig(configuration, flatConfig, prefix);
-        return flatConfig;
+        createFlatConfig(configuration, flatConfig, prefix)
+        return flatConfig
     }
 
     private static void createFlatConfig(ConfigObject currentConfigObject, Map<String, Object> rootConfig, String prefix) {
-        Set keySet = currentConfigObject.keySet();
-        for (Object key : keySet) {
-            Object value = currentConfigObject.get(key);
+        Set keySet = currentConfigObject.keySet()
+        for (Object key in keySet) {
+            Object value = currentConfigObject.get(key)
             if (value instanceof ConfigObject) {
-                ConfigObject sub = ((ConfigObject) value).clone();
-                String fullPath = prefix + key;
+                ConfigObject sub = ((ConfigObject) value).clone()
+                String fullPath = prefix + key
                 if (!sub.isEmpty()) {
-                    Map flattened = sub.flatten();
-                    sub.putAll(flattened);
-                    createFlatConfig(sub, rootConfig, fullPath + ".");
+                    Map flattened = sub.flatten()
+                    sub.putAll(flattened)
+                    createFlatConfig(sub, rootConfig, fullPath + '.')
                     if (!rootConfig.containsKey(fullPath)) {
-                        rootConfig.put(fullPath, sub);
+                        rootConfig.put(fullPath, sub)
                     }
                 }
             }
             else {
-                rootConfig.put(prefix + key, value);
+                rootConfig.put(prefix + key, value)
             }
         }
     }
 
-    private static class ConfigObjectPropertySource extends MapPropertySource {
-        public ConfigObjectPropertySource(String id, Map configObject) {
-            super(id, configObject);
+    @CompileStatic
+    @POJO
+    @PackageScope
+    static class ConfigObjectPropertySource extends MapPropertySource {
+
+        ConfigObjectPropertySource(String id, Map configObject) {
+            super(id, configObject)
         }
 
         @Override
-        public Object getProperty(String name) {
-            Object value = super.getProperty(name);
+        Object getProperty(String name) {
+            Object value = super.getProperty(name)
             if (value instanceof Map) {
-                Map map = (Map) value;
+                Map map = (Map) value
                 if (map.isEmpty()) {
-                    return null;
+                    return null
                 }
                 else {
-                    Map newMap = new LinkedHashMap();
-                    for (Object key : map.keySet()) {
-                        Object v = map.get(key);
+                    Map newMap = new LinkedHashMap()
+                    for (Object key in map.keySet()) {
+                        Object v = map.get(key)
                         if (!(v instanceof ConfigObject)) {
-                            newMap.put(key, v);
+                            newMap.put(key, v)
                         }
-
                     }
-                    return newMap;
+                    return newMap
                 }
             }
-            return value;
+            return value
         }
+
     }
+
 }

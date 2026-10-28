@@ -16,25 +16,21 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.query.order;
+package org.grails.datastore.mapping.query.order
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import groovy.transform.CompileStatic
 
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.PropertyAccessorFactory;
-import org.springframework.util.ReflectionUtils;
+import java.beans.PropertyDescriptor
+import java.lang.reflect.Method
+import java.util.concurrent.ConcurrentHashMap
 
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.PersistentProperty;
-import org.grails.datastore.mapping.query.Query;
+import org.springframework.beans.BeanWrapper
+import org.springframework.beans.PropertyAccessorFactory
+import org.springframework.util.ReflectionUtils
+
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PersistentProperty
+import org.grails.datastore.mapping.query.Query
 
 /**
  * Manual implementation of query ordering for datastores that don't support native ordering. Not all
@@ -44,21 +40,23 @@ import org.grails.datastore.mapping.query.Query;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class ManualEntityOrdering {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'unchecked', 'UnnecessarySemicolon'])
+@CompileStatic
+class ManualEntityOrdering {
 
     PersistentEntity entity;
     private static Map<String, Method> cachedReadMethods = new ConcurrentHashMap<>();
 
-    public ManualEntityOrdering(PersistentEntity entity) {
+    ManualEntityOrdering(PersistentEntity entity) {
         this.entity = entity;
     }
 
-    public PersistentEntity getEntity() {
+    PersistentEntity getEntity() {
         return entity;
     }
 
-    public List applyOrder(List results, List<Query.Order> orderDefinition) {
+    List applyOrder(List results, List<Query.Order> orderDefinition) {
         if (results == null) return null;
         if (orderDefinition == null) return results;
         for (Query.Order order : orderDefinition) {
@@ -84,7 +82,7 @@ public class ManualEntityOrdering {
         return answer;
     }
 
-    public List applyOrder(List results, Query.Order order) {
+    List applyOrder(List results, Query.Order order) {
         final String name = order.getProperty();
 
         final PersistentEntity entity = getEntity();
@@ -100,7 +98,7 @@ public class ManualEntityOrdering {
             final PersistentProperty finalProperty = property;
             Collections.sort(results, new Comparator() {
 
-                public int compare(Object o1, Object o2) {
+                int compare(Object o1, Object o2) {
 
                     if (entity.isInstance(o1) && entity.isInstance(o2)) {
                         final String propertyName = finalProperty.getName();

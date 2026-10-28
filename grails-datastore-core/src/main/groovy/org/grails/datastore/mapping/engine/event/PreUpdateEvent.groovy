@@ -16,34 +16,39 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.engine.event;
+package org.grails.datastore.mapping.engine.event
 
-import org.grails.datastore.mapping.core.Datastore;
-import org.grails.datastore.mapping.engine.EntityAccess;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import groovy.transform.CompileStatic
+
+import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.engine.EntityAccess
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  * @author Burt Beckwith
  */
-public class PreUpdateEvent extends AbstractPersistenceEvent {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class PreUpdateEvent extends AbstractPersistenceEvent {
 
     private static final long serialVersionUID = 1;
 
-    public PreUpdateEvent(final Datastore source, final PersistentEntity entity,
+    PreUpdateEvent(final Datastore source, final PersistentEntity entity,
             final EntityAccess entityAccess) {
         super(source, entity, entityAccess);
     }
 
-    public PreUpdateEvent(final Datastore source, final Object entity) {
+    PreUpdateEvent(final Datastore source, final Object entity) {
         super(source, entity);
     }
 
-    public PreUpdateEvent(Object source, PersistentEntity entity, EntityAccess entityAccess) {
+    PreUpdateEvent(Object source, PersistentEntity entity, EntityAccess entityAccess) {
         super(source, entity, entityAccess);
     }
 
     @Override
-    public EventType getEventType() {
+    EventType getEventType() {
         return EventType.PreUpdate;
     }
 }

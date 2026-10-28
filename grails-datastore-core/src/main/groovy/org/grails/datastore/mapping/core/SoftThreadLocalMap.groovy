@@ -4,22 +4,23 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
 
-package org.grails.datastore.mapping.core;
+package org.grails.datastore.mapping.core
 
-import org.springframework.util.ConcurrentReferenceHashMap;
+import groovy.transform.CompileStatic
+import org.springframework.util.ConcurrentReferenceHashMap
 
 /**
  * Creates a InheritableThreadLocal with an intial value of a Map.
@@ -29,18 +30,20 @@ import org.springframework.util.ConcurrentReferenceHashMap;
  * @deprecated Do not use
  */
 @Deprecated
-public class SoftThreadLocalMap extends InheritableThreadLocal<ConcurrentReferenceHashMap> {
+@CompileStatic
+class SoftThreadLocalMap extends InheritableThreadLocal<ConcurrentReferenceHashMap> {
 
     /**
      * Creates an initial value of a Map.
      */
     @Override
     protected ConcurrentReferenceHashMap initialValue() {
-        return new ConcurrentReferenceHashMap();
+        return new ConcurrentReferenceHashMap()
     }
 
     @Override
     protected ConcurrentReferenceHashMap childValue(ConcurrentReferenceHashMap parentValue) {
-        return initialValue();
+        return initialValue()
     }
+
 }

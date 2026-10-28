@@ -16,16 +16,18 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.keyvalue.mapping.config;
+package org.grails.datastore.mapping.keyvalue.mapping.config
 
-import org.springframework.util.Assert;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.core.connections.ConnectionSourceSettings;
-import org.grails.datastore.mapping.model.AbstractMappingContext;
-import org.grails.datastore.mapping.model.MappingConfigurationStrategy;
-import org.grails.datastore.mapping.model.MappingFactory;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.config.JpaMappingConfigurationStrategy;
+import org.springframework.util.Assert
+
+import org.grails.datastore.mapping.core.connections.ConnectionSourceSettings
+import org.grails.datastore.mapping.model.AbstractMappingContext
+import org.grails.datastore.mapping.model.MappingConfigurationStrategy
+import org.grails.datastore.mapping.model.MappingFactory
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.config.JpaMappingConfigurationStrategy
 
 /**
  * A MappingContext used to map objects to a Key/Value store
@@ -33,14 +35,18 @@ import org.grails.datastore.mapping.model.config.JpaMappingConfigurationStrategy
  * @author Graeme Rocher
  * @since 1.0
  */
-public class KeyValueMappingContext extends AbstractMappingContext {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class KeyValueMappingContext extends AbstractMappingContext {
+
     protected MappingFactory<Family, KeyValue> mappingFactory;
     protected MappingConfigurationStrategy syntaxStrategy;
     private String keyspace;
-    public static final String GROOVY_OBJECT_CLASS = "groovy.lang.GroovyObject";
+    public static final String GROOVY_OBJECT_CLASS = 'groovy.lang.GroovyObject';
 
     @Override
-    public void setCanInitializeEntities(boolean canInitializeEntities) {
+    void setCanInitializeEntities(boolean canInitializeEntities) {
         super.setCanInitializeEntities(canInitializeEntities);
         syntaxStrategy.setCanExpandMappingContext(false);
     }
@@ -50,8 +56,8 @@ public class KeyValueMappingContext extends AbstractMappingContext {
      *
      * @param keyspace The keyspace, this is typically the application name
      */
-    public KeyValueMappingContext(String keyspace) {
-        Assert.notNull(keyspace, "Argument [keyspace] cannot be null");
+    KeyValueMappingContext(String keyspace) {
+        Assert.notNull(keyspace, 'Argument [keyspace] cannot be null');
         this.keyspace = keyspace;
         initializeDefaultMappingFactory(keyspace);
         syntaxStrategy = new JpaMappingConfigurationStrategy(mappingFactory);
@@ -63,15 +69,15 @@ public class KeyValueMappingContext extends AbstractMappingContext {
      *
      * @param keyspace The keyspace, this is typically the application name
      */
-    public KeyValueMappingContext(String keyspace, ConnectionSourceSettings settings) {
-        Assert.notNull(keyspace, "Argument [keyspace] cannot be null");
+    KeyValueMappingContext(String keyspace, ConnectionSourceSettings settings) {
+        Assert.notNull(keyspace, 'Argument [keyspace] cannot be null');
         this.keyspace = keyspace;
         initializeDefaultMappingFactory(keyspace);
         syntaxStrategy = new JpaMappingConfigurationStrategy(this.mappingFactory);
         super.initialize(settings);
     }
 
-    public String getKeyspace() {
+    String getKeyspace() {
         return keyspace;
     }
 
@@ -79,25 +85,25 @@ public class KeyValueMappingContext extends AbstractMappingContext {
         mappingFactory = new GormKeyValueMappingFactory(keyspace);
     }
 
-    public void setMappingFactory(MappingFactory<Family, KeyValue> mappingFactory) {
+    void setMappingFactory(MappingFactory<Family, KeyValue> mappingFactory) {
         this.mappingFactory = mappingFactory;
     }
 
-    public void setSyntaxStrategy(MappingConfigurationStrategy syntaxStrategy) {
+    void setSyntaxStrategy(MappingConfigurationStrategy syntaxStrategy) {
         this.syntaxStrategy = syntaxStrategy;
     }
 
-    public MappingConfigurationStrategy getMappingSyntaxStrategy() {
+    MappingConfigurationStrategy getMappingSyntaxStrategy() {
         return syntaxStrategy;
     }
 
     @Override
-    public MappingFactory<Family, KeyValue> getMappingFactory() {
+    MappingFactory<Family, KeyValue> getMappingFactory() {
         return mappingFactory;
     }
 
     @Override
-    protected PersistentEntity createPersistentEntity(@SuppressWarnings("rawtypes") Class javaClass) {
+    protected PersistentEntity createPersistentEntity(@SuppressWarnings('rawtypes') Class javaClass) {
         return new KeyValuePersistentEntity(javaClass, this);
     }
 

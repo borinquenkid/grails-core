@@ -16,15 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model.types.mapping;
+package org.grails.datastore.mapping.model.types.mapping
 
-import java.beans.PropertyDescriptor;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.config.Property;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.PropertyMapping;
-import org.grails.datastore.mapping.model.types.Identity;
+import java.beans.PropertyDescriptor
+
+import org.grails.datastore.mapping.config.Property
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PropertyMapping
+import org.grails.datastore.mapping.model.types.Identity
 
 /**
  * An {@link org.grails.datastore.mapping.model.types.Identity} property with a {@link org.grails.datastore.mapping.model.PropertyMapping}
@@ -34,29 +36,32 @@ import org.grails.datastore.mapping.model.types.Identity;
  * @author Graeme Rocher
  * @since 1.0
  */
-public class IdentityWithMapping<T extends Property> extends Identity<T> implements PropertyWithMapping<T> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class IdentityWithMapping<T extends Property> extends Identity<T> implements PropertyWithMapping<T> {
 
     protected PropertyMapping<T> propertyMapping;
 
-    public IdentityWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property) {
+    IdentityWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property) {
         super(entity, context, property);
     }
 
-    public IdentityWithMapping(PersistentEntity entity, MappingContext context, String name, Class type) {
+    IdentityWithMapping(PersistentEntity entity, MappingContext context, String name, Class type) {
         super(entity, context, name, type);
     }
 
-    public IdentityWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property, PropertyMapping<T> propertyMapping) {
+    IdentityWithMapping(PersistentEntity entity, MappingContext context, PropertyDescriptor property, PropertyMapping<T> propertyMapping) {
         super(entity, context, property);
         this.propertyMapping = propertyMapping;
     }
 
     @Override
-    public PropertyMapping<T> getMapping() {
+    PropertyMapping<T> getMapping() {
         return propertyMapping;
     }
 
-    public void setMapping(PropertyMapping<T> propertyMapping) {
+    void setMapping(PropertyMapping<T> propertyMapping) {
         this.propertyMapping = propertyMapping;
     }
 }

@@ -12,46 +12,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.datastore.mapping.model;
+package org.grails.datastore.mapping.model
 
-import java.beans.Introspector;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import groovy.transform.CompileStatic
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.core.convert.converter.ConverterRegistry;
-import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.core.env.PropertyResolver;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.validation.Validator;
+import java.beans.Introspector
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 
-import org.grails.datastore.mapping.config.AbstractGormMappingFactory;
-import org.grails.datastore.mapping.config.ConfigurationUtils;
-import org.grails.datastore.mapping.core.connections.ConnectionSourceSettings;
-import org.grails.datastore.mapping.engine.BeanEntityAccess;
-import org.grails.datastore.mapping.engine.EntityAccess;
-import org.grails.datastore.mapping.engine.types.CustomTypeMarshaller;
-import org.grails.datastore.mapping.model.config.GormProperties;
-import org.grails.datastore.mapping.model.lifecycle.Initializable;
-import org.grails.datastore.mapping.model.types.conversion.DefaultConversionService;
-import org.grails.datastore.mapping.multitenancy.MultiTenancySettings;
-import org.grails.datastore.mapping.proxy.JavassistProxyFactory;
-import org.grails.datastore.mapping.proxy.ProxyFactory;
-import org.grails.datastore.mapping.proxy.ProxyHandler;
-import org.grails.datastore.mapping.reflect.EntityReflector;
-import org.grails.datastore.mapping.reflect.FieldEntityAccess;
-import org.grails.datastore.mapping.validation.ValidatorRegistry;
+import org.springframework.beans.BeanUtils
+import org.springframework.core.convert.ConversionService
+import org.springframework.core.convert.converter.Converter
+import org.springframework.core.convert.converter.ConverterRegistry
+import org.springframework.core.convert.support.GenericConversionService
+import org.springframework.core.env.PropertyResolver
+import org.springframework.util.Assert
+import org.springframework.util.ClassUtils
+import org.springframework.validation.Validator
+
+import org.grails.datastore.mapping.config.AbstractGormMappingFactory
+import org.grails.datastore.mapping.config.ConfigurationUtils
+import org.grails.datastore.mapping.core.connections.ConnectionSourceSettings
+import org.grails.datastore.mapping.engine.BeanEntityAccess
+import org.grails.datastore.mapping.engine.EntityAccess
+import org.grails.datastore.mapping.engine.types.CustomTypeMarshaller
+import org.grails.datastore.mapping.model.config.GormProperties
+import org.grails.datastore.mapping.model.lifecycle.Initializable
+import org.grails.datastore.mapping.model.types.conversion.DefaultConversionService
+import org.grails.datastore.mapping.multitenancy.MultiTenancySettings
+import org.grails.datastore.mapping.proxy.JavassistProxyFactory
+import org.grails.datastore.mapping.proxy.ProxyFactory
+import org.grails.datastore.mapping.proxy.ProxyHandler
+import org.grails.datastore.mapping.reflect.EntityReflector
+import org.grails.datastore.mapping.reflect.FieldEntityAccess
+import org.grails.datastore.mapping.validation.ValidatorRegistry
 
 /**
  * Abstract implementation of the MappingContext interface.
@@ -59,12 +55,14 @@ import org.grails.datastore.mapping.validation.ValidatorRegistry;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings("rawtypes")
-public abstract class AbstractMappingContext implements MappingContext, Initializable {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'UnnecessarySemicolon'])
+@CompileStatic
+abstract class AbstractMappingContext implements MappingContext, Initializable {
 
-    public static final String GROOVY_PROXY_FACTORY_NAME = "org.grails.datastore.gorm.proxy.GroovyProxyFactory";
-    public static final String JAVASIST_PROXY_FACTORY = "javassist.util.proxy.ProxyFactory";
-    public static final String CONFIGURATION_PREFIX = "grails.gorm.";
+    public static final String GROOVY_PROXY_FACTORY_NAME = 'org.grails.datastore.gorm.proxy.GroovyProxyFactory';
+    public static final String JAVASIST_PROXY_FACTORY = 'javassist.util.proxy.ProxyFactory';
+    public static final String CONFIGURATION_PREFIX = 'grails.gorm.';
     protected Collection<PersistentEntity> persistentEntities = new ConcurrentLinkedQueue<>();
     protected Map<String, PersistentEntity> persistentEntitiesByName = new ConcurrentHashMap<>();
     protected Map<PersistentEntity, Map<String, PersistentEntity>> persistentEntitiesByDiscriminator = new ConcurrentHashMap<>();
@@ -78,16 +76,16 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
     private boolean initialized;
     private MultiTenancySettings.MultiTenancyMode multiTenancyMode;
 
-    public AbstractMappingContext() {
+    AbstractMappingContext() {
         this.multiTenancyMode = MultiTenancySettings.MultiTenancyMode.NONE;
     }
 
-    public AbstractMappingContext(ConnectionSourceSettings settings) {
+    AbstractMappingContext(ConnectionSourceSettings settings) {
         initialize(settings);
     }
 
     @Override
-    public MultiTenancySettings.MultiTenancyMode getMultiTenancyMode() {
+    MultiTenancySettings.MultiTenancyMode getMultiTenancyMode() {
         return this.multiTenancyMode;
     }
 
@@ -97,7 +95,7 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
 
         // initialize custom type marshallers
         MappingFactory mappingFactory = getMappingFactory();
-        Iterable<CustomTypeMarshaller> customTypeMarshallers = ConfigurationUtils.findServices(settings.getCustom().getTypes(), CustomTypeMarshaller.class);
+        Iterable<CustomTypeMarshaller> customTypeMarshallers = ConfigurationUtils.findServices(settings.getCustom().getTypes(), CustomTypeMarshaller);
         for (CustomTypeMarshaller customTypeMarshaller : customTypeMarshallers) {
             if (customTypeMarshaller.supports(this)) {
                 mappingFactory.registerCustomType(customTypeMarshaller);
@@ -113,36 +111,36 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
         }
     }
 
-    public ConversionService getConversionService() {
+    ConversionService getConversionService() {
         return conversionService;
     }
 
-    public ConverterRegistry getConverterRegistry() {
+    ConverterRegistry getConverterRegistry() {
         return conversionService;
     }
 
-    public void setCanInitializeEntities(boolean canInitializeEntities) {
+    void setCanInitializeEntities(boolean canInitializeEntities) {
         this.canInitializeEntities = canInitializeEntities;
     }
 
-    public abstract MappingFactory getMappingFactory();
+    abstract MappingFactory getMappingFactory();
 
-    public void configure(PropertyResolver configuration) {
+    void configure(PropertyResolver configuration) {
         if (configuration == null) {
             return;
         }
 
         String simpleName = Introspector.decapitalize(getClass().getSimpleName());
-        String suffix = "MappingContext";
+        String suffix = 'MappingContext';
 
         if (simpleName.endsWith(suffix)) {
             simpleName = simpleName.substring(0, simpleName.length() - suffix.length());
         }
 
         String prefix = CONFIGURATION_PREFIX + simpleName;
-        String configurationKey = prefix + ".custom.types";
+        String configurationKey = prefix + '.custom.types';
 
-        Iterable<CustomTypeMarshaller> customTypeMarshallers = ConfigurationUtils.findServices(configuration, configurationKey, CustomTypeMarshaller.class);
+        Iterable<CustomTypeMarshaller> customTypeMarshallers = ConfigurationUtils.findServices(configuration, configurationKey, CustomTypeMarshaller);
         for (CustomTypeMarshaller customTypeMarshaller : customTypeMarshallers) {
             if (customTypeMarshaller.supports(this)) {
                 getMappingFactory().registerCustomType(customTypeMarshaller);
@@ -151,13 +149,13 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
     }
 
     @Override
-    public ProxyHandler getProxyHandler() {
+    ProxyHandler getProxyHandler() {
         return getProxyFactory();
     }
 
-    public ProxyFactory getProxyFactory() {
+    ProxyFactory getProxyFactory() {
         if (this.proxyFactory == null) {
-            ClassLoader classLoader = AbstractMappingContext.class.getClassLoader();
+            ClassLoader classLoader = AbstractMappingContext.getClassLoader();
             if (ClassUtils.isPresent(JAVASIST_PROXY_FACTORY, classLoader)) {
                 proxyFactory = DefaultProxyFactoryCreator.create();
             }
@@ -175,34 +173,34 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
         return proxyFactory;
     }
 
-    public void addMappingContextListener(Listener listener) {
+    void addMappingContextListener(Listener listener) {
         if (listener != null)
             eventListeners.add(listener);
     }
 
-    public void setProxyFactory(ProxyFactory factory) {
+    void setProxyFactory(ProxyFactory factory) {
         if (factory != null) {
             this.proxyFactory = factory;
         }
     }
 
     @Override
-    public void setValidatorRegistry(ValidatorRegistry validatorRegistry) {
+    void setValidatorRegistry(ValidatorRegistry validatorRegistry) {
         this.validatorRegistry = validatorRegistry;
     }
 
     @Override
-    public ValidatorRegistry getValidatorRegistry() {
+    ValidatorRegistry getValidatorRegistry() {
         return validatorRegistry;
     }
 
     private static class DefaultProxyFactoryCreator {
-        public static ProxyFactory create() {
+        static ProxyFactory create() {
             return new JavassistProxyFactory();
         }
     }
 
-    public void addTypeConverter(Converter converter) {
+    void addTypeConverter(Converter converter) {
         conversionService.addConverter(converter);
     }
 
@@ -212,7 +210,7 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
      * @param entity The entity The entity
      * @return The validator or null if there is none
      */
-    public Validator getEntityValidator(PersistentEntity entity) {
+    Validator getEntityValidator(PersistentEntity entity) {
         if (entity != null) {
 
             Validator validator = entityValidators.get(entity);
@@ -234,7 +232,7 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
      * @param entity The PersistentEntity The entity
      * @param validator The validator The validator
      */
-    public void addEntityValidator(PersistentEntity entity, Validator validator) {
+    void addEntityValidator(PersistentEntity entity, Validator validator) {
         if (entity != null && validator != null) {
             entityValidators.put(entity, validator);
         }
@@ -246,8 +244,8 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
      * @param javaClass The Java class representing the entity
      * @return The PersistentEntity instance
      */
-    public PersistentEntity addExternalPersistentEntity(Class javaClass) {
-        Assert.notNull(javaClass, "PersistentEntity class cannot be null");
+    PersistentEntity addExternalPersistentEntity(Class javaClass) {
+        Assert.notNull(javaClass, 'PersistentEntity class cannot be null');
 
         PersistentEntity entity = persistentEntitiesByName.get(javaClass.getName());
 
@@ -265,15 +263,15 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
      * @param override  Whether to override an existing entity
      * @return The PersistentEntity instance
      */
-    public PersistentEntity addPersistentEntity(Class javaClass, boolean override) {
-        Assert.notNull(javaClass, "PersistentEntity class cannot be null");
+    PersistentEntity addPersistentEntity(Class javaClass, boolean override) {
+        Assert.notNull(javaClass, 'PersistentEntity class cannot be null');
         if (override) {
             return addPersistentEntityInternal(javaClass, false, canInitializeEntities);
         }
         return addPersistentEntity(javaClass);
     }
 
-    public Collection<PersistentEntity> addPersistentEntities(Class... javaClasses) {
+    Collection<PersistentEntity> addPersistentEntities(Class... javaClasses) {
         Collection<PersistentEntity> entities = new ArrayList<>();
 
         for (Class javaClass : javaClasses) {
@@ -303,8 +301,8 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
      * @param javaClass The Java class representing the entity
      * @return The PersistentEntity instance
      */
-    public PersistentEntity addPersistentEntity(Class javaClass) {
-        Assert.notNull(javaClass, "PersistentEntity class cannot be null");
+    PersistentEntity addPersistentEntity(Class javaClass) {
+        Assert.notNull(javaClass, 'PersistentEntity class cannot be null');
 
         PersistentEntity entity = persistentEntitiesByName.get(javaClass.getName());
 
@@ -341,7 +339,7 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
 
     }
 
-    public void initialize() {
+    void initialize() {
         for (PersistentEntity entity : persistentEntities) {
             initializePersistentEntity(entity);
             FieldEntityAccess.getOrIntializeReflector(entity);
@@ -349,7 +347,7 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
         this.initialized = true;
     }
 
-    public boolean isInitialized() {
+    boolean isInitialized() {
         return initialized;
     }
 
@@ -397,7 +395,7 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
      * @param entity The entity
      * @return True if it is
      */
-    public boolean isInInheritanceHierarchy(PersistentEntity entity) {
+    boolean isInInheritanceHierarchy(PersistentEntity entity) {
         if (entity != null) {
             if (!entity.isRoot()) return true;
             PersistentEntity rootEntity = entity.getRootEntity();
@@ -410,7 +408,7 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
     }
 
     @Override
-    public Collection<PersistentEntity> getChildEntities(PersistentEntity root) {
+    Collection<PersistentEntity> getChildEntities(PersistentEntity root) {
         final Map<String, PersistentEntity> children = persistentEntitiesByDiscriminator.get(root);
         if (children != null) {
             return Collections.unmodifiableCollection(children.values());
@@ -421,7 +419,7 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
     }
 
     @Override
-    public Collection<PersistentEntity> getDirectChildEntities(PersistentEntity root) {
+    Collection<PersistentEntity> getDirectChildEntities(PersistentEntity root) {
         Collection<PersistentEntity> entities = persistentEntitiesByParent.get(root);
         if (entities == null) {
             return Collections.emptyList();
@@ -429,7 +427,7 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
         return Collections.unmodifiableCollection(entities);
     }
 
-    public PersistentEntity getChildEntityByDiscriminator(PersistentEntity root, String discriminator) {
+    PersistentEntity getChildEntityByDiscriminator(PersistentEntity root, String discriminator) {
         final Map<String, PersistentEntity> children = persistentEntitiesByDiscriminator.get(root);
         if (children != null) {
             return children.get(discriminator);
@@ -458,7 +456,7 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
         }
 
         String name = getClass().getSimpleName();
-        String suffix = MappingContext.class.getSimpleName();
+        String suffix = MappingContext.getSimpleName();
         if (name.endsWith(suffix)) {
             name = name.substring(0, name.length() - suffix.length()).toLowerCase(Locale.ENGLISH);
             return name.equalsIgnoreCase(mappingStrategy.toString());
@@ -470,27 +468,27 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
         return createPersistentEntity(javaClass);
     }
 
-    public PersistentEntity createEmbeddedEntity(Class<?> type) {
+    PersistentEntity createEmbeddedEntity(Class<?> type) {
         EmbeddedPersistentEntity embedded = new EmbeddedPersistentEntity(type, this);
         embedded.initialize();
         return embedded;
     }
 
-    public Collection<PersistentEntity> getPersistentEntities() {
+    Collection<PersistentEntity> getPersistentEntities() {
         return persistentEntities;
     }
 
-    public boolean isPersistentEntity(Class type) {
+    boolean isPersistentEntity(Class type) {
         return type != null && getPersistentEntity(type.getName()) != null;
 
     }
 
-    public boolean isPersistentEntity(Object value) {
+    boolean isPersistentEntity(Object value) {
         return value != null && isPersistentEntity(value.getClass());
     }
 
-    public PersistentEntity getPersistentEntity(String name) {
-        final int proxyIndicator = name.indexOf("_$$_");
+    PersistentEntity getPersistentEntity(String name) {
+        final int proxyIndicator = name.indexOf('_$$_');
         if (proxyIndicator > -1) {
             name = name.substring(0, proxyIndicator);
         }
@@ -505,12 +503,12 @@ public abstract class AbstractMappingContext implements MappingContext, Initiali
      * @return The class data
      */
     @Override
-    public EntityReflector getEntityReflector(PersistentEntity entity) {
+    EntityReflector getEntityReflector(PersistentEntity entity) {
         return FieldEntityAccess.getOrIntializeReflector(entity);
     }
 
     @Override
-    public EntityAccess createEntityAccess(PersistentEntity entity, Object instance) {
+    EntityAccess createEntityAccess(PersistentEntity entity, Object instance) {
         final ProxyFactory proxyFactory = getProxyFactory();
         instance = proxyFactory.unwrap(instance);
         if (entity != null) {

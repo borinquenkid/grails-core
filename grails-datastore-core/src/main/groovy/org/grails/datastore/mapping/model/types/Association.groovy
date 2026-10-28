@@ -16,28 +16,23 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model.types;
+package org.grails.datastore.mapping.model.types
 
-import java.beans.PropertyDescriptor;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import groovy.transform.CompileStatic
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.FetchType;
+import java.beans.PropertyDescriptor
 
-import org.grails.datastore.mapping.config.Property;
-import org.grails.datastore.mapping.dirty.checking.DirtyCheckable;
-import org.grails.datastore.mapping.model.AbstractPersistentProperty;
-import org.grails.datastore.mapping.model.IllegalMappingException;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.PersistentProperty;
-import org.grails.datastore.mapping.validation.CascadeValidateType;
+import jakarta.persistence.CascadeType
+import jakarta.persistence.FetchType
+
+import org.grails.datastore.mapping.config.Property
+import org.grails.datastore.mapping.dirty.checking.DirtyCheckable
+import org.grails.datastore.mapping.model.AbstractPersistentProperty
+import org.grails.datastore.mapping.model.IllegalMappingException
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.PersistentProperty
+import org.grails.datastore.mapping.validation.CascadeValidateType
 
 /**
  * Models an association between one class and another
@@ -45,8 +40,10 @@ import org.grails.datastore.mapping.validation.CascadeValidateType;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings("rawtypes")
-public abstract class Association<T extends Property> extends AbstractPersistentProperty<T> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'UnnecessarySemicolon'])
+@CompileStatic
+abstract class Association<T extends Property> extends AbstractPersistentProperty<T> {
 
     private static final Set<CascadeType> DEFAULT_OWNER_CASCADE = Collections.unmodifiableSet(new HashSet<>(Collections.singletonList(CascadeType.ALL)));
 
@@ -63,59 +60,59 @@ public abstract class Association<T extends Property> extends AbstractPersistent
     private static final Map<String, CascadeType> cascadeTypeConversions = new LinkedHashMap<>();
 
     static {
-        cascadeTypeConversions.put("all", CascadeType.ALL);
-        cascadeTypeConversions.put("all-delete-orphan", CascadeType.ALL);
-        cascadeTypeConversions.put("merge", CascadeType.MERGE);
-        cascadeTypeConversions.put("save-update", CascadeType.PERSIST);
-        cascadeTypeConversions.put("delete", CascadeType.REMOVE);
-        cascadeTypeConversions.put("remove", CascadeType.REMOVE);
-        cascadeTypeConversions.put("refresh", CascadeType.REFRESH);
-        cascadeTypeConversions.put("persist", CascadeType.PERSIST);
+        cascadeTypeConversions.put('all', CascadeType.ALL);
+        cascadeTypeConversions.put('all-delete-orphan', CascadeType.ALL);
+        cascadeTypeConversions.put('merge', CascadeType.MERGE);
+        cascadeTypeConversions.put('save-update', CascadeType.PERSIST);
+        cascadeTypeConversions.put('delete', CascadeType.REMOVE);
+        cascadeTypeConversions.put('remove', CascadeType.REMOVE);
+        cascadeTypeConversions.put('refresh', CascadeType.REFRESH);
+        cascadeTypeConversions.put('persist', CascadeType.PERSIST);
         // Unsupported Types
         // "all-delete-orphan", "lock", "replicate", "evict", "delete-orphan"
     }
 
-    public Association(PersistentEntity owner, MappingContext context, PropertyDescriptor descriptor) {
+    Association(PersistentEntity owner, MappingContext context, PropertyDescriptor descriptor) {
         super(owner, context, descriptor);
     }
 
-    public Association(PersistentEntity owner, MappingContext context, String name, Class type) {
+    Association(PersistentEntity owner, MappingContext context, String name, Class type) {
         super(owner, context, name, type);
     }
 
     /**
      * @return The fetch strategy for the association
      */
-    public FetchType getFetchStrategy() {
+    FetchType getFetchStrategy() {
         return getMapping().getMappedForm().getFetchStrategy();
     }
 
     /**
      * @return True if the association is bidirectional
      */
-    public boolean isBidirectional() {
+    boolean isBidirectional() {
         return associatedEntity != null && referencedPropertyName != null;
     }
 
     /**
      * @return Whether orphaned entities should be removed when cascading deletes to this association
      */
-    public boolean isOrphanRemoval() {
+    boolean isOrphanRemoval() {
         return orphanRemoval;
     }
 
     /**
      * @return The inverse side or null if the association is not bidirectional
      */
-    public Association getInverseSide() {
+    Association getInverseSide() {
         final PersistentProperty associatedProperty = associatedEntity.getPropertyByName(referencedPropertyName);
         if (associatedProperty == null) return null;
         if (associatedProperty instanceof Association) {
             return (Association) associatedProperty;
         }
-        throw new IllegalMappingException("The inverse side [" + associatedEntity.getName() + "." +
-                associatedProperty.getName() + "] of the association [" + getOwner().getName() + "." +
-                getName() + "] is not valid. Associations can only map to other entities and collection types.");
+        throw new IllegalMappingException('The inverse side [' + associatedEntity.getName() + '.' +
+                associatedProperty.getName() + '] of the association [' + getOwner().getName() + '.' +
+                getName() + '] is not valid. Associations can only map to other entities and collection types.');
     }
 
     /**
@@ -124,7 +121,7 @@ public abstract class Association<T extends Property> extends AbstractPersistent
      * @param cascadeOperation The cascadeOperation
      * @return True if it does
      */
-    public boolean doesCascade(CascadeType cascadeOperation) {
+    boolean doesCascade(CascadeType cascadeOperation) {
         return doesCascade(new CascadeType[]{cascadeOperation});
     }
 
@@ -134,7 +131,7 @@ public abstract class Association<T extends Property> extends AbstractPersistent
      * @param cascadeOperations The cascadeOperations
      * @return True if it does
      */
-    public boolean doesCascade(CascadeType... cascadeOperations) {
+    boolean doesCascade(CascadeType... cascadeOperations) {
         Set<CascadeType> cascades = getCascadeOperations();
         if (cascades.contains(CascadeType.ALL)) {
             return true;
@@ -156,7 +153,7 @@ public abstract class Association<T extends Property> extends AbstractPersistent
      * @param associatedObject The associated object that may or may not be validated further
      * @return True if validation should cascade
      */
-    public boolean doesCascadeValidate(Object associatedObject) {
+    boolean doesCascadeValidate(Object associatedObject) {
         CascadeValidateType cascadeValidateType = getCascadeValidateOperation();
 
         // Never cascade validation for this association
@@ -184,14 +181,14 @@ public abstract class Association<T extends Property> extends AbstractPersistent
     /**
      * @return Whether this association is embedded
      */
-    public boolean isEmbedded() {
+    boolean isEmbedded() {
         return this instanceof Embedded || this instanceof EmbeddedCollection;
     }
 
     /**
      * @return Whether this association is embedded
      */
-    public boolean isBasic() {
+    boolean isBasic() {
         return this instanceof Basic;
     }
 
@@ -201,7 +198,7 @@ public abstract class Association<T extends Property> extends AbstractPersistent
      *
      * @return True if this property is the owning side
      */
-    public boolean isOwningSide() {
+    boolean isOwningSide() {
         return owningSide;
     }
 
@@ -210,7 +207,7 @@ public abstract class Association<T extends Property> extends AbstractPersistent
      *
      * @param owningSide True if it is
      */
-    public void setOwningSide(boolean owningSide) {
+    void setOwningSide(boolean owningSide) {
         this.owningSide = owningSide;
     }
 
@@ -219,14 +216,14 @@ public abstract class Association<T extends Property> extends AbstractPersistent
      *
      * @param associatedEntity The associated entity
      */
-    public void setAssociatedEntity(PersistentEntity associatedEntity) {
+    void setAssociatedEntity(PersistentEntity associatedEntity) {
         this.associatedEntity = associatedEntity;
     }
 
     /**
      * @return The entity associated with the this association
      */
-    public PersistentEntity getAssociatedEntity() {
+    PersistentEntity getAssociatedEntity() {
         return associatedEntity;
     }
 
@@ -234,41 +231,40 @@ public abstract class Association<T extends Property> extends AbstractPersistent
      * Sets the name of the inverse property
      * @param referencedPropertyName The referenced property name
      */
-    public void setReferencedPropertyName(String referencedPropertyName) {
+    void setReferencedPropertyName(String referencedPropertyName) {
         this.referencedPropertyName = referencedPropertyName;
     }
 
     /**
      * @return Returns the name of the inverse property or null if this association is unidirectional
      */
-    public String getReferencedPropertyName() {
+    String getReferencedPropertyName() {
         return referencedPropertyName;
     }
 
     @Override
-    public String toString() {
-        return getOwner().getName() + "->" + getName();
+    String toString() {
+        return getOwner().getName() + '->' + getName();
     }
 
     /**
      * @return Whether the association is a List
      */
-    public boolean isList() {
-        return List.class.isAssignableFrom(getType());
+    boolean isList() {
+        return List.isAssignableFrom(getType());
     }
 
     /**
      * @return Whether the association is circular
      */
-    public boolean isCircular() {
+    boolean isCircular() {
         PersistentEntity associatedEntity = getAssociatedEntity();
         return associatedEntity != null && associatedEntity.getJavaClass().isAssignableFrom(owner.getJavaClass());
     }
 
-    public boolean isCorrectlyOwned() {
-        return Optional.ofNullable(getAssociatedEntity())
-                .map(associatedEntity -> associatedEntity.isOwningEntity(getOwner()))
-                .orElse(false);
+    boolean isCorrectlyOwned() {
+        PersistentEntity associatedEntity = getAssociatedEntity();
+        return associatedEntity != null && associatedEntity.isOwningEntity(getOwner());
     }
 
     protected Set<CascadeType> getCascadeOperations() {
@@ -294,14 +290,14 @@ public abstract class Association<T extends Property> extends AbstractPersistent
         this.orphanRemoval = mappedForm.isOrphanRemoval();
         final String cascade = mappedForm.getCascade();
         if (cascade != null) {
-            final String[] specifiedOperations = cascade.toLowerCase().split(",");
+            final String[] specifiedOperations = cascade.toLowerCase().split(',');
             Set<CascadeType> cascadeOperations = new HashSet<>();
             for (final String operation: specifiedOperations) {
                 final String key = operation.trim();
                 if (cascadeTypeConversions.containsKey(key)) {
                     cascadeOperations.add(cascadeTypeConversions.get(key));
                 }
-                if (key.contains("delete-orphan")) {
+                if (key.contains('delete-orphan')) {
                     this.orphanRemoval = true;
                 }
             }
@@ -336,31 +332,27 @@ public abstract class Association<T extends Property> extends AbstractPersistent
         return cascade != null ? CascadeValidateType.fromMappedName(cascade) : CascadeValidateType.DEFAULT;
     }
 
-    public boolean isHasOne() {
-        return Optional.of(this)
-                .filter(OneToOne.class::isInstance)
-                .map(OneToOne.class::cast)
-                .map(ToOne::isForeignKeyInChild)
-                .orElse(false);
+    boolean isHasOne() {
+        return this instanceof OneToOne && ((ToOne) this).isForeignKeyInChild();
     }
 
-    public boolean isOneToOne() {
+    boolean isOneToOne() {
         return this instanceof OneToOne;
     }
 
-    public boolean isOneToMany() {
+    boolean isOneToMany() {
         return this instanceof OneToMany;
     }
 
-    public boolean isManyToMany() {
+    boolean isManyToMany() {
         return this instanceof ManyToMany;
     }
 
-    public boolean isManyToOne() {
+    boolean isManyToOne() {
         return this instanceof ManyToOne;
     }
 
-    public boolean canBindOneToOneWithSingleColumnAndForeignKey() {
+    boolean canBindOneToOneWithSingleColumnAndForeignKey() {
         return Optional.of(this)
                 .filter(Association::isBidirectional)
                 .map(Association::getInverseSide)
@@ -369,7 +361,7 @@ public abstract class Association<T extends Property> extends AbstractPersistent
                 .orElse(false);
     }
 
-    public boolean isBidirectionalToManyMap() {
-        return Map.class.isAssignableFrom(this.getType()) && this.isBidirectional();
+    boolean isBidirectionalToManyMap() {
+        return Map.isAssignableFrom(this.getType()) && this.isBidirectional();
     }
 }

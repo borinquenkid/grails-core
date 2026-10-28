@@ -17,21 +17,19 @@
  *  under the License.
  */
 
-package org.grails.datastore.mapping.transactions;
+package org.grails.datastore.mapping.transactions
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
-import org.springframework.transaction.interceptor.NoRollbackRuleAttribute;
-import org.springframework.transaction.interceptor.RollbackRuleAttribute;
-import org.springframework.transaction.interceptor.RuleBasedTransactionAttribute;
-import org.springframework.transaction.interceptor.TransactionAttribute;
+import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.interceptor.DefaultTransactionAttribute
+import org.springframework.transaction.interceptor.NoRollbackRuleAttribute
+import org.springframework.transaction.interceptor.RollbackRuleAttribute
+import org.springframework.transaction.interceptor.RuleBasedTransactionAttribute
+import org.springframework.transaction.interceptor.TransactionAttribute
 
 /**
  * Extended version of {@link RuleBasedTransactionAttribute} that ensures all exception types are rolled back and allows inheritance of setRollbackOnly
@@ -39,27 +37,30 @@ import org.springframework.transaction.interceptor.TransactionAttribute;
  * @author Graeme Rocher
  * @since 3.0
  */
-public class CustomizableRollbackTransactionAttribute extends RuleBasedTransactionAttribute {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class CustomizableRollbackTransactionAttribute extends RuleBasedTransactionAttribute {
 
-    private static final Logger log = LoggerFactory.getLogger(CustomizableRollbackTransactionAttribute.class);
+    private static final Logger log = LoggerFactory.getLogger(CustomizableRollbackTransactionAttribute);
 
     private static final long serialVersionUID = 1L;
     private boolean inheritRollbackOnly = true;
     private String connection;
 
-    public CustomizableRollbackTransactionAttribute() {
+    CustomizableRollbackTransactionAttribute() {
         super();
     }
 
-    public CustomizableRollbackTransactionAttribute(int propagationBehavior, List<RollbackRuleAttribute> rollbackRules) {
+    CustomizableRollbackTransactionAttribute(int propagationBehavior, List<RollbackRuleAttribute> rollbackRules) {
         super(propagationBehavior, rollbackRules);
     }
 
-    public CustomizableRollbackTransactionAttribute(TransactionAttribute other) {
+    CustomizableRollbackTransactionAttribute(TransactionAttribute other) {
         this((TransactionDefinition) other);
     }
 
-    public CustomizableRollbackTransactionAttribute(TransactionDefinition other) {
+    CustomizableRollbackTransactionAttribute(TransactionDefinition other) {
         super();
         setPropagationBehavior(other.getPropagationBehavior());
         setIsolationLevel(other.getIsolationLevel());
@@ -77,11 +78,11 @@ public class CustomizableRollbackTransactionAttribute extends RuleBasedTransacti
         copyCustomizableState(other);
     }
 
-    public CustomizableRollbackTransactionAttribute(CustomizableRollbackTransactionAttribute other) {
+    CustomizableRollbackTransactionAttribute(CustomizableRollbackTransactionAttribute other) {
         this((RuleBasedTransactionAttribute) other);
     }
 
-    public CustomizableRollbackTransactionAttribute(RuleBasedTransactionAttribute other) {
+    CustomizableRollbackTransactionAttribute(RuleBasedTransactionAttribute other) {
         super(other);
         copyAttributeState(other);
         copyCustomizableState(other);
@@ -113,9 +114,9 @@ public class CustomizableRollbackTransactionAttribute extends RuleBasedTransacti
     }
 
     @Override
-    public boolean rollbackOn(Throwable ex) {
+    boolean rollbackOn(Throwable ex) {
         if (log.isTraceEnabled()) {
-            log.trace("Applying rules to determine whether transaction should rollback on " + ex);
+            log.trace('Applying rules to determine whether transaction should rollback on ' + ex);
         }
 
         RollbackRuleAttribute winner = null;
@@ -133,13 +134,13 @@ public class CustomizableRollbackTransactionAttribute extends RuleBasedTransacti
         }
 
         if (log.isTraceEnabled()) {
-            log.trace("Winning rollback rule is: " + winner);
+            log.trace('Winning rollback rule is: ' + winner);
         }
 
         // User superclass behavior (rollback on unchecked) if no rule matches.
         if (winner == null) {
             if (log.isTraceEnabled()) {
-                log.trace("No relevant rollback rule found: applying default rules");
+                log.trace('No relevant rollback rule found: applying default rules');
             }
 
             // always rollback regardless if it is a checked or unchecked exception since Groovy doesn't differentiate those
@@ -149,22 +150,22 @@ public class CustomizableRollbackTransactionAttribute extends RuleBasedTransacti
         return !(winner instanceof NoRollbackRuleAttribute);
     }
 
-    public boolean isInheritRollbackOnly() {
+    boolean isInheritRollbackOnly() {
         return inheritRollbackOnly;
     }
 
-    public void setInheritRollbackOnly(boolean inheritRollbackOnly) {
+    void setInheritRollbackOnly(boolean inheritRollbackOnly) {
         this.inheritRollbackOnly = inheritRollbackOnly;
     }
 
     /**
      * @return The connection being used
      */
-    public String getConnection() {
+    String getConnection() {
         return connection;
     }
 
-    public void setConnection(String connection) {
+    void setConnection(String connection) {
         this.connection = connection;
     }
 }

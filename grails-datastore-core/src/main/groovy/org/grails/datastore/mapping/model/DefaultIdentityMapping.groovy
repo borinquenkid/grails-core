@@ -16,11 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model;
+package org.grails.datastore.mapping.model
 
-import org.grails.datastore.mapping.config.Property;
+import groovy.transform.CompileStatic
 
-import static org.grails.datastore.mapping.model.MappingFactory.IDENTITY_PROPERTY;
+import org.grails.datastore.mapping.config.Property
+
+import static org.grails.datastore.mapping.model.MappingFactory.IDENTITY_PROPERTY
 
 /**
  * Default implementation of the {@link IdentityMapping} interface
@@ -28,11 +30,12 @@ import static org.grails.datastore.mapping.model.MappingFactory.IDENTITY_PROPERT
  * @author Graeme Rocher
  * @since 1.0
  */
-public class DefaultIdentityMapping<T extends Property> extends DefaultPropertyMapping<T> implements IdentityMapping<T> {
+@CompileStatic
+class DefaultIdentityMapping<T extends Property> extends DefaultPropertyMapping<T> implements IdentityMapping<T> {
 
-    private final String[] identifierNames;
-    private final ValueGenerator generator;
-    private final boolean lazy;
+    private final String[] identifierNames
+    private final ValueGenerator generator
+    private final boolean lazy
 
     /**
      * Creates a lazy identity mapping that defers resolution of the mapped form and identifier names
@@ -41,56 +44,57 @@ public class DefaultIdentityMapping<T extends Property> extends DefaultPropertyM
      *
      * @param classMapping the class mapping
      */
-    public DefaultIdentityMapping(ClassMapping classMapping) {
-        super(classMapping, null);
-        this.generator = ValueGenerator.AUTO;
-        this.identifierNames = null;
-        this.lazy = true;
+    DefaultIdentityMapping(ClassMapping classMapping) {
+        super(classMapping, null)
+        this.generator = ValueGenerator.AUTO
+        this.identifierNames = null
+        this.lazy = true
     }
 
-    public DefaultIdentityMapping(ClassMapping classMapping, T mappedForm, String[] identifierNames, ValueGenerator generator) {
-        super(classMapping, mappedForm);
-        this.identifierNames = identifierNames;
-        this.generator = generator;
-        this.lazy = false;
+    DefaultIdentityMapping(ClassMapping classMapping, T mappedForm, String[] identifierNames, ValueGenerator generator) {
+        super(classMapping, mappedForm)
+        this.identifierNames = identifierNames
+        this.generator = generator
+        this.lazy = false
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public T getMappedForm() {
+    @SuppressWarnings('unchecked')
+    T getMappedForm() {
         if (lazy) {
-            PersistentProperty identity = getClassMapping().getEntity().getIdentity();
+            PersistentProperty identity = getClassMapping().getEntity().getIdentity()
             if (identity != null) {
-                return (T) identity.getMapping().getMappedForm();
+                return (T) identity.getMapping().getMappedForm()
             }
-            return null;
+            return null
         }
-        return super.getMappedForm();
+        return super.getMappedForm()
     }
 
     @Override
-    public String[] getIdentifierName() {
+    String[] getIdentifierName() {
         if (lazy) {
-            PersistentProperty identity = getClassMapping().getEntity().getIdentity();
+            PersistentProperty identity = getClassMapping().getEntity().getIdentity()
             if (identity != null) {
-                String propertyName = identity.getMapping().getMappedForm().getName();
+                String propertyName = identity.getMapping().getMappedForm().getName()
                 if (propertyName != null) {
-                    return new String[] { propertyName };
+                    return [propertyName] as String[]
                 }
             }
-            return new String[] { IDENTITY_PROPERTY };
+            return [IDENTITY_PROPERTY] as String[]
         }
-        return identifierNames;
+        return identifierNames
     }
 
     @Override
-    public ValueGenerator getGenerator() {
-        return generator;
+    ValueGenerator getGenerator() {
+        return generator
     }
 
     @Override
-    public Class<?> getStoredAs() {
-        T mappedForm = getMappedForm();
-        return mappedForm != null ? mappedForm.getStoredAs() : null;
+    Class<?> getStoredAs() {
+        T mappedForm = getMappedForm()
+        return mappedForm != null ? mappedForm.getStoredAs() : null
     }
+
 }

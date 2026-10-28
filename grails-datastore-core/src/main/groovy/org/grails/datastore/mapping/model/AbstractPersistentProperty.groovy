@@ -16,13 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model;
+package org.grails.datastore.mapping.model
 
-import java.beans.PropertyDescriptor;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.config.Property;
-import org.grails.datastore.mapping.reflect.EntityReflector;
-import org.grails.datastore.mapping.reflect.NameUtils;
+import java.beans.PropertyDescriptor
+
+import org.grails.datastore.mapping.config.Property
+import org.grails.datastore.mapping.reflect.EntityReflector
+import org.grails.datastore.mapping.reflect.NameUtils
 
 /**
  * Abstract implementation of the PersistentProperty interface that uses the
@@ -31,8 +33,11 @@ import org.grails.datastore.mapping.reflect.NameUtils;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings("rawtypes")
-public abstract class AbstractPersistentProperty<T extends Property> implements PersistentProperty<T> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'UnnecessarySemicolon'])
+@CompileStatic
+abstract class AbstractPersistentProperty<T extends Property> implements PersistentProperty<T> {
+
     protected final PersistentEntity owner;
     protected final MappingContext context;
     protected final String name;
@@ -41,49 +46,49 @@ public abstract class AbstractPersistentProperty<T extends Property> implements 
     private EntityReflector.PropertyReader reader;
     private EntityReflector.PropertyWriter writer;
 
-    public AbstractPersistentProperty(PersistentEntity owner, MappingContext context, PropertyDescriptor descriptor) {
+    AbstractPersistentProperty(PersistentEntity owner, MappingContext context, PropertyDescriptor descriptor) {
         this(owner, context, descriptor.getName(), descriptor.getPropertyType());
     }
 
-    public AbstractPersistentProperty(PersistentEntity owner, MappingContext context, String name, Class type) {
+    AbstractPersistentProperty(PersistentEntity owner, MappingContext context, String name, Class type) {
         this.owner = owner;
         this.context = context;
         this.name = name;
         this.type = type;
     }
 
-    public String getName() {
+    String getName() {
         return name;
     }
 
-    public String getCapitilizedName() {
+    String getCapitilizedName() {
         return NameUtils.capitalize(getName());
     }
 
-    public Class getType() {
+    Class getType() {
         return type;
     }
 
-    public PersistentEntity getOwner() {
+    PersistentEntity getOwner() {
         return owner;
     }
 
     @Override
-    public String toString() {
+    String toString() {
         String mappingType = getClass().getName();
-        if (mappingType.contains("$")) {
+        if (mappingType.contains('$')) {
             mappingType = getClass().getSuperclass().getName();
         }
-        return getName() + ":" + getType().getName() + " (" + mappingType + ")";
+        return getName() + ':' + getType().getName() + ' (' + mappingType + ')';
     }
 
-    public boolean isNullable() {
+    boolean isNullable() {
         final T mappedForm = getMapping().getMappedForm();
         return mappedForm != null && mappedForm.isNullable();
     }
 
     @Override
-    public boolean isInherited() {
+    boolean isInherited() {
         if (inherited == null) {
 
             if (owner.isRoot()) {
@@ -108,7 +113,7 @@ public abstract class AbstractPersistentProperty<T extends Property> implements 
     }
 
     @Override
-    public EntityReflector.PropertyReader getReader() {
+    EntityReflector.PropertyReader getReader() {
         if (reader == null) {
             reader = getOwner().getReflector().getPropertyReader(getName());
         }
@@ -116,7 +121,7 @@ public abstract class AbstractPersistentProperty<T extends Property> implements 
     }
 
     @Override
-    public EntityReflector.PropertyWriter getWriter() {
+    EntityReflector.PropertyWriter getWriter() {
         if (writer == null) {
             writer = getOwner().getReflector().getPropertyWriter(getName());
         }

@@ -17,41 +17,49 @@
  *  under the License.
  */
 
-package org.grails.datastore.mapping.document.config;
+package org.grails.datastore.mapping.document.config
 
-import org.grails.datastore.mapping.model.AbstractClassMapping;
-import org.grails.datastore.mapping.model.AbstractPersistentEntity;
-import org.grails.datastore.mapping.model.ClassMapping;
-import org.grails.datastore.mapping.model.IdentityMapping;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import groovy.transform.CompileStatic
 
-public class DocumentPersistentEntity extends AbstractPersistentEntity<Collection> {
+import org.grails.datastore.mapping.model.AbstractClassMapping
+import org.grails.datastore.mapping.model.AbstractPersistentEntity
+import org.grails.datastore.mapping.model.ClassMapping
+import org.grails.datastore.mapping.model.IdentityMapping
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
+
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class DocumentPersistentEntity extends AbstractPersistentEntity<Collection> {
 
     private final DocumentCollectionMapping classMapping;
 
-    public DocumentPersistentEntity(@SuppressWarnings("rawtypes") Class javaClass, MappingContext context, boolean external) {
+    DocumentPersistentEntity(@SuppressWarnings('rawtypes') Class javaClass, MappingContext context, boolean external) {
         super(javaClass, context);
         setExternal(external);
         this.classMapping = new DocumentCollectionMapping(this, context);
     }
 
-    public DocumentPersistentEntity(@SuppressWarnings("rawtypes") Class javaClass, MappingContext context) {
+    DocumentPersistentEntity(@SuppressWarnings('rawtypes') Class javaClass, MappingContext context) {
         this(javaClass, context, false);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     @Override
-    public ClassMapping<Collection> getMapping() {
+    ClassMapping<Collection> getMapping() {
         return classMapping;
     }
 
-    public class DocumentCollectionMapping extends AbstractClassMapping<Collection> {
+    // TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+    @SuppressWarnings('UnnecessarySemicolon')
+    class DocumentCollectionMapping extends AbstractClassMapping<Collection> {
+
         private final Collection mappedForm;
 
         private IdentityMapping identityMapping;
 
-        public DocumentCollectionMapping(PersistentEntity entity, MappingContext context) {
+        DocumentCollectionMapping(PersistentEntity entity, MappingContext context) {
             super(entity, context);
             if (entity.isExternal()) {
                 this.mappedForm = null;
@@ -62,12 +70,12 @@ public class DocumentPersistentEntity extends AbstractPersistentEntity<Collectio
         }
 
         @Override
-        public Collection getMappedForm() {
+        Collection getMappedForm() {
             return mappedForm;
         }
 
         @Override
-        public IdentityMapping getIdentifier() {
+        IdentityMapping getIdentifier() {
             if (identityMapping == null) {
                 identityMapping = context.getMappingFactory().createIdentityMapping(this);
             }

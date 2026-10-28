@@ -16,22 +16,19 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.reflect;
+package org.grails.datastore.mapping.reflect
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.beans.PropertyDescriptor
+import java.lang.reflect.Field
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
-import org.springframework.beans.BeanUtils;
-import org.springframework.util.StringUtils;
+import groovy.transform.CompileStatic
+import org.springframework.beans.BeanUtils
+import org.springframework.util.StringUtils
 
-import org.grails.datastore.mapping.model.DatastoreConfigurationException;
+import org.grails.datastore.mapping.model.DatastoreConfigurationException
 
 /**
  * Provides methods to help with reflective operations
@@ -39,11 +36,13 @@ import org.grails.datastore.mapping.model.DatastoreConfigurationException;
  * @author Graeme Rocher
  * @since 1.0
  */
-public class ReflectionUtils {
+@CompileStatic
+class ReflectionUtils {
 
-    public static final Map<Class<?>, Class<?>> PRIMITIVE_TYPE_COMPATIBLE_CLASSES = new HashMap<>();
-    @SuppressWarnings("rawtypes")
-    private static final Class[] EMPTY_CLASS_ARRAY = {};
+    public static final Map<Class<?>, Class<?>> PRIMITIVE_TYPE_COMPATIBLE_CLASSES = new HashMap<>()
+
+    @SuppressWarnings('rawtypes')
+    private static final Class[] EMPTY_CLASS_ARRAY = [] as Class[]
 
     /**
      * Just add two entries to the class compatibility map
@@ -51,19 +50,19 @@ public class ReflectionUtils {
      * @param right
      */
     private static void registerPrimitiveClassPair(Class<?> left, Class<?> right) {
-        PRIMITIVE_TYPE_COMPATIBLE_CLASSES.put(left, right);
-        PRIMITIVE_TYPE_COMPATIBLE_CLASSES.put(right, left);
+        PRIMITIVE_TYPE_COMPATIBLE_CLASSES.put(left, right)
+        PRIMITIVE_TYPE_COMPATIBLE_CLASSES.put(right, left)
     }
 
     static {
-        registerPrimitiveClassPair(Boolean.class, boolean.class);
-        registerPrimitiveClassPair(Integer.class, int.class);
-        registerPrimitiveClassPair(Short.class, short.class);
-        registerPrimitiveClassPair(Byte.class, byte.class);
-        registerPrimitiveClassPair(Character.class, char.class);
-        registerPrimitiveClassPair(Long.class, long.class);
-        registerPrimitiveClassPair(Float.class, float.class);
-        registerPrimitiveClassPair(Double.class, double.class);
+        registerPrimitiveClassPair(Boolean, boolean)
+        registerPrimitiveClassPair(Integer, int)
+        registerPrimitiveClassPair(Short, short)
+        registerPrimitiveClassPair(Byte, byte)
+        registerPrimitiveClassPair(Character, char)
+        registerPrimitiveClassPair(Long, long)
+        registerPrimitiveClassPair(Float, float)
+        registerPrimitiveClassPair(Double, double)
     }
 
     /**
@@ -76,10 +75,10 @@ public class ReflectionUtils {
      * @param field the field to make accessible
      * @see java.lang.reflect.Field#setAccessible
      */
-    public static void makeAccessible(Field field) {
+    static void makeAccessible(Field field) {
         if (!Modifier.isPublic(field.getModifiers()) ||
                 !Modifier.isPublic(field.getDeclaringClass().getModifiers())) {
-            field.setAccessible(true);
+            field.setAccessible(true)
         }
     }
 
@@ -93,10 +92,10 @@ public class ReflectionUtils {
      * @param method the method to make accessible
      * @see java.lang.reflect.Method#setAccessible
      */
-    public static void makeAccessible(Method method) {
+    static void makeAccessible(Method method) {
         if (!Modifier.isPublic(method.getModifiers()) ||
                 !Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
-            method.setAccessible(true);
+            method.setAccessible(true)
         }
     }
 
@@ -111,39 +110,39 @@ public class ReflectionUtils {
      * @param rightType The type of the right hand part of a notional assignment
      * @return True if values of the right hand type can be assigned in Groovy to variables of the left hand type.
      */
-    public static boolean isAssignableFrom(final Class<?> leftType, final Class<?> rightType) {
+    static boolean isAssignableFrom(final Class<?> leftType, final Class<?> rightType) {
         if (leftType == null) {
-            throw new NullPointerException("Left type is null!");
+            throw new NullPointerException('Left type is null!')
         }
         if (rightType == null) {
-            throw new NullPointerException("Right type is null!");
+            throw new NullPointerException('Right type is null!')
         }
-        if (leftType == Object.class) {
-            return true;
+        if (leftType == Object) {
+            return true
         }
         if (leftType == rightType) {
-            return true;
+            return true
         }
         // check for primitive type equivalence
-        Class<?> r = PRIMITIVE_TYPE_COMPATIBLE_CLASSES.get(leftType);
-        boolean result = r == rightType;
+        Class<?> r = PRIMITIVE_TYPE_COMPATIBLE_CLASSES.get(leftType)
+        boolean result = r == rightType
 
         if (!result) {
             // If no primitive <-> wrapper match, it may still be assignable
             // from polymorphic primitives i.e. Number -> int (AKA Integer)
             if (rightType.isPrimitive()) {
                 // see if incompatible
-                r = PRIMITIVE_TYPE_COMPATIBLE_CLASSES.get(rightType);
+                r = PRIMITIVE_TYPE_COMPATIBLE_CLASSES.get(rightType)
                 if (r != null) {
-                    result = leftType.isAssignableFrom(r);
+                    result = leftType.isAssignableFrom(r)
                 }
             }
             else {
                 // Otherwise it may just be assignable using normal Java polymorphism
-                result = leftType.isAssignableFrom(rightType);
+                result = leftType.isAssignableFrom(rightType)
             }
         }
-        return result;
+        return result
     }
 
     /**
@@ -152,19 +151,16 @@ public class ReflectionUtils {
      * @param clazz The class
      * @return The instantiated object or null if the class parameter was null
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static <T> T instantiate(Class<T> clazz) {
-        if (clazz == null) return null;
+    @SuppressWarnings(['rawtypes', 'unchecked'])
+    static <T> T instantiate(Class<T> clazz) {
+        if (clazz == null) {
+            return null
+        }
         try {
-            return clazz.getConstructor(EMPTY_CLASS_ARRAY).newInstance();
-        } catch (IllegalAccessException e) {
-            throw new InstantiationException(e.getClass().getName() + " error creating instance of class [" + e.getMessage() + "]: " + e.getMessage(), e);
-        } catch (InvocationTargetException e) {
-            throw new InstantiationException(e.getClass().getName() + " error creating instance of class [" + e.getMessage() + "]: " + e.getMessage(), e);
-        } catch (NoSuchMethodException e) {
-            throw new InstantiationException(e.getClass().getName() + " error creating instance of class [" + e.getMessage() + "]: " + e.getMessage(), e);
-        } catch (java.lang.InstantiationException e) {
-            throw new InstantiationException(e.getClass().getName() + " error creating instance of class [" + e.getMessage() + "]: " + e.getMessage(), e);
+            return clazz.getConstructor(EMPTY_CLASS_ARRAY).newInstance()
+        }
+        catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | java.lang.InstantiationException e) {
+            throw new InstantiationException(e.getClass().getName() + ' error creating instance of class [' + e.getMessage() + ']: ' + e.getMessage(), e)
         }
     }
 
@@ -176,29 +172,29 @@ public class ReflectionUtils {
      *
      * @return An array of PropertyDescriptor instances
      */
-    public static PropertyDescriptor[] getPropertiesOfType(Class<?> clazz, Class<?> propertyType) {
+    static PropertyDescriptor[] getPropertiesOfType(Class<?> clazz, Class<?> propertyType) {
         if (clazz == null || propertyType == null) {
-            return new PropertyDescriptor[0];
+            return new PropertyDescriptor[0]
         }
 
-        Set<PropertyDescriptor> properties = new LinkedHashSet<>();
+        Set<PropertyDescriptor> properties = new LinkedHashSet<>()
         try {
-            for (PropertyDescriptor descriptor : BeanUtils.getPropertyDescriptors(clazz)) {
-                Class<?> currentPropertyType = descriptor.getPropertyType();
+            for (PropertyDescriptor descriptor in BeanUtils.getPropertyDescriptors(clazz)) {
+                Class<?> currentPropertyType = descriptor.getPropertyType()
                 if (isTypeInstanceOfPropertyType(propertyType, currentPropertyType)) {
-                    properties.add(descriptor);
+                    properties.add(descriptor)
                 }
             }
         }
         catch (Exception e) {
             // if there are any errors in instantiating just return null for the moment
-            return new PropertyDescriptor[0];
+            return new PropertyDescriptor[0]
         }
-        return properties.toArray(new PropertyDescriptor[properties.size()]);
+        return properties.toArray(new PropertyDescriptor[properties.size()])
     }
 
     private static boolean isTypeInstanceOfPropertyType(Class<?> type, Class<?> propertyType) {
-        return propertyType.isAssignableFrom(type) && !propertyType.equals(Object.class);
+        return propertyType.isAssignableFrom(type) && propertyType != Object
     }
 
     /**
@@ -208,39 +204,55 @@ public class ReflectionUtils {
      * @param args The arguments
      * @return true if it is a javabean property method
      */
-    public static boolean isGetter(String name, Class<?>[] args) {
-        if (!StringUtils.hasText(name) || args == null) return false;
-        if (args.length != 0) return false;
+    static boolean isGetter(String name, Class<?>[] args) {
+        if (!StringUtils.hasText(name) || args == null) {
+            return false
+        }
+        if (args.length != 0) {
+            return false
+        }
 
-        if (name.startsWith("get")) {
-            name = name.substring(3);
-            if (name.length() > 0 && Character.isUpperCase(name.charAt(0))) return true;
+        if (name.startsWith('get')) {
+            String propertyName = name.substring(3)
+            if (propertyName.length() > 0 && Character.isUpperCase(propertyName.charAt(0))) {
+                return true
+            }
         }
-        else if (name.startsWith("is")) {
-            name = name.substring(2);
-            if (name.length() > 0 && Character.isUpperCase(name.charAt(0))) return true;
+        else if (name.startsWith('is')) {
+            String propertyName = name.substring(2)
+            if (propertyName.length() > 0 && Character.isUpperCase(propertyName.charAt(0))) {
+                return true
+            }
         }
-        return false;
+        return false
     }
 
-    @SuppressWarnings("rawtypes")
-    public static boolean isSetter(String name, Class[] args) {
-        if (!StringUtils.hasText(name) || args == null) return false;
-
-        if (name.startsWith("set")) {
-            if (args.length != 1) return false;
-            name = name.substring(3);
-            if (name.length() > 0 && Character.isUpperCase(name.charAt(0))) return true;
+    @SuppressWarnings('rawtypes')
+    static boolean isSetter(String name, Class[] args) {
+        if (!StringUtils.hasText(name) || args == null) {
+            return false
         }
 
-        return false;
+        if (name.startsWith('set')) {
+            if (args.length != 1) {
+                return false
+            }
+            String propertyName = name.substring(3)
+            if (propertyName.length() > 0 && Character.isUpperCase(propertyName.charAt(0))) {
+                return true
+            }
+        }
+
+        return false
     }
 
-    public static Class forName(String className, ClassLoader classLoader) {
+    static Class forName(String className, ClassLoader classLoader) {
         try {
-            return Class.forName(className, false, classLoader);
-        } catch (ClassNotFoundException e) {
-            throw new DatastoreConfigurationException("Class not found loading GORM: " + e.getMessage(), e);
+            return Class.forName(className, false, classLoader)
+        }
+        catch (ClassNotFoundException e) {
+            throw new DatastoreConfigurationException('Class not found loading GORM: ' + e.getMessage(), e)
         }
     }
+
 }

@@ -16,13 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.model.types;
+package org.grails.datastore.mapping.model.types
 
-import java.beans.PropertyDescriptor;
+import groovy.transform.CompileStatic
 
-import org.grails.datastore.mapping.config.Property;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import java.beans.PropertyDescriptor
+
+import org.grails.datastore.mapping.config.Property
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  * Models a many-to-many association between one class and another
@@ -30,23 +32,26 @@ import org.grails.datastore.mapping.model.PersistentEntity;
  * @author Graeme Rocher
  * @since 1.0
  */
-public abstract class ManyToMany<T extends Property> extends ToMany<T> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+abstract class ManyToMany<T extends Property> extends ToMany<T> {
 
     String inversePropertyName;
 
-    public ManyToMany(PersistentEntity owner, MappingContext context, PropertyDescriptor descriptor) {
+    ManyToMany(PersistentEntity owner, MappingContext context, PropertyDescriptor descriptor) {
         super(owner, context, descriptor);
     }
 
-    public ManyToMany(PersistentEntity owner, MappingContext context, String name, @SuppressWarnings("rawtypes") Class type) {
+    ManyToMany(PersistentEntity owner, MappingContext context, String name, @SuppressWarnings('rawtypes') Class type) {
         super(owner, context, name, type);
     }
 
-    public String getInversePropertyName() {
+    String getInversePropertyName() {
         return inversePropertyName;
     }
 
-    public void setInversePropertyName(String inversePropertyName) {
+    void setInversePropertyName(String inversePropertyName) {
         setReferencedPropertyName(inversePropertyName);
         this.inversePropertyName = inversePropertyName;
     }

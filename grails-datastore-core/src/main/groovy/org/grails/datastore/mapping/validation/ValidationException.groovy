@@ -13,21 +13,26 @@
  * limitations under the License.
  */
 
-package org.grails.datastore.mapping.validation;
+package org.grails.datastore.mapping.validation
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import groovy.transform.CompileStatic
 
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.util.ClassUtils;
-import org.springframework.validation.Errors;
-import org.springframework.validation.ObjectError;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods
+
+import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.util.ClassUtils
+import org.springframework.validation.Errors
+import org.springframework.validation.ObjectError
 
 /**
  * Exception thrown when a validation error occurs
  *
  * @author Graeme Rocher
  */
-public class ValidationException extends DataIntegrityViolationException {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class ValidationException extends DataIntegrityViolationException {
 
     private static final long serialVersionUID = 1;
 
@@ -35,25 +40,25 @@ public class ValidationException extends DataIntegrityViolationException {
 
     static {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        if (ClassUtils.isPresent("grails.validation.ValidationException", cl)) {
+        if (ClassUtils.isPresent('grails.validation.ValidationException', cl)) {
             Class<? extends RuntimeException> validationExceptionType;
             try {
-                validationExceptionType = (Class<? extends RuntimeException>) ClassUtils.forName("grails.validation.ValidationException", cl);
+                validationExceptionType = (Class<? extends RuntimeException>) ClassUtils.forName('grails.validation.ValidationException', cl);
             } catch (Throwable e) {
-                validationExceptionType = ValidationException.class;
+                validationExceptionType = ValidationException;
             }
 
             VALIDATION_EXCEPTION_TYPE = validationExceptionType;
         }
         else {
-            VALIDATION_EXCEPTION_TYPE = ValidationException.class;
+            VALIDATION_EXCEPTION_TYPE = ValidationException;
         }
     }
 
     private final String fullMessage;
     private final Errors errors;
 
-    public ValidationException(String msg, Errors errors) {
+    ValidationException(String msg, Errors errors) {
         super(msg);
         fullMessage = formatErrors(errors, msg);
         this.errors = errors;
@@ -63,32 +68,32 @@ public class ValidationException extends DataIntegrityViolationException {
      * @return The errors object
      * @since 6.1.3
      */
-    public Errors getErrors() {
+    Errors getErrors() {
         return errors;
     }
 
     @Override
-    public String getMessage() {
+    String getMessage() {
         return fullMessage;
     }
 
-    public static String formatErrors(Errors errors, String msg) {
-        String ls = System.getProperty("line.separator");
+    static String formatErrors(Errors errors, String msg) {
+        String ls = System.getProperty('line.separator');
         StringBuilder b = new StringBuilder();
         if (msg != null) {
-            b.append(msg).append(" : ").append(ls);
+            b.append(msg).append(' : ').append(ls);
         }
 
         for (ObjectError error : errors.getAllErrors()) {
             b.append(ls)
-                .append(" - ")
+                .append(' - ')
                 .append(error)
                 .append(ls);
         }
         return b.toString();
     }
 
-    public static RuntimeException newInstance(String message, Errors errors) {
+    static RuntimeException newInstance(String message, Errors errors) {
         return DefaultGroovyMethods.newInstance(VALIDATION_EXCEPTION_TYPE, new Object[]{ message, errors });
     }
 }

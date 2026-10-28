@@ -16,34 +16,39 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.engine.event;
+package org.grails.datastore.mapping.engine.event
 
-import org.grails.datastore.mapping.core.Datastore;
-import org.grails.datastore.mapping.engine.EntityAccess;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import groovy.transform.CompileStatic
+
+import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.engine.EntityAccess
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  * @author Burt Beckwith
  */
-public class PostUpdateEvent extends AbstractPersistenceEvent {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings('UnnecessarySemicolon')
+@CompileStatic
+class PostUpdateEvent extends AbstractPersistenceEvent {
 
     private static final long serialVersionUID = 1;
 
-    public PostUpdateEvent(final Datastore source, final PersistentEntity entity,
+    PostUpdateEvent(final Datastore source, final PersistentEntity entity,
             final EntityAccess entityAccess) {
         super(source, entity, entityAccess);
     }
 
-    public PostUpdateEvent(final Datastore source, final Object entity) {
+    PostUpdateEvent(final Datastore source, final Object entity) {
         super(source, entity);
     }
 
-    public PostUpdateEvent(Object source, PersistentEntity entity, EntityAccess entityAccess) {
+    PostUpdateEvent(Object source, PersistentEntity entity, EntityAccess entityAccess) {
         super(source, entity, entityAccess);
     }
 
     @Override
-    public EventType getEventType() {
+    EventType getEventType() {
         return EventType.PostUpdate;
     }
 }
