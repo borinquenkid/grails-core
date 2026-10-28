@@ -4,28 +4,28 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
 
-package org.grails.datastore.gorm.validation.constraints;
+package org.grails.datastore.gorm.validation.constraints
 
-import org.apache.commons.validator.routines.EmailValidator;
+import groovy.transform.CompileStatic
+import org.apache.commons.validator.routines.EmailValidator
+import org.springframework.context.MessageSource
+import org.springframework.util.StringUtils
+import org.springframework.validation.Errors
 
-import org.springframework.context.MessageSource;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.Errors;
-
-import grails.gorm.validation.ConstrainedProperty;
+import grails.gorm.validation.ConstrainedProperty
 
 /**
  * Validates an email address.
@@ -33,56 +33,57 @@ import grails.gorm.validation.ConstrainedProperty;
  * @author Graeme Rocher
  * @since 0.4
  */
-public class EmailConstraint extends AbstractConstraint {
+@CompileStatic
+class EmailConstraint extends AbstractConstraint {
 
-    private final boolean email;
+    private final boolean email
 
-    public EmailConstraint(Class<?> constraintOwningClass, String constraintPropertyName, Object constraintParameter, MessageSource messageSource) {
-        super(constraintOwningClass, constraintPropertyName, constraintParameter, messageSource);
-        this.email = (boolean) this.constraintParameter;
+    EmailConstraint(Class<?> constraintOwningClass, String constraintPropertyName, Object constraintParameter, MessageSource messageSource) {
+        super(constraintOwningClass, constraintPropertyName, constraintParameter, messageSource)
+        this.email = (boolean) this.constraintParameter
     }
 
     /* (non-Javadoc)
      * @see org.grails.validation.Constraint#supports(java.lang.Class)
      */
-    @SuppressWarnings("rawtypes")
-    public boolean supports(Class type) {
-        return type != null && String.class.isAssignableFrom(type);
+    @SuppressWarnings('rawtypes')
+    boolean supports(Class type) {
+        return type != null && String.isAssignableFrom(type)
     }
 
     @Override
     protected Object validateParameter(Object constraintParameter) {
         if (!(constraintParameter instanceof Boolean)) {
-            throw new IllegalArgumentException("Parameter for constraint [" +
-                    ConstrainedProperty.EMAIL_CONSTRAINT + "] of property [" +
-                    constraintPropertyName + "] of class [" + constraintOwningClass +
-                    "] must be a boolean value");
+            throw new IllegalArgumentException('Parameter for constraint [' +
+                    ConstrainedProperty.EMAIL_CONSTRAINT + '] of property [' +
+                    constraintPropertyName + '] of class [' + constraintOwningClass +
+                    '] must be a boolean value')
         }
 
-        return constraintParameter;
+        return constraintParameter
     }
 
-    public String getName() {
-        return ConstrainedProperty.EMAIL_CONSTRAINT;
+    String getName() {
+        return ConstrainedProperty.EMAIL_CONSTRAINT
     }
 
     @Override
     protected void processValidate(Object target, Object propertyValue, Errors errors) {
         if (!email) {
-            return;
+            return
         }
 
-        EmailValidator emailValidator = EmailValidator.getInstance();
-        Object[] args = new Object[] { constraintPropertyName, constraintOwningClass, propertyValue };
-        String value = propertyValue.toString();
+        EmailValidator emailValidator = EmailValidator.getInstance()
+        Object[] args = [constraintPropertyName, constraintOwningClass, propertyValue] as Object[]
+        String value = propertyValue.toString()
         if (!StringUtils.hasLength(value)) {
-            return;
+            return
         }
 
         if (!emailValidator.isValid(value)) {
             rejectValue(target, errors, ConstrainedProperty.DEFAULT_INVALID_EMAIL_MESSAGE_CODE,
-                    ConstrainedProperty.EMAIL_CONSTRAINT + ConstrainedProperty.INVALID_SUFFIX, args);
+                    ConstrainedProperty.EMAIL_CONSTRAINT + ConstrainedProperty.INVALID_SUFFIX, args)
         }
     }
-}
 
+}

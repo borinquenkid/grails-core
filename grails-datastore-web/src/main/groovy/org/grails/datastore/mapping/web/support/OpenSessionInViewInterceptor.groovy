@@ -17,88 +17,90 @@
  *  under the License.
  */
 
-package org.grails.datastore.mapping.web.support;
+package org.grails.datastore.mapping.web.support
 
-import jakarta.persistence.FlushModeType;
+import jakarta.persistence.FlushModeType
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import groovy.transform.CompileStatic
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
+import org.springframework.transaction.support.TransactionSynchronizationManager
+import org.springframework.ui.ModelMap
+import org.springframework.web.context.request.WebRequest
+import org.springframework.web.context.request.WebRequestInterceptor
 
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.context.request.WebRequestInterceptor;
-
-import org.grails.datastore.mapping.core.Datastore;
-import org.grails.datastore.mapping.core.DatastoreUtils;
-import org.grails.datastore.mapping.core.Session;
-import org.grails.datastore.mapping.transactions.SessionHolder;
+import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.core.DatastoreUtils
+import org.grails.datastore.mapping.core.Session
+import org.grails.datastore.mapping.transactions.SessionHolder
 
 /**
  * A {@link org.springframework.web.context.request.WebRequestInterceptor} instance that
  * handles opening a Datastore session within the scope of a request
  */
-public class OpenSessionInViewInterceptor implements WebRequestInterceptor {
+@CompileStatic
+class OpenSessionInViewInterceptor implements WebRequestInterceptor {
 
-    private static final Log LOG = LogFactory.getLog(OpenSessionInViewInterceptor.class);
+    private static final Log LOG = LogFactory.getLog(OpenSessionInViewInterceptor)
 
-    Datastore datastore;
-    FlushModeType flushMode = FlushModeType.AUTO;
+    Datastore datastore
+    FlushModeType flushMode = FlushModeType.AUTO
 
-    public void setDatastore(Datastore datastore) {
-        this.datastore = datastore;
+    void setDatastore(Datastore datastore) {
+        this.datastore = datastore
     }
 
-    public Datastore getDatastore() {
-        return datastore;
+    Datastore getDatastore() {
+        return datastore
     }
 
-    public void preHandle(WebRequest webRequest) throws Exception {
+    void preHandle(WebRequest webRequest) throws Exception {
         if (hasSessionBound()) {
-            return;
+            return
         }
 
         // single session mode
-        LOG.debug("Opening single Datastore Session in OpenSessionInViewInterceptor");
+        LOG.debug('Opening single Datastore Session in OpenSessionInViewInterceptor')
 
-        Session session = DatastoreUtils.getSession(datastore, true);
-        session.setFlushMode(flushMode);
+        Session session = DatastoreUtils.getSession(datastore, true)
+        session.setFlushMode(flushMode)
         if (!hasSessionBound()) {
-            DatastoreUtils.bindSession(session);
+            DatastoreUtils.bindSession(session)
         }
     }
 
-    public void postHandle(WebRequest webRequest, ModelMap modelMap) throws Exception {
+    void postHandle(WebRequest webRequest, ModelMap modelMap) throws Exception {
         // Only potentially flush in single session mode.
         if (!hasSessionBound()) {
-            return;
+            return
         }
 
         SessionHolder sessionHolder =
-                (SessionHolder) TransactionSynchronizationManager.getResource(getDatastore());
-        LOG.debug("Flushing single Datastore Session in OpenSessionInViewInterceptor");
-        final Session session = sessionHolder.getSession();
+                (SessionHolder) TransactionSynchronizationManager.getResource(getDatastore())
+        LOG.debug('Flushing single Datastore Session in OpenSessionInViewInterceptor')
+        final Session session = sessionHolder.getSession()
 
         if (session.getFlushMode() == FlushModeType.AUTO) {
             if (session.hasTransaction()) {
-                session.flush();
+                session.flush()
             }
         }
     }
 
     protected boolean hasSessionBound() {
-        return TransactionSynchronizationManager.getResource(getDatastore()) != null;
+        return TransactionSynchronizationManager.getResource(getDatastore()) != null
     }
 
-    public void afterCompletion(WebRequest webRequest, Exception e) throws Exception {
+    void afterCompletion(WebRequest webRequest, Exception e) throws Exception {
         if (!hasSessionBound()) {
-            return;
+            return
         }
 
         // single session mode
         SessionHolder sessionHolder =
-                (SessionHolder) TransactionSynchronizationManager.unbindResource(getDatastore());
-        LOG.debug("Closing single Datastore Session in OpenSessionInViewInterceptor");
-        DatastoreUtils.closeSession(sessionHolder.getSession());
+                (SessionHolder) TransactionSynchronizationManager.unbindResource(getDatastore())
+        LOG.debug('Closing single Datastore Session in OpenSessionInViewInterceptor')
+        DatastoreUtils.closeSession(sessionHolder.getSession())
     }
+
 }

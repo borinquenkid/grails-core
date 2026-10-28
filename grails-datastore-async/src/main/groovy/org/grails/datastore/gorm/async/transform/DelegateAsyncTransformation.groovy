@@ -17,192 +17,190 @@
  *  under the License.
  */
 
-package org.grails.datastore.gorm.async.transform;
+package org.grails.datastore.gorm.async.transform
 
-import java.beans.Introspector;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.beans.Introspector
+import java.lang.reflect.Modifier
 
-import groovy.lang.Closure;
-import groovy.lang.GroovyObjectSupport;
-import org.codehaus.groovy.GroovyBugError;
-import org.codehaus.groovy.ast.ASTNode;
-import org.codehaus.groovy.ast.AnnotatedNode;
-import org.codehaus.groovy.ast.AnnotationNode;
-import org.codehaus.groovy.ast.ClassHelper;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.FieldNode;
-import org.codehaus.groovy.ast.GenericsType;
-import org.codehaus.groovy.ast.MethodNode;
-import org.codehaus.groovy.ast.Parameter;
-import org.codehaus.groovy.ast.VariableScope;
-import org.codehaus.groovy.ast.expr.ArgumentListExpression;
-import org.codehaus.groovy.ast.expr.ClassExpression;
-import org.codehaus.groovy.ast.expr.ClosureExpression;
-import org.codehaus.groovy.ast.expr.ConstructorCallExpression;
-import org.codehaus.groovy.ast.expr.Expression;
-import org.codehaus.groovy.ast.expr.ListExpression;
-import org.codehaus.groovy.ast.expr.MethodCallExpression;
-import org.codehaus.groovy.ast.expr.VariableExpression;
-import org.codehaus.groovy.ast.stmt.BlockStatement;
-import org.codehaus.groovy.ast.stmt.ExpressionStatement;
-import org.codehaus.groovy.control.CompilePhase;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.transform.ASTTransformation;
-import org.codehaus.groovy.transform.GroovyASTTransformation;
-import org.codehaus.groovy.transform.TransformWithPriority;
-import org.codehaus.groovy.transform.stc.StaticTypeCheckingSupport;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.GroovyBugError
+import org.codehaus.groovy.ast.ASTNode
+import org.codehaus.groovy.ast.AnnotatedNode
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.ClassHelper
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.FieldNode
+import org.codehaus.groovy.ast.GenericsType
+import org.codehaus.groovy.ast.MethodNode
+import org.codehaus.groovy.ast.Parameter
+import org.codehaus.groovy.ast.VariableScope
+import org.codehaus.groovy.ast.expr.ArgumentListExpression
+import org.codehaus.groovy.ast.expr.ClassExpression
+import org.codehaus.groovy.ast.expr.ClosureExpression
+import org.codehaus.groovy.ast.expr.ConstructorCallExpression
+import org.codehaus.groovy.ast.expr.Expression
+import org.codehaus.groovy.ast.expr.ListExpression
+import org.codehaus.groovy.ast.expr.MethodCallExpression
+import org.codehaus.groovy.ast.expr.VariableExpression
+import org.codehaus.groovy.ast.stmt.BlockStatement
+import org.codehaus.groovy.ast.stmt.ExpressionStatement
+import org.codehaus.groovy.control.CompilePhase
+import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.transform.ASTTransformation
+import org.codehaus.groovy.transform.GroovyASTTransformation
+import org.codehaus.groovy.transform.TransformWithPriority
+import org.codehaus.groovy.transform.stc.StaticTypeCheckingSupport
 
-import grails.async.Promise;
-import grails.async.Promises;
-import org.apache.grails.common.compiler.GroovyTransformOrder;
-import org.grails.async.transform.internal.DelegateAsyncUtils;
+import grails.async.Promise
+import grails.async.Promises
+import org.apache.grails.common.compiler.GroovyTransformOrder
+import org.grails.async.transform.internal.DelegateAsyncUtils
 
-import static org.apache.groovy.ast.tools.AnnotatedNodeUtils.markAsGenerated;
-import static org.codehaus.groovy.ast.tools.GenericsUtils.correctToGenericsSpecRecurse;
-import static org.codehaus.groovy.ast.tools.GenericsUtils.createGenericsSpec;
+import static org.apache.groovy.ast.tools.AnnotatedNodeUtils.markAsGenerated
+import static org.codehaus.groovy.ast.tools.GenericsUtils.correctToGenericsSpecRecurse
+import static org.codehaus.groovy.ast.tools.GenericsUtils.createGenericsSpec
 
 @GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
-public class DelegateAsyncTransformation implements ASTTransformation, TransformWithPriority {
-    private static final ArgumentListExpression NO_ARGS = new ArgumentListExpression();
-    private static final String VOID = "void";
-    public static final ClassNode GROOVY_OBJECT_CLASS_NODE = new ClassNode(GroovyObjectSupport.class);
-    public static final ClassNode OBJECT_CLASS_NODE = new ClassNode(Object.class);
+@CompileStatic
+class DelegateAsyncTransformation implements ASTTransformation, TransformWithPriority {
 
-    public void visit(ASTNode[] nodes, SourceUnit source) {
+    private static final ArgumentListExpression NO_ARGS = new ArgumentListExpression()
+    private static final String VOID = 'void'
+    public static final ClassNode GROOVY_OBJECT_CLASS_NODE = new ClassNode(GroovyObjectSupport)
+    public static final ClassNode OBJECT_CLASS_NODE = new ClassNode(Object)
+
+    void visit(ASTNode[] nodes, SourceUnit source) {
         if (nodes.length != 2 || !(nodes[0] instanceof AnnotationNode) || !(nodes[1] instanceof AnnotatedNode)) {
-            throw new GroovyBugError("Internal error: expecting [AnnotationNode, AnnotatedNode] but got: " + Arrays.asList(nodes));
+            throw new GroovyBugError('Internal error: expecting [AnnotationNode, AnnotatedNode] but got: ' + Arrays.asList(nodes))
         }
 
-        AnnotatedNode parent = (AnnotatedNode) nodes[1];
-        AnnotationNode annotationNode = (AnnotationNode) nodes[0];
+        AnnotatedNode parent = (AnnotatedNode) nodes[1]
+        AnnotationNode annotationNode = (AnnotationNode) nodes[0]
 
         if (parent instanceof ClassNode) {
-            Expression value = annotationNode.getMember("value");
+            Expression value = annotationNode.getMember('value')
             if (value instanceof ClassExpression) {
-                ClassNode targetApi = value.getType().getPlainNodeReference();
-                ClassNode classNode = (ClassNode) parent;
+                ClassNode targetApi = value.getType().getPlainNodeReference()
+                ClassNode classNode = (ClassNode) parent
 
-                final String fieldName = '$' + Introspector.decapitalize(targetApi.getNameWithoutPackage());
-                FieldNode fieldNode = classNode.getField(fieldName);
+                final String fieldName = '$' + Introspector.decapitalize(targetApi.getNameWithoutPackage())
+                FieldNode fieldNode = classNode.getField(fieldName)
                 if (fieldNode == null) {
-                    fieldNode = new FieldNode(fieldName, Modifier.PRIVATE, targetApi, classNode, new ConstructorCallExpression(targetApi, NO_ARGS));
-                    classNode.addField(fieldNode);
+                    fieldNode = new FieldNode(fieldName, Modifier.PRIVATE, targetApi, classNode, new ConstructorCallExpression(targetApi, NO_ARGS))
+                    classNode.addField(fieldNode)
                 }
 
-                applyDelegateAsyncTransform(classNode, targetApi, fieldName);
+                applyDelegateAsyncTransform(classNode, targetApi, fieldName)
             }
         }
         else if (parent instanceof FieldNode) {
-            FieldNode fieldNode = (FieldNode) parent;
-            ClassNode targetApi = fieldNode.getType().getPlainNodeReference();
-            ClassNode classNode = fieldNode.getOwner();
-            applyDelegateAsyncTransform(classNode, targetApi, fieldNode.getName());
+            FieldNode fieldNode = (FieldNode) parent
+            ClassNode targetApi = fieldNode.getType().getPlainNodeReference()
+            ClassNode classNode = fieldNode.getOwner()
+            applyDelegateAsyncTransform(classNode, targetApi, fieldNode.getName())
         }
     }
 
     private void applyDelegateAsyncTransform(ClassNode classNode, ClassNode targetApi, String fieldName) {
 
-        List<MethodNode> methods = targetApi.getAllDeclaredMethods();
+        List<MethodNode> methods = targetApi.getAllDeclaredMethods()
 
-        ClassNode promisesClass = ClassHelper.make(Promises.class).getPlainNodeReference();
-        MethodNode createPromiseMethodTargetWithDecorators = promisesClass.getDeclaredMethod("createPromise", new Parameter[]{new Parameter(new ClassNode(Closure.class), "c"), new Parameter(new ClassNode(List.class), "c")});
-        Map<String, ClassNode> genericsSpec = createGenericsSpec(classNode);
-        for (MethodNode candidate : methods) {
+        ClassNode promisesClass = ClassHelper.make(Promises).getPlainNodeReference()
+        MethodNode createPromiseMethodTargetWithDecorators = promisesClass.getDeclaredMethod('createPromise', [new Parameter(new ClassNode(Closure), 'c'), new Parameter(new ClassNode(List), 'c')] as Parameter[])
+        Map<String, ClassNode> genericsSpec = createGenericsSpec(classNode)
+        for (MethodNode candidate in methods) {
             if (isCandidateMethod(candidate)) {
-                MethodNode existingMethod = classNode.getMethod(candidate.getName(), candidate.getParameters());
+                MethodNode existingMethod = classNode.getMethod(candidate.getName(), candidate.getParameters())
                 if (existingMethod == null) {
-                    List<String> currentMethodGenPlaceholders = genericPlaceholderNames(candidate);
-                    ClassNode promiseNode = ClassHelper.make(Promise.class).getPlainNodeReference();
-                    ClassNode originalReturnType = correctToGenericsSpecRecurse(genericsSpec, candidate.getReturnType(), currentMethodGenPlaceholders);
+                    List<String> currentMethodGenPlaceholders = genericPlaceholderNames(candidate)
+                    ClassNode promiseNode = ClassHelper.make(Promise).getPlainNodeReference()
+                    ClassNode originalReturnType = correctToGenericsSpecRecurse(genericsSpec, candidate.getReturnType(), currentMethodGenPlaceholders)
                     if (!originalReturnType.getNameWithoutPackage().equals(VOID)) {
-                        ClassNode returnType = originalReturnType;
+                        ClassNode returnType = originalReturnType
                         if (ClassHelper.isPrimitiveType(originalReturnType.redirect())) {
-                            returnType = ClassHelper.getWrapper(originalReturnType.redirect());
+                            returnType = ClassHelper.getWrapper(originalReturnType.redirect())
                         }
                         if (!OBJECT_CLASS_NODE.equals(returnType)) {
-                            promiseNode.setGenericsTypes(new GenericsType[]{new GenericsType(returnType)});
+                            promiseNode.setGenericsTypes([new GenericsType(returnType)] as GenericsType[])
                         }
                     }
-                    final BlockStatement methodBody = new BlockStatement();
-                    final BlockStatement promiseBody = new BlockStatement();
+                    final BlockStatement methodBody = new BlockStatement()
+                    final BlockStatement promiseBody = new BlockStatement()
 
-                    final ClosureExpression closureExpression = new ClosureExpression(new Parameter[0], promiseBody);
-                    VariableScope variableScope = new VariableScope();
-                    closureExpression.setVariableScope(variableScope);
-                    VariableExpression thisObject = new VariableExpression("this");
-                    ClassNode delegateAsyncUtilsClassNode = new ClassNode(DelegateAsyncUtils.class);
+                    final ClosureExpression closureExpression = new ClosureExpression(new Parameter[0], promiseBody)
+                    VariableScope variableScope = new VariableScope()
+                    closureExpression.setVariableScope(variableScope)
+                    VariableExpression thisObject = new VariableExpression('this')
+                    ClassNode delegateAsyncUtilsClassNode = new ClassNode(DelegateAsyncUtils)
 
-                    MethodNode getPromiseDecoratorsMethodNode = delegateAsyncUtilsClassNode.getDeclaredMethods("getPromiseDecorators").get(0);
-                    ListExpression promiseDecorators = new ListExpression();
-                    ArgumentListExpression getPromiseDecoratorsArguments = new ArgumentListExpression(thisObject, promiseDecorators);
+                    MethodNode getPromiseDecoratorsMethodNode = delegateAsyncUtilsClassNode.getDeclaredMethods('getPromiseDecorators').get(0)
+                    ListExpression promiseDecorators = new ListExpression()
+                    ArgumentListExpression getPromiseDecoratorsArguments = new ArgumentListExpression(thisObject, promiseDecorators)
 
-                    MethodCallExpression getDecoratorsMethodCall = new MethodCallExpression(new ClassExpression(delegateAsyncUtilsClassNode), "getPromiseDecorators", getPromiseDecoratorsArguments);
-                    getDecoratorsMethodCall.setMethodTarget(getPromiseDecoratorsMethodNode);
+                    MethodCallExpression getDecoratorsMethodCall = new MethodCallExpression(new ClassExpression(delegateAsyncUtilsClassNode), 'getPromiseDecorators', getPromiseDecoratorsArguments)
+                    getDecoratorsMethodCall.setMethodTarget(getPromiseDecoratorsMethodNode)
 
-                    MethodCallExpression createPromiseWithDecorators = new MethodCallExpression(new ClassExpression(promisesClass), "createPromise", new ArgumentListExpression(closureExpression, getDecoratorsMethodCall));
+                    MethodCallExpression createPromiseWithDecorators = new MethodCallExpression(new ClassExpression(promisesClass), 'createPromise', new ArgumentListExpression(closureExpression, getDecoratorsMethodCall))
                     if (createPromiseMethodTargetWithDecorators != null) {
-                        createPromiseWithDecorators.setMethodTarget(createPromiseMethodTargetWithDecorators);
+                        createPromiseWithDecorators.setMethodTarget(createPromiseMethodTargetWithDecorators)
                     }
-                    methodBody.addStatement(new ExpressionStatement(createPromiseWithDecorators));
+                    methodBody.addStatement(new ExpressionStatement(createPromiseWithDecorators))
 
-                    final ArgumentListExpression arguments = new ArgumentListExpression();
+                    final ArgumentListExpression arguments = new ArgumentListExpression()
 
-                    Parameter[] parameters = copyParameters(genericsSpec, StaticTypeCheckingSupport.parameterizeArguments(classNode, candidate), currentMethodGenPlaceholders);
-                    for (Parameter p : parameters) {
-                        p.setClosureSharedVariable(true);
-                        variableScope.putReferencedLocalVariable(p);
-                        VariableExpression ve = new VariableExpression(p);
-                        ve.setClosureSharedVariable(true);
-                        arguments.addExpression(ve);
+                    Parameter[] parameters = copyParameters(genericsSpec, StaticTypeCheckingSupport.parameterizeArguments(classNode, candidate), currentMethodGenPlaceholders)
+                    for (Parameter p in parameters) {
+                        p.setClosureSharedVariable(true)
+                        variableScope.putReferencedLocalVariable(p)
+                        VariableExpression ve = new VariableExpression(p)
+                        ve.setClosureSharedVariable(true)
+                        arguments.addExpression(ve)
                     }
-                    MethodCallExpression delegateMethodCall = new MethodCallExpression(new VariableExpression(fieldName), candidate.getName(), arguments);
-                    promiseBody.addStatement(new ExpressionStatement(delegateMethodCall));
-                    MethodNode newMethodNode = new MethodNode(candidate.getName(), Modifier.PUBLIC, promiseNode, parameters, ClassNode.EMPTY_ARRAY, methodBody);
-                    markAsGenerated(classNode, newMethodNode);
-                    classNode.addMethod(newMethodNode);
+                    MethodCallExpression delegateMethodCall = new MethodCallExpression(new VariableExpression(fieldName), candidate.getName(), arguments)
+                    promiseBody.addStatement(new ExpressionStatement(delegateMethodCall))
+                    MethodNode newMethodNode = new MethodNode(candidate.getName(), Modifier.PUBLIC, promiseNode, parameters, ClassNode.EMPTY_ARRAY, methodBody)
+                    markAsGenerated(classNode, newMethodNode)
+                    classNode.addMethod(newMethodNode)
                 }
             }
         }
     }
 
     private List<String> genericPlaceholderNames(MethodNode candidate) {
-        GenericsType[] candidateGenericsTypes = candidate.getGenericsTypes();
-        List<String> names = new ArrayList<>();
+        GenericsType[] candidateGenericsTypes = candidate.getGenericsTypes()
+        List<String> names = new ArrayList<>()
         if (candidateGenericsTypes != null) {
-            for (GenericsType gt : candidateGenericsTypes) {
-                names.add(gt.getName());
+            for (GenericsType gt in candidateGenericsTypes) {
+                names.add(gt.getName())
             }
         }
-        return names;
+        return names
     }
 
     private static boolean isCandidateMethod(MethodNode declaredMethod) {
-        ClassNode groovyMethods = GROOVY_OBJECT_CLASS_NODE;
-        String methodName = declaredMethod.getName();
+        ClassNode groovyMethods = GROOVY_OBJECT_CLASS_NODE
+        String methodName = declaredMethod.getName()
         return !declaredMethod.isSynthetic() &&
-                !methodName.contains("$") &&
+                !methodName.contains('\$') &&
                 Modifier.isPublic(declaredMethod.getModifiers()) &&
-                !groovyMethods.hasMethod(declaredMethod.getName(), declaredMethod.getParameters());
+                !groovyMethods.hasMethod(declaredMethod.getName(), declaredMethod.getParameters())
     }
 
     private static Parameter[] copyParameters(Map<String, ClassNode> genericsSpec, Parameter[] parameterTypes, List<String> currentMethodGenPlaceholders) {
-        Parameter[] newParameterTypes = new Parameter[parameterTypes.length];
+        Parameter[] newParameterTypes = new Parameter[parameterTypes.length]
         for (int i = 0; i < parameterTypes.length; i++) {
-            Parameter parameterType = parameterTypes[i];
-            ClassNode newParamType = correctToGenericsSpecRecurse(genericsSpec, parameterType.getType(), currentMethodGenPlaceholders);
-            Parameter newParameter = new Parameter(newParamType, parameterType.getName(), parameterType.getInitialExpression());
-            newParameter.addAnnotations(parameterType.getAnnotations());
-            newParameterTypes[i] = newParameter;
+            Parameter parameterType = parameterTypes[i]
+            ClassNode newParamType = correctToGenericsSpecRecurse(genericsSpec, parameterType.getType(), currentMethodGenPlaceholders)
+            Parameter newParameter = new Parameter(newParamType, parameterType.getName(), parameterType.getInitialExpression())
+            newParameter.addAnnotations(parameterType.getAnnotations())
+            newParameterTypes[i] = newParameter
         }
-        return newParameterTypes;
+        return newParameterTypes
     }
 
     @Override
-    public int priority() {
-        return GroovyTransformOrder.GORM_ASYNC_ORDER;
+    int priority() {
+        return GroovyTransformOrder.GORM_ASYNC_ORDER
     }
+
 }

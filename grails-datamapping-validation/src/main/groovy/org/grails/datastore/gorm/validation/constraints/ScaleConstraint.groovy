@@ -4,31 +4,31 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
 
-package org.grails.datastore.gorm.validation.constraints;
+package org.grails.datastore.gorm.validation.constraints
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.math.RoundingMode
 
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.context.MessageSource;
-import org.springframework.validation.Errors;
+import groovy.transform.CompileStatic
+import org.springframework.beans.BeanWrapper
+import org.springframework.beans.BeanWrapperImpl
+import org.springframework.context.MessageSource
+import org.springframework.validation.Errors
 
-import grails.gorm.validation.ConstrainedProperty;
-import org.grails.datastore.mapping.reflect.ClassUtils;
+import grails.gorm.validation.ConstrainedProperty
+import org.grails.datastore.mapping.reflect.ClassUtils
 
 /**
  * Manages the scale for floating point numbers (i.e., the
@@ -52,58 +52,59 @@ import org.grails.datastore.mapping.reflect.ClassUtils;
  * @author Jason Rudolph
  * @since 0.4
  */
-public class ScaleConstraint extends AbstractConstraint {
+@CompileStatic
+class ScaleConstraint extends AbstractConstraint {
 
-    private final int scale;
+    private final int scale
 
-    public ScaleConstraint(Class<?> constraintOwningClass, String constraintPropertyName, Object constraintParameter, MessageSource messageSource) {
-        super(constraintOwningClass, constraintPropertyName, constraintParameter, messageSource);
-        this.scale = (int) this.constraintParameter;
+    ScaleConstraint(Class<?> constraintOwningClass, String constraintPropertyName, Object constraintParameter, MessageSource messageSource) {
+        super(constraintOwningClass, constraintPropertyName, constraintParameter, messageSource)
+        this.scale = (int) this.constraintParameter
     }
 
     /*
      * {@inheritDoc}
      * @see org.apache.groovy.grails.validation.Constraint#supports(java.lang.Class)
      */
-    @SuppressWarnings("rawtypes")
-    public boolean supports(Class type) {
+    @SuppressWarnings('rawtypes')
+    boolean supports(Class type) {
         return type != null && (
-                BigDecimal.class.isAssignableFrom(type) ||
-                        ClassUtils.isAssignableOrConvertibleFrom(Float.class, type) ||
-                        ClassUtils.isAssignableOrConvertibleFrom(Double.class, type));
+                BigDecimal.isAssignableFrom(type) ||
+                        ClassUtils.isAssignableOrConvertibleFrom(Float, type) ||
+                        ClassUtils.isAssignableOrConvertibleFrom(Double, type))
     }
 
     /*
      * {@inheritDoc}
      * @see org.apache.groovy.grails.validation.Constraint#getName()
      */
-    public String getName() {
-        return ConstrainedProperty.SCALE_CONSTRAINT;
+    String getName() {
+        return ConstrainedProperty.SCALE_CONSTRAINT
     }
 
     /**
      * @return the scale
      */
-    public int getScale() {
-        return scale;
+    int getScale() {
+        return scale
     }
 
     @Override
     protected Object validateParameter(Object constraintParameter) {
         if (!(constraintParameter instanceof Integer)) {
-            throw new IllegalArgumentException("Parameter for constraint [" + getName() + "] of property [" +
-                    constraintPropertyName + "] of class [" + constraintOwningClass +
-                    "] must be a of type [java.lang.Integer]");
+            throw new IllegalArgumentException('Parameter for constraint [' + getName() + '] of property [' +
+                    constraintPropertyName + '] of class [' + constraintOwningClass +
+                    '] must be a of type [java.lang.Integer]')
         }
 
-        int requestedScale = ((Integer) constraintParameter).intValue();
+        int requestedScale = ((Integer) constraintParameter).intValue()
 
         if (requestedScale < 0) {
-            throw new IllegalArgumentException("Parameter for constraint [" + getName() + "] of property [" +
-                    constraintPropertyName + "] of class [" + constraintOwningClass +
-                    "] must have a nonnegative value");
+            throw new IllegalArgumentException('Parameter for constraint [' + getName() + '] of property [' +
+                    constraintPropertyName + '] of class [' + constraintOwningClass +
+                    '] must have a nonnegative value')
         }
-        return constraintParameter;
+        return constraintParameter
     }
 
     /**
@@ -113,28 +114,28 @@ public class ScaleConstraint extends AbstractConstraint {
      */
     @Override
     protected void processValidate(Object target, Object propertyValue, Errors errors) {
-        BigDecimal bigDecimal;
+        BigDecimal bigDecimal
 
-        BeanWrapper bean = new BeanWrapperImpl(target);
+        BeanWrapper bean = new BeanWrapperImpl(target)
 
         if (propertyValue instanceof Float) {
-            bigDecimal = new BigDecimal(propertyValue.toString());
-            bigDecimal = getScaledValue(bigDecimal);
-            bean.setPropertyValue(getPropertyName(), bigDecimal.floatValue());
+            bigDecimal = new BigDecimal(propertyValue.toString())
+            bigDecimal = getScaledValue(bigDecimal)
+            bean.setPropertyValue(getPropertyName(), bigDecimal.floatValue())
         }
         else if (propertyValue instanceof Double) {
-            bigDecimal = new BigDecimal(propertyValue.toString());
-            bigDecimal = getScaledValue(bigDecimal);
-            bean.setPropertyValue(getPropertyName(), bigDecimal.doubleValue());
+            bigDecimal = new BigDecimal(propertyValue.toString())
+            bigDecimal = getScaledValue(bigDecimal)
+            bean.setPropertyValue(getPropertyName(), bigDecimal.doubleValue())
         }
         else if (propertyValue instanceof BigDecimal) {
-            bigDecimal = (BigDecimal) propertyValue;
-            bigDecimal = getScaledValue(bigDecimal);
-            bean.setPropertyValue(getPropertyName(), bigDecimal);
+            bigDecimal = (BigDecimal) propertyValue
+            bigDecimal = getScaledValue(bigDecimal)
+            bean.setPropertyValue(getPropertyName(), bigDecimal)
         }
         else {
-            throw new IllegalArgumentException("Unsupported type detected in constraint [" + getName() +
-                    "] of property [" + constraintPropertyName + "] of class [" + constraintOwningClass + "]");
+            throw new IllegalArgumentException('Unsupported type detected in constraint [' + getName() +
+                    '] of property [' + constraintPropertyName + '] of class [' + constraintOwningClass + ']')
         }
     }
 
@@ -144,9 +145,9 @@ public class ScaleConstraint extends AbstractConstraint {
      */
     private BigDecimal getScaledValue(BigDecimal originalValue) {
         if (originalValue.scale() > scale) {
-            return originalValue.setScale(scale, RoundingMode.HALF_UP);
+            return originalValue.setScale(scale, RoundingMode.HALF_UP)
         }
-        return originalValue;
+        return originalValue
     }
-}
 
+}

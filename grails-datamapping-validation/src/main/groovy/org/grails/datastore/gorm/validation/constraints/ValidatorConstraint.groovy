@@ -4,29 +4,27 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
 
-package org.grails.datastore.gorm.validation.constraints;
+package org.grails.datastore.gorm.validation.constraints
 
-import java.util.Collection;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.runtime.InvokerHelper
+import org.springframework.context.MessageSource
+import org.springframework.validation.Errors
 
-import groovy.lang.Closure;
-
-import org.springframework.context.MessageSource;
-import org.springframework.validation.Errors;
-
-import grails.gorm.validation.ConstrainedProperty;
+import grails.gorm.validation.ConstrainedProperty
 
 /**
  * <p>A constraint class that validates using a user-supplied closure.</p>
@@ -52,144 +50,145 @@ import grails.gorm.validation.ConstrainedProperty;
  * @author Graeme Rocher
  * @since 6.0
  */
-public class ValidatorConstraint extends AbstractConstraint {
+@CompileStatic
+class ValidatorConstraint extends AbstractConstraint {
 
-    private final Closure<?> validator;
-    private final int numValidatorParams;
+    private final Closure<?> validator
+    private final int numValidatorParams
 
-    public ValidatorConstraint(Class<?> constraintOwningClass, String constraintPropertyName, Object constraintParameter, MessageSource messageSource) {
-        super(constraintOwningClass, constraintPropertyName, constraintParameter, messageSource);
-        validator = (Closure<?>) this.constraintParameter;
-        Class<?>[] params = validator.getParameterTypes();
-        numValidatorParams = params.length;
+    ValidatorConstraint(Class<?> constraintOwningClass, String constraintPropertyName, Object constraintParameter, MessageSource messageSource) {
+        super(constraintOwningClass, constraintPropertyName, constraintParameter, messageSource)
+        validator = (Closure<?>) this.constraintParameter
+        Class<?>[] params = validator.getParameterTypes()
+        numValidatorParams = params.length
     }
 
     @Override
     protected Object validateParameter(Object constraintParameter) {
         if (!(constraintParameter instanceof Closure)) {
-            throw new IllegalArgumentException("Parameter for constraint [" +
-                    ConstrainedProperty.VALIDATOR_CONSTRAINT + "] of property [" +
-                    constraintPropertyName + "] of class [" + constraintOwningClass + "] must be a Closure");
+            throw new IllegalArgumentException('Parameter for constraint [' +
+                    ConstrainedProperty.VALIDATOR_CONSTRAINT + '] of property [' +
+                    constraintPropertyName + '] of class [' + constraintOwningClass + '] must be a Closure')
         }
-        Closure validator = (Closure) constraintParameter;
-        Class<?>[] params = validator.getParameterTypes();
+        Closure validator = (Closure) constraintParameter
+        Class<?>[] params = validator.getParameterTypes()
         // Groovy should always force one parameter, but let's check anyway...
         if (params.length == 0) {
-            throw new IllegalArgumentException("Parameter for constraint [" + ConstrainedProperty.VALIDATOR_CONSTRAINT + "] of property [" + constraintPropertyName + "] of class [" + constraintOwningClass + "] must be a Closure taking at least 1 parameter (value, [object])");
+            throw new IllegalArgumentException('Parameter for constraint [' + ConstrainedProperty.VALIDATOR_CONSTRAINT + '] of property [' + constraintPropertyName + '] of class [' + constraintOwningClass + '] must be a Closure taking at least 1 parameter (value, [object])')
         }
 
         if (params.length > 3) {
-            throw new IllegalArgumentException("Parameter for constraint [" + ConstrainedProperty.VALIDATOR_CONSTRAINT + "] of property [" + constraintPropertyName + "] of class [" + constraintOwningClass + "] must be a Closure taking no more than 3 parameters (value, [object, [errors]])");
+            throw new IllegalArgumentException('Parameter for constraint [' + ConstrainedProperty.VALIDATOR_CONSTRAINT + '] of property [' + constraintPropertyName + '] of class [' + constraintOwningClass + '] must be a Closure taking no more than 3 parameters (value, [object, [errors]])')
         }
-        return constraintParameter;
+        return constraintParameter
     }
 
     @Override
     protected boolean skipNullValues() {
-        return false;
+        return false
     }
 
     @Override
     protected boolean skipBlankValues() {
-        return false;
+        return false
     }
 
     @Override
     protected void processValidate(Object target, Object propertyValue, Errors errors) {
         if (validator == null) {
-            return;
+            return
         }
 
-        Object[] params = new Object[numValidatorParams];
-        params[0] = propertyValue;
+        Object[] params = new Object[numValidatorParams]
+        params[0] = propertyValue
         if (numValidatorParams >= 2) {
-            params[1] = target;
+            params[1] = target
         }
         if (numValidatorParams == 3) {
-            params[2] = errors;
+            params[2] = errors
         }
 
         // Provide some extra information via a closure delegate.
         // The custom validator can access the properties of this
         // delegate as if they were already defined as local variables.
-        final ValidatorDelegate delegate = new ValidatorDelegate();
-        delegate.setPropertyName(getPropertyName());
-        validator.setDelegate(delegate);
+        final ValidatorDelegate delegate = new ValidatorDelegate()
+        delegate.setPropertyName(getPropertyName())
+        validator.setDelegate(delegate)
 
         // Execute the custom validation.
-        final Object result = validator.call(params);
+        final Object result = InvokerHelper.invokeClosure(validator, params)
 
         if (numValidatorParams == 3) {
             // If the closure has been passed the errors
             // object no further action has to be taken.
-            return;
+            return
         }
 
-        boolean bad = false;
-        String errmsg = null;
-        Object[] args = null;
+        boolean bad = false
+        String errmsg = null
+        Object[] args = null
 
         if (result != null) {
             if (result instanceof Boolean) {
-                bad = !(Boolean) result;
+                bad = !(Boolean) result
             }
             else if (result instanceof CharSequence) {
-                bad = true;
-                errmsg = result.toString();
+                bad = true
+                errmsg = result.toString()
             }
             else if ((result instanceof Collection<?>) || result.getClass().isArray()) {
-                bad = true;
-                Object[] values = (result instanceof Collection<?>) ? ((Collection<?>) result).toArray() : (Object[]) result;
+                bad = true
+                Object[] values = (result instanceof Collection<?>) ? ((Collection<?>) result).toArray() : (Object[]) result
                 if (!(values[0] instanceof String)) {
-                    throw new IllegalArgumentException("Return value from validation closure [" +
-                            ConstrainedProperty.VALIDATOR_CONSTRAINT + "] of property [" + constraintPropertyName + "] of class [" +
-                            constraintOwningClass + "] is returning a list but the first element must be a string " +
-                            "containing the error message code");
+                    throw new IllegalArgumentException('Return value from validation closure [' +
+                            ConstrainedProperty.VALIDATOR_CONSTRAINT + '] of property [' + constraintPropertyName + '] of class [' +
+                            constraintOwningClass + '] is returning a list but the first element must be a string ' +
+                            'containing the error message code')
                 }
-                errmsg = (String) values[0];
-                args = new Object[values.length - 1 + 3];
-                int i = 0;
-                args[i++] = constraintPropertyName;
-                args[i++] = constraintOwningClass;
-                args[i++] = propertyValue;
-                System.arraycopy(values, 1, args, i, values.length - 1);
+                errmsg = (String) values[0]
+                args = new Object[values.length - 1 + 3]
+                int i = 0
+                args[i++] = constraintPropertyName
+                args[i++] = constraintOwningClass
+                args[i++] = propertyValue
+                System.arraycopy(values, 1, args, i, values.length - 1)
             }
             else {
-                throw new IllegalArgumentException("Return value from validation closure [" +
-                        ConstrainedProperty.VALIDATOR_CONSTRAINT + "] of property [" + constraintPropertyName +
-                        "] of class [" + constraintOwningClass +
-                        "] must be a boolean, a string, an array or a collection");
+                throw new IllegalArgumentException('Return value from validation closure [' +
+                        ConstrainedProperty.VALIDATOR_CONSTRAINT + '] of property [' + constraintPropertyName +
+                        '] of class [' + constraintOwningClass +
+                        '] must be a boolean, a string, an array or a collection')
             }
         }
         if (bad) {
             if (args == null) {
-                args = new Object[] { constraintPropertyName, constraintOwningClass, propertyValue };
+                args = [constraintPropertyName, constraintOwningClass, propertyValue] as Object[]
             }
             rejectValue(target, errors, ConstrainedProperty.DEFAULT_INVALID_VALIDATOR_MESSAGE_CODE,
-                    errmsg == null ? ConstrainedProperty.VALIDATOR_CONSTRAINT + ConstrainedProperty.INVALID_SUFFIX : errmsg, args);
+                    errmsg == null ? ConstrainedProperty.VALIDATOR_CONSTRAINT + ConstrainedProperty.INVALID_SUFFIX : errmsg, args)
         }
     }
 
-    public String getName() {
-        return ConstrainedProperty.VALIDATOR_CONSTRAINT;
+    String getName() {
+        return ConstrainedProperty.VALIDATOR_CONSTRAINT
     }
 
-    @SuppressWarnings("rawtypes")
-    public boolean supports(Class type) {
-        return type != null;
+    @SuppressWarnings('rawtypes')
+    boolean supports(Class type) {
+        return type != null
     }
 
     private static class ValidatorDelegate {
-        private String propertyName;
+        private String propertyName
 
-        @SuppressWarnings("unused")
-        public String getPropertyName() {
-            return propertyName;
+        @SuppressWarnings('unused')
+        String getPropertyName() {
+            return propertyName
         }
 
-        public void setPropertyName(String propertyName) {
-            this.propertyName = propertyName;
+        void setPropertyName(String propertyName) {
+            this.propertyName = propertyName
         }
     }
-}
 
+}
