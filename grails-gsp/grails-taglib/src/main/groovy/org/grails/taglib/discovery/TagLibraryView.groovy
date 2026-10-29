@@ -16,9 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib.discovery;
-
-import java.util.List;
+package org.grails.taglib.discovery
 
 /**
  * A tag library as the rules need to read it, whether from a syntax tree or from a compiled class.
@@ -32,22 +30,22 @@ import java.util.List;
  *
  * @since 8.0.0
  */
-public interface TagLibraryView {
+interface TagLibraryView {
 
     /**
      * @return the methods this class itself declares, excluding anything inherited
      */
-    List<TagMethodView> declaredMethods();
+    List<TagMethodView> declaredMethods()
 
     /**
      * @return the names of the non-static fields this class itself declares whose type is a
      *         {@code Closure}, including a subclass of one
      */
-    List<String> declaredClosureFieldNames();
+    List<String> declaredClosureFieldNames()
 
     /**
      * @return the superclass to continue the walk with, or {@code null} at the top of the hierarchy
      *         or where the superclass cannot be read
      */
-    TagLibraryView superclassView();
+    TagLibraryView superclassView()
 }

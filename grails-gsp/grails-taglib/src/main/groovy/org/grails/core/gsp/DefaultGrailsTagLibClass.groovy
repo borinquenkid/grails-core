@@ -16,26 +16,19 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.gsp;
+package org.grails.core.gsp
 
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.Modifier
 
-import groovy.lang.Closure;
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaProperty;
+import groovy.transform.CompileStatic
+import groovy.transform.stc.POJO
 
-import grails.core.gsp.GrailsTagLibClass;
-import org.grails.core.AbstractInjectableGrailsClass;
-import org.grails.core.artefact.gsp.TagLibArtefactHandler;
-import org.grails.taglib.TagMethodInvoker;
-import org.grails.taglib.discovery.ReflectedTagLibraryView;
-import org.grails.taglib.discovery.TagDiscoveryRules;
+import grails.core.gsp.GrailsTagLibClass
+import org.grails.core.AbstractInjectableGrailsClass
+import org.grails.core.artefact.gsp.TagLibArtefactHandler
+import org.grails.taglib.TagMethodInvoker
+import org.grails.taglib.discovery.ReflectedTagLibraryView
+import org.grails.taglib.discovery.TagDiscoveryRules
 
 /**
  * Default implementation of a tag lib class.
@@ -43,89 +36,89 @@ import org.grails.taglib.discovery.TagDiscoveryRules;
  * @author Graeme Rocher
  *
  */
-public class DefaultGrailsTagLibClass extends AbstractInjectableGrailsClass implements GrailsTagLibClass {
+@CompileStatic
+@POJO
+class DefaultGrailsTagLibClass extends AbstractInjectableGrailsClass implements GrailsTagLibClass {
 
-    protected static final String TAG_LIB = TagLibArtefactHandler.TYPE;
+    protected static final String TAG_LIB = TagLibArtefactHandler.TYPE
 
-    private Set<String> tags = new HashSet<>();
-    private String namespace = GrailsTagLibClass.DEFAULT_NAMESPACE;
-    private Set<String> returnObjectForTagsSet = new HashSet<>();
-    private Object defaultEncodeAs = null;
-    private Map<String, Object> encodeAsForTags = new HashMap<>();
+    private Set<String> tags = new HashSet<>()
+    private String namespace = GrailsTagLibClass.DEFAULT_NAMESPACE
+    private Set<String> returnObjectForTagsSet = new HashSet<>()
+    private Object defaultEncodeAs = null
+    private Map<String, Object> encodeAsForTags = new HashMap<>()
 
     /**
      * Default constructor.
      *
      * @param clazz        the tag library class
      */
-    @SuppressWarnings("rawtypes")
-    public DefaultGrailsTagLibClass(Class<?> clazz) {
-        super(clazz, TagLibArtefactHandler.TYPE);
+    @SuppressWarnings('rawtypes')
+    DefaultGrailsTagLibClass(Class<?> clazz) {
+        super(clazz, TagLibArtefactHandler.TYPE)
 
-        for (MetaProperty prop : GroovySystem.getMetaClassRegistry().getMetaClass(clazz).getProperties()) {
-            int modifiers = prop.getModifiers();
+        for (MetaProperty prop in GroovySystem.getMetaClassRegistry().getMetaClass(clazz).getProperties()) {
+            int modifiers = prop.getModifiers()
             if (Modifier.isStatic(modifiers) || !Modifier.isPublic(modifiers)) {
-                continue;
+                continue
             }
 
-            if (Closure.class.isAssignableFrom(prop.getType())) {
-                tags.add(prop.getName());
+            if (Closure.isAssignableFrom(prop.getType())) {
+                tags.add(prop.getName())
             }
         }
-        tags.addAll(TagMethodInvoker.getInvokableTagMethodNames(clazz));
+        tags.addAll(TagMethodInvoker.getInvokableTagMethodNames(clazz))
 
         // Closure-typed tags are also read directly from the class, because the metaclass does not
         // always report them as properties (with @CompileStatic at the class level, a Closure
         // property may not be compiled as one). Read through the shared rules rather than walking
         // the hierarchy here, so that the set a build records and the set registered here are
         // produced by the same code and cannot describe different tags.
-        tags.addAll(TagDiscoveryRules.findTags(new ReflectedTagLibraryView(clazz)));
+        tags.addAll(TagDiscoveryRules.findTags(new ReflectedTagLibraryView(clazz)))
 
-        String ns = getStaticPropertyValue(NAMESPACE_FIELD_NAME, String.class);
-        if (ns != null && !"".equals(ns.trim())) {
-            namespace = ns.trim();
+        String ns = getStaticPropertyValue(NAMESPACE_FIELD_NAME, String)
+        if (ns != null && !''.equals(ns.trim())) {
+            namespace = ns.trim()
         }
 
-        List returnObjectForTagsList = getStaticPropertyValue(RETURN_OBJECT_FOR_TAGS_FIELD_NAME, List.class);
+        List returnObjectForTagsList = getStaticPropertyValue(RETURN_OBJECT_FOR_TAGS_FIELD_NAME, List)
         if (returnObjectForTagsList != null) {
-            for (Object tagName : returnObjectForTagsList) {
-                returnObjectForTagsSet.add(String.valueOf(tagName));
+            for (Object tagName in returnObjectForTagsList) {
+                returnObjectForTagsSet.add(String.valueOf(tagName))
             }
         }
 
-        defaultEncodeAs = getStaticPropertyValue(DEFAULT_ENCODE_AS_FIELD_NAME, Object.class);
+        defaultEncodeAs = getStaticPropertyValue(DEFAULT_ENCODE_AS_FIELD_NAME, Object)
 
-        Map encodeAsForTagsMap = getStaticPropertyValue(ENCODE_AS_FOR_TAGS_FIELD_NAME, Map.class);
+        Map encodeAsForTagsMap = getStaticPropertyValue(ENCODE_AS_FOR_TAGS_FIELD_NAME, Map)
         if (encodeAsForTagsMap != null) {
-            for (@SuppressWarnings("unchecked")
-                 Iterator<Map.Entry> it = encodeAsForTagsMap.entrySet().iterator(); it.hasNext();) {
-                Map.Entry entry = it.next();
-                encodeAsForTags.put(entry.getKey().toString(), entry.getValue());
+            for (Map.Entry entry in encodeAsForTagsMap.entrySet()) {
+                encodeAsForTags.put(entry.getKey().toString(), entry.getValue())
             }
         }
     }
 
-    public boolean hasTag(String tagName) {
-        return tags.contains(tagName);
+    boolean hasTag(String tagName) {
+        return tags.contains(tagName)
     }
 
-    public Set<String> getTagNames() {
-        return tags;
+    Set<String> getTagNames() {
+        return tags
     }
 
-    public String getNamespace() {
-        return namespace;
+    String getNamespace() {
+        return namespace
     }
 
-    public Set<String> getTagNamesThatReturnObject() {
-        return returnObjectForTagsSet;
+    Set<String> getTagNamesThatReturnObject() {
+        return returnObjectForTagsSet
     }
 
-    public Object getEncodeAsForTag(String tagName) {
-        return encodeAsForTags.get(tagName);
+    Object getEncodeAsForTag(String tagName) {
+        return encodeAsForTags.get(tagName)
     }
 
-    public Object getDefaultEncodeAs() {
-        return defaultEncodeAs;
+    Object getDefaultEncodeAs() {
+        return defaultEncodeAs
     }
 }

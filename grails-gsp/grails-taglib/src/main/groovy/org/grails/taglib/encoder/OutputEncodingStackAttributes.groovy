@@ -16,13 +16,18 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.taglib.encoder;
 
-import java.io.Writer;
+import groovy.transform.CompileStatic;
 
 import org.grails.encoder.Encoder;
 
-public class OutputEncodingStackAttributes {
+@CompileStatic
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+class OutputEncodingStackAttributes {
+
     private final Writer topWriter;
     private final Encoder staticEncoder;
     private final Encoder outEncoder;
@@ -36,55 +41,55 @@ public class OutputEncodingStackAttributes {
     private final boolean replaceOnly;
     private final OutputContext outputContext;
 
-    public boolean isInheritPreviousEncoders() {
+    boolean isInheritPreviousEncoders() {
         return inheritPreviousEncoders;
     }
 
-    public boolean isReplaceOnly() {
+    boolean isReplaceOnly() {
         return replaceOnly;
     }
 
-    public Writer getTopWriter() {
+    Writer getTopWriter() {
         return topWriter;
     }
 
-    public Encoder getStaticEncoder() {
+    Encoder getStaticEncoder() {
         return staticEncoder;
     }
 
-    public Encoder getOutEncoder() {
+    Encoder getOutEncoder() {
         return outEncoder;
     }
 
-    public Encoder getExpressionEncoder() {
+    Encoder getExpressionEncoder() {
         return expressionEncoder;
     }
 
-    public Encoder getTaglibEncoder() {
+    Encoder getTaglibEncoder() {
         return taglibEncoder;
     }
 
-    public Encoder getDefaultTaglibEncoder() {
+    Encoder getDefaultTaglibEncoder() {
         return defaultTaglibEncoder;
     }
 
-    public boolean isAllowCreate() {
+    boolean isAllowCreate() {
         return allowCreate;
     }
 
-    public boolean isPushTop() {
+    boolean isPushTop() {
         return pushTop;
     }
 
-    public boolean isAutoSync() {
+    boolean isAutoSync() {
         return autoSync;
     }
 
-    public OutputContext getOutputContext() {
+    OutputContext getOutputContext() {
         return outputContext;
     }
 
-    public static class Builder {
+    static class Builder {
         private Writer topWriter;
         private Encoder staticEncoder;
         private Encoder outEncoder;
@@ -98,10 +103,10 @@ public class OutputEncodingStackAttributes {
         private boolean inheritPreviousEncoders = false;
         private boolean replaceOnly = false;
 
-        public Builder() {
+        Builder() {
         }
 
-        public Builder(OutputEncodingStackAttributes attributes) {
+        Builder(OutputEncodingStackAttributes attributes) {
             this.topWriter = attributes.topWriter;
             this.staticEncoder = attributes.staticEncoder;
             this.outEncoder = attributes.outEncoder;
@@ -116,67 +121,67 @@ public class OutputEncodingStackAttributes {
             this.replaceOnly = attributes.replaceOnly;
         }
 
-        public Builder topWriter(Writer topWriter) {
+        Builder topWriter(Writer topWriter) {
             this.topWriter = topWriter;
             return this;
         }
 
-        public Builder staticEncoder(Encoder staticEncoder) {
+        Builder staticEncoder(Encoder staticEncoder) {
             this.staticEncoder = staticEncoder;
             return this;
         }
 
-        public Builder outEncoder(Encoder outEncoder) {
+        Builder outEncoder(Encoder outEncoder) {
             this.outEncoder = outEncoder;
             return this;
         }
 
-        public Builder expressionEncoder(Encoder expressionEncoder) {
+        Builder expressionEncoder(Encoder expressionEncoder) {
             this.expressionEncoder = expressionEncoder;
             return this;
         }
 
-        public Builder taglibEncoder(Encoder taglibEncoder) {
+        Builder taglibEncoder(Encoder taglibEncoder) {
             this.taglibEncoder = taglibEncoder;
             return this;
         }
 
-        public Builder defaultTaglibEncoder(Encoder defaultTaglibEncoder) {
+        Builder defaultTaglibEncoder(Encoder defaultTaglibEncoder) {
             this.defaultTaglibEncoder = defaultTaglibEncoder;
             return this;
         }
 
-        public Builder allowCreate(boolean allowCreate) {
+        Builder allowCreate(boolean allowCreate) {
             this.allowCreate = allowCreate;
             return this;
         }
 
-        public Builder pushTop(boolean pushTop) {
+        Builder pushTop(boolean pushTop) {
             this.pushTop = pushTop;
             return this;
         }
 
-        public Builder autoSync(boolean autoSync) {
+        Builder autoSync(boolean autoSync) {
             this.autoSync = autoSync;
             return this;
         }
 
-        public Builder inheritPreviousEncoders(boolean inheritPreviousEncoders) {
+        Builder inheritPreviousEncoders(boolean inheritPreviousEncoders) {
             this.inheritPreviousEncoders = inheritPreviousEncoders;
             return this;
         }
 
-        public Builder replaceOnly(boolean replaceOnly) {
+        Builder replaceOnly(boolean replaceOnly) {
             this.replaceOnly = replaceOnly;
             return this;
         }
 
-        public Builder outputContext(OutputContext outputContext) {
+        Builder outputContext(OutputContext outputContext) {
             this.outputContext = outputContext;
             return this;
         }
 
-        public OutputEncodingStackAttributes build() {
+        OutputEncodingStackAttributes build() {
             return new OutputEncodingStackAttributes(this);
         }
     }

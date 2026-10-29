@@ -16,11 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib.encoder;
+package org.grails.taglib.encoder
 
 /**
  * Created by lari on 02/01/15.
  */
-public interface OutputContextLookup {
-    OutputContext lookupOutputContext();
+interface OutputContextLookup {
+
+    OutputContext lookupOutputContext()
 }

@@ -16,70 +16,68 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib.discovery;
+package org.grails.taglib.discovery
 
-import java.util.ArrayList;
-import java.util.List;
-
-import groovy.lang.Closure;
-import org.codehaus.groovy.ast.ClassHelper;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.FieldNode;
-import org.codehaus.groovy.ast.MethodNode;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ClassHelper
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.FieldNode
+import org.codehaus.groovy.ast.MethodNode
 
 /**
  * A tag library read from its syntax tree, as a build reads one while compiling it.
  *
  * @since 8.0.0
  */
-public final class AstTagLibraryView implements TagLibraryView {
+@CompileStatic
+final class AstTagLibraryView implements TagLibraryView {
 
-    private static final ClassNode CLOSURE_TYPE = ClassHelper.make(Closure.class);
+    private static final ClassNode CLOSURE_TYPE = ClassHelper.make(Closure)
 
-    private final ClassNode classNode;
-    private final boolean parameterNamesRetained;
+    private final ClassNode classNode
+    private final boolean parameterNamesRetained
 
-    public AstTagLibraryView(ClassNode classNode, boolean parameterNamesRetained) {
-        this.classNode = classNode;
-        this.parameterNamesRetained = parameterNamesRetained;
+    AstTagLibraryView(ClassNode classNode, boolean parameterNamesRetained) {
+        this.classNode = classNode
+        this.parameterNamesRetained = parameterNamesRetained
     }
 
     @Override
-    public List<TagMethodView> declaredMethods() {
-        List<TagMethodView> declared = new ArrayList<>();
-        for (MethodNode method : classNode.getMethods()) {
+    List<TagMethodView> declaredMethods() {
+        List<TagMethodView> declared = new ArrayList<>()
+        for (MethodNode method in classNode.getMethods()) {
             // A method inherited from a superclass is not dispatchable, because dispatch scans
             // declared methods; a trait method is woven as a declaration and so is still seen here.
             if (method.getDeclaringClass() != null && !classNode.equals(method.getDeclaringClass())) {
-                continue;
+                continue
             }
-            declared.add(new AstTagMethodView(method, parameterNamesRetained));
+            declared.add(new AstTagMethodView(method, parameterNamesRetained))
         }
-        return declared;
+        return declared
     }
 
     @Override
-    public List<String> declaredClosureFieldNames() {
-        List<String> names = new ArrayList<>();
-        for (FieldNode field : classNode.getFields()) {
+    List<String> declaredClosureFieldNames() {
+        List<String> names = new ArrayList<>()
+        for (FieldNode field in classNode.getFields()) {
             if (field.isStatic() || field.getType() == null) {
-                continue;
+                continue
             }
             // Assignability rather than equality, because the runtime asks isAssignableFrom: a field
             // declared as a subclass of Closure is a tag there and has to be one here too.
             if (field.getType().isDerivedFrom(CLOSURE_TYPE) || CLOSURE_TYPE.equals(field.getType())) {
-                names.add(field.getName());
+                names.add(field.getName())
             }
         }
-        return names;
+        return names
     }
 
     @Override
-    public TagLibraryView superclassView() {
-        ClassNode superClass = classNode.getSuperClass();
+    TagLibraryView superclassView() {
+        ClassNode superClass = classNode.getSuperClass()
         if (superClass == null || ClassHelper.isObjectType(superClass)) {
-            return null;
+            return null
         }
-        return new AstTagLibraryView(superClass, parameterNamesRetained);
+        return new AstTagLibraryView(superClass, parameterNamesRetained)
     }
 }

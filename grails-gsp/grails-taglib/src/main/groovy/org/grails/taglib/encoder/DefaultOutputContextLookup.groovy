@@ -16,9 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.taglib.encoder;
 
-import java.io.Writer;
+import groovy.transform.CompileStatic;
 
 import org.springframework.core.Ordered;
 
@@ -31,8 +32,12 @@ import org.grails.encoder.EncodingStateRegistryLookupHolder;
 import org.grails.taglib.AbstractTemplateVariableBinding;
 import org.grails.taglib.TemplateVariableBinding;
 
-public class DefaultOutputContextLookup implements OutputContextLookup, EncodingStateRegistryLookup, Ordered {
-    private ThreadLocal<OutputContext> outputContextThreadLocal = new ThreadLocal<>() {
+@CompileStatic
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+class DefaultOutputContextLookup implements OutputContextLookup, EncodingStateRegistryLookup, Ordered {
+
+    private ThreadLocal<OutputContext> outputContextThreadLocal = new ThreadLocal<OutputContext>() {
         @Override
         protected OutputContext initialValue() {
             return new DefaultOutputContext();
@@ -40,7 +45,7 @@ public class DefaultOutputContextLookup implements OutputContextLookup, Encoding
     };
 
     @Override
-    public OutputContext lookupOutputContext() {
+    OutputContext lookupOutputContext() {
         if (EncodingStateRegistryLookupHolder.getEncodingStateRegistryLookup() == null) {
             // TODO: improve EncodingStateRegistry solution so that global state doesn't have to be used
             EncodingStateRegistryLookupHolder.setEncodingStateRegistryLookup(this);
@@ -49,82 +54,74 @@ public class DefaultOutputContextLookup implements OutputContextLookup, Encoding
     }
 
     @Override
-    public int getOrder() {
+    int getOrder() {
         return Ordered.LOWEST_PRECEDENCE;
     }
 
     @Override
-    public EncodingStateRegistry lookup() {
+    EncodingStateRegistry lookup() {
         return lookupOutputContext().getEncodingStateRegistry();
     }
 
-    public DefaultOutputContextLookup() {
-
-    }
-
-    public static class DefaultOutputContext implements OutputContext {
+    static class DefaultOutputContext implements OutputContext {
         private OutputEncodingStack outputEncodingStack;
         private Writer currentWriter;
         private AbstractTemplateVariableBinding binding;
         private EncodingStateRegistry encodingStateRegistry = new DefaultEncodingStateRegistry();
 
-        public DefaultOutputContext() {
-
-        }
-
         @Override
-        public EncodingStateRegistry getEncodingStateRegistry() {
+        EncodingStateRegistry getEncodingStateRegistry() {
             return encodingStateRegistry;
         }
 
         @Override
-        public void setCurrentOutputEncodingStack(OutputEncodingStack outputEncodingStack) {
+        void setCurrentOutputEncodingStack(OutputEncodingStack outputEncodingStack) {
             this.outputEncodingStack = outputEncodingStack;
         }
 
         @Override
-        public OutputEncodingStack getCurrentOutputEncodingStack() {
+        OutputEncodingStack getCurrentOutputEncodingStack() {
             return outputEncodingStack;
         }
 
         @Override
-        public Writer getCurrentWriter() {
+        Writer getCurrentWriter() {
             return currentWriter;
         }
 
         @Override
-        public void setCurrentWriter(Writer currentWriter) {
+        void setCurrentWriter(Writer currentWriter) {
             this.currentWriter = currentWriter;
         }
 
         @Override
-        public AbstractTemplateVariableBinding createAndRegisterRootBinding() {
+        AbstractTemplateVariableBinding createAndRegisterRootBinding() {
             binding = new TemplateVariableBinding();
             return binding;
         }
 
         @Override
-        public AbstractTemplateVariableBinding getBinding() {
+        AbstractTemplateVariableBinding getBinding() {
             return binding;
         }
 
         @Override
-        public void setBinding(AbstractTemplateVariableBinding binding) {
+        void setBinding(AbstractTemplateVariableBinding binding) {
             this.binding = binding;
         }
 
         @Override
-        public GrailsApplication getGrailsApplication() {
+        GrailsApplication getGrailsApplication() {
             return Holders.findApplication();
         }
 
         @Override
-        public void setContentType(String contentType) {
+        void setContentType(String contentType) {
             // no-op
         }
 
         @Override
-        public boolean isContentTypeAlreadySet() {
+        boolean isContentTypeAlreadySet() {
             return true;
         }
     }

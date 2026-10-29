@@ -16,29 +16,22 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib;
+package org.grails.taglib
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import groovy.transform.CompileStatic
 
-import groovy.lang.GroovyObject;
+import org.springframework.beans.BeansException
+import org.springframework.beans.factory.InitializingBean
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-
-import grails.core.GrailsApplication;
-import grails.core.GrailsClass;
-import grails.core.gsp.GrailsTagLibClass;
-import grails.core.support.GrailsApplicationAware;
-import org.grails.core.artefact.gsp.TagLibArtefactHandler;
-import org.grails.core.exceptions.GrailsConfigurationException;
-import org.grails.taglib.encoder.WithCodecHelper;
+import grails.core.GrailsApplication
+import grails.core.GrailsClass
+import grails.core.gsp.GrailsTagLibClass
+import grails.core.support.GrailsApplicationAware
+import org.grails.core.artefact.gsp.TagLibArtefactHandler
+import org.grails.core.exceptions.GrailsConfigurationException
+import org.grails.taglib.encoder.WithCodecHelper
 
 /**
  * Looks up tag library instances.
@@ -46,48 +39,51 @@ import org.grails.taglib.encoder.WithCodecHelper;
  * @author Graeme Rocher
  * @since 1.1
  */
-public class TagLibraryLookup implements ApplicationContextAware, GrailsApplicationAware, InitializingBean {
-    protected ApplicationContext applicationContext;
-    protected GrailsApplication grailsApplication;
-    protected Map<String, Map<String, Object>> tagNamespaces = new LinkedHashMap<>();
-    protected Map<String, NamespacedTagDispatcher> namespaceDispatchers = new LinkedHashMap<>();
-    protected Map<String, Set<String>> tagsThatReturnObjectForNamespace = new LinkedHashMap<>();
-    protected Map<String, Map<String, Map<String, Object>>> encodeAsForTagNamespaces = new LinkedHashMap<>();
+@CompileStatic
+class TagLibraryLookup implements ApplicationContextAware, GrailsApplicationAware, InitializingBean {
 
-    public void afterPropertiesSet() throws Exception {
+    protected ApplicationContext applicationContext
+    protected GrailsApplication grailsApplication
+    protected Map<String, Map<String, Object>> tagNamespaces = new LinkedHashMap<>()
+    protected Map<String, NamespacedTagDispatcher> namespaceDispatchers = new LinkedHashMap<>()
+    protected Map<String, Set<String>> tagsThatReturnObjectForNamespace = new LinkedHashMap<>()
+    protected Map<String, Map<String, Map<String, Object>>> encodeAsForTagNamespaces = new LinkedHashMap<>()
+
+    void afterPropertiesSet() throws Exception {
         if (grailsApplication == null || applicationContext == null) {
-            return;
+            return
         }
 
         try {
-            registerTagLibraries();
-        } catch (GrailsConfigurationException e) {
+            registerTagLibraries()
+        }
+        catch (GrailsConfigurationException ignored) {
             // ignore exception
         }
-        registerTemplateNamespace();
+        registerTemplateNamespace()
 
-        registerNamespaceDispatchers();
+        registerNamespaceDispatchers()
     }
 
     private void registerNamespaceDispatchers() {
-        for (String namespace : tagNamespaces.keySet()) {
-            registerNamespaceDispatcher(namespace);
+        for (String namespace in tagNamespaces.keySet()) {
+            registerNamespaceDispatcher(namespace)
         }
     }
 
     protected void registerNamespaceDispatcher(String namespace) {
-        namespaceDispatchers.put(namespace, new NamespacedTagDispatcher(namespace, null, grailsApplication, this));
+        namespaceDispatchers.put(namespace, new NamespacedTagDispatcher(namespace, null, grailsApplication, this))
     }
 
     protected void registerTagLibraries() {
-        GrailsClass[] taglibs = grailsApplication.getArtefacts(TagLibArtefactHandler.TYPE);
-        for (GrailsClass grailsClass : taglibs) {
-            registerTagLib((GrailsTagLibClass) grailsClass, true);
+        GrailsClass[] taglibs = grailsApplication.getArtefacts(TagLibArtefactHandler.TYPE)
+        for (GrailsClass grailsClass in taglibs) {
+            registerTagLib((GrailsTagLibClass) grailsClass, true)
         }
     }
 
     protected void registerTemplateNamespace() {
-        namespaceDispatchers.put(TemplateNamespacedTagDispatcher.TEMPLATE_NAMESPACE, new TemplateNamespacedTagDispatcher(null, grailsApplication, this));
+        namespaceDispatchers.put(TemplateNamespacedTagDispatcher.TEMPLATE_NAMESPACE, new TemplateNamespacedTagDispatcher(null, grailsApplication, this))
     }
 
     /**
@@ -98,57 +94,57 @@ public class TagLibraryLookup implements ApplicationContextAware, GrailsApplicat
      * version.
      * @param taglib The taglib descriptor class.
      */
-    public void registerTagLib(GrailsTagLibClass taglib) {
-        registerTagLib(taglib, false);
+    void registerTagLib(GrailsTagLibClass taglib) {
+        registerTagLib(taglib, false)
     }
 
     private void registerTagLib(GrailsTagLibClass taglib, boolean isInitialization) {
-        String namespace = taglib.getNamespace();
+        String namespace = taglib.getNamespace()
 
         if (!isInitialization) {
-            registerNamespaceDispatcher(namespace);
+            registerNamespaceDispatcher(namespace)
         }
-        Set<String> tagsThatReturnObject = tagsThatReturnObjectForNamespace.get(namespace);
+        Set<String> tagsThatReturnObject = tagsThatReturnObjectForNamespace.get(namespace)
         if (tagsThatReturnObject == null) {
-            tagsThatReturnObject = new HashSet<>();
-            tagsThatReturnObjectForNamespace.put(namespace, tagsThatReturnObject);
+            tagsThatReturnObject = new HashSet<>()
+            tagsThatReturnObjectForNamespace.put(namespace, tagsThatReturnObject)
         }
-        Map<String, Object> tags = tagNamespaces.get(namespace);
+        Map<String, Object> tags = tagNamespaces.get(namespace)
         if (tags == null) {
-            tags = new HashMap<>();
-            tagNamespaces.put(namespace, tags);
+            tags = new HashMap<>()
+            tagNamespaces.put(namespace, tags)
         }
 
-        for (String tagName : taglib.getTagNames()) {
-            putTagLib(tags, tagName, taglib);
-            tagsThatReturnObject.remove(tagName);
+        for (String tagName in taglib.getTagNames()) {
+            putTagLib(tags, tagName, taglib)
+            tagsThatReturnObject.remove(tagName)
         }
-        for (String tagName : taglib.getTagNamesThatReturnObject()) {
-            tagsThatReturnObject.add(tagName);
+        for (String tagName in taglib.getTagNamesThatReturnObject()) {
+            tagsThatReturnObject.add(tagName)
         }
 
-        Map<String, Map<String, Object>> encodeAsForTagNamespace = encodeAsForTagNamespaces.get(namespace);
+        Map<String, Map<String, Object>> encodeAsForTagNamespace = encodeAsForTagNamespaces.get(namespace)
         if (encodeAsForTagNamespace == null) {
-            encodeAsForTagNamespace = new HashMap<>();
-            encodeAsForTagNamespaces.put(namespace, encodeAsForTagNamespace);
+            encodeAsForTagNamespace = new HashMap<>()
+            encodeAsForTagNamespaces.put(namespace, encodeAsForTagNamespace)
         }
 
-        Map<String, Object> defaultEncodeAsForTagLib = null;
+        Map<String, Object> defaultEncodeAsForTagLib = null
         if (taglib.getDefaultEncodeAs() != null) {
-            defaultEncodeAsForTagLib = Collections.unmodifiableMap(WithCodecHelper.makeSettingsCanonical(taglib.getDefaultEncodeAs()));
+            defaultEncodeAsForTagLib = Collections.unmodifiableMap(WithCodecHelper.makeSettingsCanonical(taglib.getDefaultEncodeAs()))
         }
 
-        for (String tagName : taglib.getTagNames()) {
-            Object codecInfo = taglib.getEncodeAsForTag(tagName);
-            Map<String, Object> codecInfoMap = WithCodecHelper.mergeSettingsAndMakeCanonical(codecInfo, defaultEncodeAsForTagLib);
+        for (String tagName in taglib.getTagNames()) {
+            Object codecInfo = taglib.getEncodeAsForTag(tagName)
+            Map<String, Object> codecInfoMap = WithCodecHelper.mergeSettingsAndMakeCanonical(codecInfo, defaultEncodeAsForTagLib)
             if (codecInfoMap != null) {
-                encodeAsForTagNamespace.put(tagName, codecInfoMap);
+                encodeAsForTagNamespace.put(tagName, codecInfoMap)
             }
         }
     }
 
     protected void putTagLib(Map<String, Object> tags, String name, GrailsTagLibClass taglib) {
-        tags.put(name, applicationContext.getBean(taglib.getFullName()));
+        tags.put(name, applicationContext.getBean(taglib.getFullName()))
     }
 
     /**
@@ -158,22 +154,22 @@ public class TagLibraryLookup implements ApplicationContextAware, GrailsApplicat
      * @param tagName The tag name
      * @return The tag library or null if it wasn't found
      */
-    public GroovyObject lookupTagLibrary(String namespace, String tagName) {
-        Map<String, Object> tags = tagNamespaces.get(namespace);
+    GroovyObject lookupTagLibrary(String namespace, String tagName) {
+        Map<String, Object> tags = tagNamespaces.get(namespace)
         if (tags == null) {
-            return null;
+            return null
         }
-        return (GroovyObject) tags.get(tagName);
+        return (GroovyObject) tags.get(tagName)
     }
 
-    public boolean doesTagReturnObject(String namespace, String tagName) {
-        Set<String> tagsThatReturnObject = tagsThatReturnObjectForNamespace.get(namespace);
-        return tagsThatReturnObject != null && tagsThatReturnObject.contains(tagName);
+    boolean doesTagReturnObject(String namespace, String tagName) {
+        Set<String> tagsThatReturnObject = tagsThatReturnObjectForNamespace.get(namespace)
+        return tagsThatReturnObject != null && tagsThatReturnObject.contains(tagName)
     }
 
-    public Map<String, Object> getEncodeAsForTag(String namespace, String tagName) {
-        Map<String, Map<String, Object>> encodeAsForTagNamespace = encodeAsForTagNamespaces.get(namespace);
-        return encodeAsForTagNamespace != null ? encodeAsForTagNamespace.get(tagName) : null;
+    Map<String, Object> getEncodeAsForTag(String namespace, String tagName) {
+        Map<String, Map<String, Object>> encodeAsForTagNamespace = encodeAsForTagNamespaces.get(namespace)
+        return encodeAsForTagNamespace != null ? encodeAsForTagNamespace.get(tagName) : null
     }
 
     /**
@@ -181,8 +177,8 @@ public class TagLibraryLookup implements ApplicationContextAware, GrailsApplicat
      * @param namespace The namespace
      * @return The NamespacedTagDispatcher
      */
-    public NamespacedTagDispatcher lookupNamespaceDispatcher(String namespace) {
-        return namespaceDispatchers.get(namespace);
+    NamespacedTagDispatcher lookupNamespaceDispatcher(String namespace) {
+        return namespaceDispatchers.get(namespace)
     }
 
     /**
@@ -190,15 +186,15 @@ public class TagLibraryLookup implements ApplicationContextAware, GrailsApplicat
      * @param namespace The namespace
      * @return true if it is in use
      */
-    public boolean hasNamespace(String namespace) {
-        return namespaceDispatchers.containsKey(namespace);
+    boolean hasNamespace(String namespace) {
+        return namespaceDispatchers.containsKey(namespace)
     }
 
     /**
      * @return The namespaces available
      */
-    public Set<String> getAvailableNamespaces() {
-        return namespaceDispatchers.keySet();
+    Set<String> getAvailableNamespaces() {
+        return namespaceDispatchers.keySet()
     }
 
     /**
@@ -206,26 +202,26 @@ public class TagLibraryLookup implements ApplicationContextAware, GrailsApplicat
      * test cleanup to prevent stale tag library references from leaking
      * between test contexts.
      */
-    public void clear() {
-        tagNamespaces.clear();
-        namespaceDispatchers.clear();
-        tagsThatReturnObjectForNamespace.clear();
-        encodeAsForTagNamespaces.clear();
+    void clear() {
+        tagNamespaces.clear()
+        namespaceDispatchers.clear()
+        tagsThatReturnObjectForNamespace.clear()
+        encodeAsForTagNamespaces.clear()
     }
 
-    public Set<String> getAvailableTags(String namespace) {
-        Map<String, Object> tags = tagNamespaces.get(namespace);
+    Set<String> getAvailableTags(String namespace) {
+        Map<String, Object> tags = tagNamespaces.get(namespace)
         if (tags == null) {
-            return Collections.emptySet();
+            return Collections.emptySet()
         }
-        return tags.keySet();
+        return tags.keySet()
     }
 
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+    void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext
     }
 
-    public void setGrailsApplication(GrailsApplication grailsApplication) {
-        this.grailsApplication = grailsApplication;
+    void setGrailsApplication(GrailsApplication grailsApplication) {
+        this.grailsApplication = grailsApplication
     }
 }

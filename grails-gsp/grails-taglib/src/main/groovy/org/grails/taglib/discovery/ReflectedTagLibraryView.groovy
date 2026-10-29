@@ -16,46 +16,48 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.taglib.discovery;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
 
-import groovy.lang.Closure;
+import groovy.transform.CompileStatic;
 
 /**
  * A tag library read from its compiled class, as an application reads one when it registers it.
  *
  * @since 8.0.0
  */
-public final class ReflectedTagLibraryView implements TagLibraryView {
+@CompileStatic
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+final class ReflectedTagLibraryView implements TagLibraryView {
 
     private final Class<?> type;
 
-    public ReflectedTagLibraryView(Class<?> type) {
+    ReflectedTagLibraryView(Class<?> type) {
         this.type = type;
     }
 
     @Override
-    public List<TagMethodView> declaredMethods() {
+    List<TagMethodView> declaredMethods() {
         List<TagMethodView> declared = new ArrayList<>();
-        for (Method method : type.getDeclaredMethods()) {
+        for (Method method in type.getDeclaredMethods()) {
             declared.add(new ReflectedTagMethodView(method));
         }
         return declared;
     }
 
     @Override
-    public List<String> declaredClosureFieldNames() {
+    List<String> declaredClosureFieldNames() {
         List<String> names = new ArrayList<>();
-        for (Field field : type.getDeclaredFields()) {
+        for (Field field in type.getDeclaredFields()) {
             if (Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
-            if (Closure.class.isAssignableFrom(field.getType())) {
+            if (Closure.isAssignableFrom(field.getType())) {
                 names.add(field.getName());
             }
         }
@@ -63,9 +65,9 @@ public final class ReflectedTagLibraryView implements TagLibraryView {
     }
 
     @Override
-    public TagLibraryView superclassView() {
+    TagLibraryView superclassView() {
         Class<?> superClass = type.getSuperclass();
-        if (superClass == null || superClass == Object.class) {
+        if (superClass == null || superClass == Object) {
             return null;
         }
         return new ReflectedTagLibraryView(superClass);

@@ -16,10 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib.discovery;
+package org.grails.taglib.discovery
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import groovy.transform.CompileStatic
 
 /**
  * Decides whether a method is a tag.
@@ -40,39 +39,40 @@ import java.util.Set;
  *
  * @since 8.0.0
  */
-public final class TagDiscoveryRules {
+@CompileStatic
+final class TagDiscoveryRules {
 
     /**
      * The name a {@link java.util.Map} parameter must carry to be the attributes parameter, when the
      * method retains parameter names.
      */
-    public static final String ATTRS_PARAMETER_NAME = "attrs";
+    public static final String ATTRS_PARAMETER_NAME = 'attrs'
 
     /**
      * The name a {@link groovy.lang.Closure} parameter must carry to be the body parameter, when the
      * method retains parameter names.
      */
-    public static final String BODY_PARAMETER_NAME = "body";
+    public static final String BODY_PARAMETER_NAME = 'body'
 
     /**
      * Names that are Groovy or Object plumbing on any class.
      */
     private static final Set<String> LANGUAGE_METHOD_NAMES = Set.of(
-            "invokeMethod", "methodMissing", "propertyMissing", "getProperty", "setProperty",
-            "getMetaClass", "setMetaClass", "equals", "hashCode", "toString");
+            'invokeMethod', 'methodMissing', 'propertyMissing', 'getProperty', 'setProperty',
+            'getMetaClass', 'setMetaClass', 'equals', 'hashCode', 'toString')
 
     /**
      * Names every tag library carries through the framework traits and lifecycle interfaces.
      */
     private static final Set<String> FRAMEWORK_METHOD_NAMES = Set.of(
-            "afterPropertiesSet",
-            "currentRequestAttributes",
-            "destroy",
-            "initializeTagLibrary",
-            "onApplicationEvent",
-            "raw",
-            "throwTagError",
-            "withCodec");
+            'afterPropertiesSet',
+            'currentRequestAttributes',
+            'destroy',
+            'initializeTagLibrary',
+            'onApplicationEvent',
+            'raw',
+            'throwTagError',
+            'withCodec')
 
     private TagDiscoveryRules() {
     }
@@ -80,8 +80,8 @@ public final class TagDiscoveryRules {
     /**
      * @return the names that are never tags, whatever their shape
      */
-    public static Set<String> getFrameworkMethodNames() {
-        return FRAMEWORK_METHOD_NAMES;
+    static Set<String> getFrameworkMethodNames() {
+        return FRAMEWORK_METHOD_NAMES
     }
 
     /**
@@ -95,55 +95,55 @@ public final class TagDiscoveryRules {
      * @param view the tag library, from a syntax tree or from a compiled class
      * @return every tag name the library declares
      */
-    public static Set<String> findTags(TagLibraryView view) {
-        Set<String> tags = new LinkedHashSet<>();
-        for (TagMethodView method : view.declaredMethods()) {
+    static Set<String> findTags(TagLibraryView view) {
+        Set<String> tags = new LinkedHashSet<>()
+        for (TagMethodView method in view.declaredMethods()) {
             if (isTagMethod(method)) {
-                tags.add(method.getName());
+                tags.add(method.getName())
             }
         }
         // A closure tag is read up the whole hierarchy, since dispatch finds it as a property and a
         // property is inherited, where a method tag is read from the declaring class alone because
         // dispatch scans declared methods.
         for (TagLibraryView current = view; current != null; current = current.superclassView()) {
-            tags.addAll(current.declaredClosureFieldNames());
+            tags.addAll(current.declaredClosureFieldNames())
         }
-        return tags;
+        return tags
     }
 
     /**
      * @param method the method to classify
      * @return true if the method can be invoked as a tag
      */
-    public static boolean isTagMethod(TagMethodView method) {
+    static boolean isTagMethod(TagMethodView method) {
         if (!method.isPublic() || method.isStatic() || method.isGenerated()) {
-            return false;
+            return false
         }
         if (method.hasNotATagAnnotation()) {
-            return false;
+            return false
         }
         if (method.hasTagAnnotation()) {
-            return true;
+            return true
         }
-        String name = method.getName();
-        if (name.isEmpty() || name.charAt(0) == '<' || name.indexOf('$') >= 0) {
-            return false;
+        String name = method.getName()
+        if (name.isEmpty() || name.charAt(0) == '<'.charAt(0) || name.indexOf((int) '$'.charAt(0)) >= 0) {
+            return false
         }
         if (LANGUAGE_METHOD_NAMES.contains(name) || FRAMEWORK_METHOD_NAMES.contains(name)) {
-            return false;
+            return false
         }
         if (isPropertyAccessor(method, name)) {
-            return false;
+            return false
         }
-        return hasInvocableTagShape(method);
+        return hasInvocableTagShape(method)
     }
 
     private static boolean isPropertyAccessor(TagMethodView method, String name) {
-        int parameterCount = method.getParameterCount();
-        if (parameterCount == 0 && (name.startsWith("get") || name.startsWith("is"))) {
-            return true;
+        int parameterCount = method.getParameterCount()
+        if (parameterCount == 0 && (name.startsWith('get') || name.startsWith('is'))) {
+            return true
         }
-        return parameterCount == 1 && name.startsWith("set");
+        return parameterCount == 1 && name.startsWith('set')
     }
 
     /**
@@ -151,30 +151,30 @@ public final class TagDiscoveryRules {
      * produce further overloads, so every arity the declaration can be called at is considered.
      */
     private static boolean hasInvocableTagShape(TagMethodView method) {
-        int parameterCount = method.getParameterCount();
-        int required = 0;
+        int parameterCount = method.getParameterCount()
+        int required = 0
         for (int i = 0; i < parameterCount; i++) {
             if (!method.isParameterOptional(i)) {
-                required++;
+                required++
             }
         }
         for (int arity = Math.max(required, 1); arity <= parameterCount; arity++) {
             if (arity == 1 && (isAttrs(method, 0) || isBody(method, 0))) {
-                return true;
+                return true
             }
             if (arity == 2 && isAttrs(method, 0) && isBody(method, 1)) {
-                return true;
+                return true
             }
         }
-        return false;
+        return false
     }
 
     private static boolean isAttrs(TagMethodView method, int index) {
-        return method.isParameterMapAssignable(index) && carriesName(method, index, ATTRS_PARAMETER_NAME);
+        return method.isParameterMapAssignable(index) && carriesName(method, index, ATTRS_PARAMETER_NAME)
     }
 
     private static boolean isBody(TagMethodView method, int index) {
-        return method.isParameterClosureAssignable(index) && carriesName(method, index, BODY_PARAMETER_NAME);
+        return method.isParameterClosureAssignable(index) && carriesName(method, index, BODY_PARAMETER_NAME)
     }
 
     /**
@@ -182,6 +182,6 @@ public final class TagDiscoveryRules {
      * parameter names and there is nothing to check against.
      */
     private static boolean carriesName(TagMethodView method, int index, String expectedName) {
-        return !method.isParameterNamePresent(index) || expectedName.equals(method.getParameterName(index));
+        return !method.isParameterNamePresent(index) || expectedName.equals(method.getParameterName(index))
     }
 }

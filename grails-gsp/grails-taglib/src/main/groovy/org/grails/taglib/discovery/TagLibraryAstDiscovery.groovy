@@ -16,16 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib.discovery;
+package org.grails.taglib.discovery
 
-import java.util.Set;
-
-import groovy.lang.Closure;
-import org.codehaus.groovy.ast.ClassHelper;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.FieldNode;
-import org.codehaus.groovy.ast.expr.ConstantExpression;
-import org.codehaus.groovy.ast.expr.Expression;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ClassHelper
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.FieldNode
+import org.codehaus.groovy.ast.expr.ConstantExpression
+import org.codehaus.groovy.ast.expr.Expression
 
 /**
  * Reads a tag library's namespace and tag names from its syntax tree.
@@ -36,13 +34,14 @@ import org.codehaus.groovy.ast.expr.Expression;
  *
  * @since 8.0.0
  */
-public final class TagLibraryAstDiscovery {
+@CompileStatic
+final class TagLibraryAstDiscovery {
 
-    public static final String DEFAULT_NAMESPACE = "g";
+    public static final String DEFAULT_NAMESPACE = 'g'
 
-    private static final String NAMESPACE_FIELD = "namespace";
+    private static final String NAMESPACE_FIELD = 'namespace'
 
-    private static final ClassNode CLOSURE_TYPE = ClassHelper.make(Closure.class);
+    private static final ClassNode CLOSURE_TYPE = ClassHelper.make(Closure)
 
     private TagLibraryAstDiscovery() {
     }
@@ -55,24 +54,27 @@ public final class TagLibraryAstDiscovery {
      * @return the namespace, or {@code null} when it cannot be determined without running the code, in
      *         which case no descriptor should be written and the tag library resolves dynamically
      */
-    public static String resolveNamespace(ClassNode classNode) {
+    static String resolveNamespace(ClassNode classNode) {
         for (ClassNode current = classNode; current != null && !ClassHelper.isObjectType(current);
                 current = current.getSuperClass()) {
-            FieldNode namespaceField = current.getDeclaredField(NAMESPACE_FIELD);
+            FieldNode namespaceField = current.getDeclaredField(NAMESPACE_FIELD)
             if (namespaceField == null || !namespaceField.isStatic()) {
-                continue;
+                continue
             }
-            Expression initial = namespaceField.getInitialExpression();
-            if (initial instanceof ConstantExpression constant && constant.getValue() != null) {
-                String value = constant.getValue().toString().trim();
-                return value.isEmpty() ? DEFAULT_NAMESPACE : value;
+            Expression initial = namespaceField.getInitialExpression()
+            if (initial instanceof ConstantExpression) {
+                ConstantExpression constant = (ConstantExpression) initial
+                if (constant.getValue() != null) {
+                    String value = constant.getValue().toString().trim()
+                    return value.isEmpty() ? DEFAULT_NAMESPACE : value
+                }
             }
             // Declared, but its value is only known once the initialiser runs - a reference to a shared
             // constant, a concatenation, and so on. Guessing "g" here would file the tags under the
             // wrong namespace, so the tag library is left out of the index entirely.
-            return null;
+            return null
         }
-        return DEFAULT_NAMESPACE;
+        return DEFAULT_NAMESPACE
     }
 
     /**
@@ -80,9 +82,9 @@ public final class TagLibraryAstDiscovery {
      * @param parameterNamesRetained whether this compilation writes parameter names into the class file
      * @return every tag name the library declares
      */
-    public static Set<String> findTags(ClassNode classNode,
+    static Set<String> findTags(ClassNode classNode,
             boolean parameterNamesRetained) {
-        return TagDiscoveryRules.findTags(new AstTagLibraryView(classNode, parameterNamesRetained));
+        return TagDiscoveryRules.findTags(new AstTagLibraryView(classNode, parameterNamesRetained))
     }
 
 }

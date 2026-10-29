@@ -16,18 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.core.artefact.gsp;
+package org.grails.core.artefact.gsp
 
-import java.util.HashMap;
-import java.util.Map;
+import groovy.transform.CompileStatic
 
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.LogFactory
 
-import grails.core.ArtefactHandlerAdapter;
-import grails.core.ArtefactInfo;
-import grails.core.GrailsClass;
-import grails.core.gsp.GrailsTagLibClass;
-import org.grails.core.gsp.DefaultGrailsTagLibClass;
+import grails.core.ArtefactHandlerAdapter
+import grails.core.ArtefactInfo
+import grails.core.GrailsClass
+import grails.core.gsp.GrailsTagLibClass
+import org.grails.core.gsp.DefaultGrailsTagLibClass
 
 /**
  * Configures tag libraries within namespaces in Grails.
@@ -38,45 +37,46 @@ import org.grails.core.gsp.DefaultGrailsTagLibClass;
  *
  * @since 3.3
  */
-public class TagLibArtefactHandler extends ArtefactHandlerAdapter {
+@CompileStatic
+class TagLibArtefactHandler extends ArtefactHandlerAdapter {
 
-    public static final String PLUGIN_NAME = "groovyPages";
-    public static final String TYPE = "TagLib";
+    public static final String PLUGIN_NAME = 'groovyPages'
+    public static final String TYPE = 'TagLib'
 
-    private Map<String, GrailsTagLibClass> tag2libMap = new HashMap<>();
-    private Map<String, GrailsTagLibClass> namespace2tagLibMap = new HashMap<>();
+    private Map<String, GrailsTagLibClass> tag2libMap = new HashMap<>()
+    private Map<String, GrailsTagLibClass> namespace2tagLibMap = new HashMap<>()
 
-    public TagLibArtefactHandler() {
-        super(TYPE, GrailsTagLibClass.class, DefaultGrailsTagLibClass.class, TYPE);
+    TagLibArtefactHandler() {
+        super(TYPE, GrailsTagLibClass, DefaultGrailsTagLibClass, TYPE)
     }
 
     @Override
-    public String getPluginName() {
-        return PLUGIN_NAME;
+    String getPluginName() {
+        return PLUGIN_NAME
     }
 
     /**
      * Creates a map of tags (keyed on "${namespace}:${tagName}") to tag libraries.
      */
     @Override
-    public void initialize(ArtefactInfo artefacts) {
-        tag2libMap = new HashMap<>();
-        for (GrailsClass aClass : artefacts.getGrailsClasses()) {
-            GrailsTagLibClass taglibClass = (GrailsTagLibClass) aClass;
-            String namespace = taglibClass.getNamespace();
-            namespace2tagLibMap.put(namespace, taglibClass);
-            for (Object o : taglibClass.getTagNames()) {
-                String tagName = namespace + ":" + o;
+    void initialize(ArtefactInfo artefacts) {
+        tag2libMap = new HashMap<>()
+        for (GrailsClass aClass in artefacts.getGrailsClasses()) {
+            GrailsTagLibClass taglibClass = (GrailsTagLibClass) aClass
+            String namespace = taglibClass.getNamespace()
+            namespace2tagLibMap.put(namespace, taglibClass)
+            for (Object o in taglibClass.getTagNames()) {
+                String tagName = namespace + ':' + o
                 if (!tag2libMap.containsKey(tagName)) {
-                    tag2libMap.put(tagName, taglibClass);
+                    tag2libMap.put(tagName, taglibClass)
                 }
                 else {
-                    GrailsTagLibClass current = tag2libMap.get(tagName);
+                    GrailsTagLibClass current = tag2libMap.get(tagName)
                     if (!taglibClass.equals(current)) {
-                        LogFactory.getLog(TagLibArtefactHandler.class).info("There are conflicting tags: " + taglibClass.getFullName() + "." +
-                                tagName + " vs. " + current.getFullName() + "." + tagName +
-                                ". The former will take precedence.");
-                        tag2libMap.put(tagName, taglibClass);
+                        LogFactory.getLog(TagLibArtefactHandler).info('There are conflicting tags: ' + taglibClass.getFullName() + '.' +
+                                tagName + ' vs. ' + current.getFullName() + '.' + tagName +
+                                '. The former will take precedence.')
+                        tag2libMap.put(tagName, taglibClass)
                     }
                 }
             }
@@ -91,12 +91,12 @@ public class TagLibArtefactHandler extends ArtefactHandlerAdapter {
      * @return A GrailsClass instance representing the tag library
      */
     @Override
-    public GrailsClass getArtefactForFeature(Object feature) {
-        final Object tagLib = tag2libMap.get(feature);
+    GrailsClass getArtefactForFeature(Object feature) {
+        final Object tagLib = tag2libMap.get(feature)
         if (tagLib != null) {
-            return (GrailsClass) tagLib;
+            return (GrailsClass) tagLib
         }
 
-        return namespace2tagLibMap.get(feature);
+        return namespace2tagLibMap.get(feature)
     }
 }

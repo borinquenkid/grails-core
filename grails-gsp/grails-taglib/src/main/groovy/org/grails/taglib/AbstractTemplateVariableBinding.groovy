@@ -16,17 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.taglib;
 
-import java.util.AbstractSet;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import groovy.lang.Binding;
+import groovy.transform.CompileStatic;
 
 /**
  * Abstract super class for GroovyPage bindings
@@ -34,38 +27,41 @@ import groovy.lang.Binding;
  * @author Graeme Rocher
  * @author Lari Hotari
  */
-@SuppressWarnings("rawtypes")
-public abstract class AbstractTemplateVariableBinding extends Binding {
-    public AbstractTemplateVariableBinding() {
+@CompileStatic
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'rawtypes'])
+abstract class AbstractTemplateVariableBinding extends Binding {
+
+    AbstractTemplateVariableBinding() {
         super();
     }
 
-    public AbstractTemplateVariableBinding(Map variables) {
+    AbstractTemplateVariableBinding(Map variables) {
         super(variables);
     }
 
-    public AbstractTemplateVariableBinding(String[] args) {
+    AbstractTemplateVariableBinding(String[] args) {
         super(args);
     }
 
-    public Map getVariablesMap() {
+    Map getVariablesMap() {
         return super.getVariables();
     }
 
-    @SuppressWarnings("unchecked")
-    public void setVariableDirectly(String name, Object value) {
+    @SuppressWarnings('unchecked')
+    void setVariableDirectly(String name, Object value) {
         getVariablesMap().put(name, value);
     }
 
-    public abstract Set<String> getVariableNames();
+    abstract Set<String> getVariableNames();
 
     @Override
-    public Map getVariables() {
+    Map getVariables() {
         return new TemplateVariableBindingMap(this);
     }
 
-    public void addMap(Map additionalBinding) {
-        for (Iterator<Map.Entry> i = additionalBinding.entrySet().iterator(); i.hasNext(); ) {
+    void addMap(Map additionalBinding) {
+        for (Iterator<Map.Entry> i = additionalBinding.entrySet().iterator(); i.hasNext();) {
             Map.Entry entry = i.next();
             String name = String.valueOf(entry.getKey());
             Object value = entry.getValue();
@@ -77,89 +73,89 @@ public abstract class AbstractTemplateVariableBinding extends Binding {
         setVariableDirectly(name, value);
     }
 
-    public Binding findBindingForVariable(String name) {
+    Binding findBindingForVariable(String name) {
         if (getVariablesMap().containsKey(name)) {
             return this;
         }
         return null;
     }
 
-    public boolean isVariableCachingAllowed(String name) {
+    boolean isVariableCachingAllowed(String name) {
         return true;
     }
 
     protected static final class TemplateVariableBindingMap implements Map {
-        AbstractTemplateVariableBinding binding;
+        private final AbstractTemplateVariableBinding binding;
 
-        public TemplateVariableBindingMap(AbstractTemplateVariableBinding binding) {
+        TemplateVariableBindingMap(AbstractTemplateVariableBinding binding) {
             this.binding = binding;
         }
 
-        public int size() {
+        int size() {
             return binding.getVariableNames().size();
         }
 
-        public boolean isEmpty() {
+        boolean isEmpty() {
             return binding.getVariableNames().isEmpty();
         }
 
-        public boolean containsKey(Object key) {
+        boolean containsKey(Object key) {
             return binding.getVariableNames().contains(key);
         }
 
-        public boolean containsValue(Object value) {
+        boolean containsValue(Object value) {
             return values().contains(value);
         }
 
-        public Object get(Object key) {
+        Object get(Object key) {
             return binding.getVariable(String.valueOf(key));
         }
 
-        public Object put(Object key, Object value) {
+        Object put(Object key, Object value) {
             binding.setVariable(String.valueOf(key), value);
             return null;
         }
 
-        public Object remove(Object key) {
+        Object remove(Object key) {
             binding.setVariable(String.valueOf(key), null);
             return null;
         }
 
-        public void putAll(Map m) {
-            for (Object entryObj : m.entrySet()) {
+        void putAll(Map m) {
+            for (Object entryObj in m.entrySet()) {
                 Map.Entry entry = (Map.Entry) entryObj;
                 binding.setVariable(String.valueOf(entry.getKey()), entry.getValue());
             }
         }
 
-        public void clear() {
-            throw new UnsupportedOperationException("clear() not supported");
+        void clear() {
+            throw new UnsupportedOperationException('clear() not supported');
         }
 
-        public Set keySet() {
+        Set keySet() {
             return binding.getVariableNames();
         }
 
-        @SuppressWarnings("unchecked")
-        public Collection values() {
+        @SuppressWarnings('unchecked')
+        Collection values() {
             Set<String> variableNames = binding.getVariableNames();
             Collection values = new ArrayList(variableNames.size());
-            for (String variable : variableNames) {
+            for (String variable in variableNames) {
                 values.add(binding.getVariable(variable));
             }
             return values;
         }
 
-        public Set entrySet() {
+        Set entrySet() {
             return Collections.unmodifiableSet(new AbstractSet() {
                 @Override
-                public Iterator iterator() {
+                Iterator iterator() {
                     return entryIterator();
                 }
 
                 @Override
-                public int size() {
-                    return binding.getVariableNames().size();
+                int size() {
+                    return TemplateVariableBindingMap.this.@binding.getVariableNames().size();
                 }
             });
         }
@@ -168,18 +164,18 @@ public abstract class AbstractTemplateVariableBinding extends Binding {
             final Iterator iter = keySet().iterator();
             return new Iterator() {
 
-                public boolean hasNext() {
+                boolean hasNext() {
                     return iter.hasNext();
                 }
 
-                public Object next() {
+                Object next() {
                     Object key = iter.next();
-                    Object value = get(key);
-                    return new BindingMapEntry(binding, key, value);
+                    Object value = TemplateVariableBindingMap.this.get(key);
+                    return new BindingMapEntry(TemplateVariableBindingMap.this.@binding, key, value);
                 }
 
-                public void remove() {
-                    throw new UnsupportedOperationException("remove() not supported");
+                void remove() {
+                    throw new UnsupportedOperationException('remove() not supported');
                 }
             };
         }
@@ -198,17 +194,17 @@ public abstract class AbstractTemplateVariableBinding extends Binding {
         }
 
         @Override
-        public Object getKey() {
+        Object getKey() {
             return key;
         }
 
         @Override
-        public Object getValue() {
+        Object getValue() {
             return value;
         }
 
         @Override
-        public Object setValue(Object value) {
+        Object setValue(Object value) {
             String key = String.valueOf(getKey());
             Object oldValue = binding.getVariable(key);
             binding.setVariable(key, value);
@@ -217,21 +213,20 @@ public abstract class AbstractTemplateVariableBinding extends Binding {
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (obj == this) {
+        boolean equals(Object obj) {
+            if (this.is(obj)) {
                 return true;
             }
             if (!(obj instanceof Map.Entry)) {
                 return false;
             }
             Map.Entry other = (Map.Entry) obj;
-            return
-                    (getKey() == null ? other.getKey() == null : getKey().equals(other.getKey())) &&
-                            (getValue() == null ? other.getValue() == null : getValue().equals(other.getValue()));
+            return (getKey() == null ? other.getKey() == null : getKey().equals(other.getKey())) &&
+                    (getValue() == null ? other.getValue() == null : getValue().equals(other.getValue()));
         }
 
         @Override
-        public int hashCode() {
+        int hashCode() {
             return (getKey() == null ? 0 : getKey().hashCode()) ^
                     (getValue() == null ? 0 : getValue().hashCode());
         }

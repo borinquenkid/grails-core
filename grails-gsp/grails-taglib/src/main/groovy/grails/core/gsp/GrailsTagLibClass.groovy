@@ -16,46 +16,44 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.core.gsp;
+package grails.core.gsp
 
-import java.util.Set;
-
-import grails.core.InjectableGrailsClass;
+import grails.core.InjectableGrailsClass
 
 /**
  * Represents a Grails tab library class.
  *
  * @author Graeme Rocher
  */
-public interface GrailsTagLibClass extends InjectableGrailsClass {
+interface GrailsTagLibClass extends InjectableGrailsClass {
 
-    String DEFAULT_NAMESPACE = "g";
+    String DEFAULT_NAMESPACE = 'g'
 
-    String NAMESPACE_FIELD_NAME = "namespace";
+    String NAMESPACE_FIELD_NAME = 'namespace'
 
-    String RETURN_OBJECT_FOR_TAGS_FIELD_NAME = "returnObjectForTags";
-    String ENCODE_AS_FOR_TAGS_FIELD_NAME = "encodeAsForTags";
-    String DEFAULT_ENCODE_AS_FIELD_NAME = "defaultEncodeAs";
+    String RETURN_OBJECT_FOR_TAGS_FIELD_NAME = 'returnObjectForTags'
+    String ENCODE_AS_FOR_TAGS_FIELD_NAME = 'encodeAsForTags'
+    String DEFAULT_ENCODE_AS_FIELD_NAME = 'defaultEncodeAs'
 
     /**
      * @param tagName The name of the tag
      * @return Whether the tag library contains the specified tag
      */
-    boolean hasTag(String tagName);
+    boolean hasTag(String tagName)
 
     /**
      * @return The tag names in this library
      */
-    Set<String> getTagNames();
+    Set<String> getTagNames()
 
-    Set<String> getTagNamesThatReturnObject();
+    Set<String> getTagNamesThatReturnObject()
 
     /**
      * @return the namespace that this taglib occupies.
      */
-    String getNamespace();
+    String getNamespace()
 
-    Object getEncodeAsForTag(String tagName);
+    Object getEncodeAsForTag(String tagName)
 
-    Object getDefaultEncodeAs();
+    Object getDefaultEncodeAs()
 }

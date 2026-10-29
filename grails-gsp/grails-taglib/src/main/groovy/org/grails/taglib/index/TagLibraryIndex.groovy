@@ -16,24 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib.index;
+package org.grails.taglib.index
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.WeakHashMap;
+import java.nio.charset.StandardCharsets
+
+import groovy.transform.CompileStatic
 
 /**
  * The set of tag libraries and tag names known at compile time.
@@ -49,26 +36,27 @@ import java.util.WeakHashMap;
  *
  * @since 8.0.0
  */
-public final class TagLibraryIndex {
+@CompileStatic
+final class TagLibraryIndex {
 
     /**
      * Classpath directory holding one descriptor per compiled tag library.
      */
-    public static final String INDEX_LOCATION = "META-INF/grails/taglibs/";
+    public static final String INDEX_LOCATION = 'META-INF/grails/taglibs/'
 
     /**
      * Descriptor format this build writes and understands. A descriptor carrying anything else was
      * produced by a different version of Grails and is ignored, so its tags resolve dynamically rather
      * than being read under the wrong set of rules.
      */
-    public static final int FORMAT_VERSION = 1;
+    public static final int FORMAT_VERSION = 1
 
     /**
      * Settings the build states for the compilation the index is read in, written alongside the
      * descriptors by the build and deliberately not packaged into the artifact: they describe how this
      * project is compiled, not what its tag libraries declare.
      */
-    public static final String SETTINGS_LOCATION = INDEX_LOCATION + "compile-settings.properties";
+    public static final String SETTINGS_LOCATION = INDEX_LOCATION + 'compile-settings.properties'
 
     /**
      * What the index could not describe, written by whatever produced it.
@@ -79,18 +67,18 @@ public final class TagLibraryIndex {
      * them reported as a misspelling, so what was missed is recorded rather than left to be inferred
      * from the absence.
      */
-    public static final String INCOMPLETE_LOCATION = INDEX_LOCATION + "incomplete.properties";
+    public static final String INCOMPLETE_LOCATION = INDEX_LOCATION + 'incomplete.properties'
 
-    static final String VERSION_KEY = "version";
-    static final String NAMESPACE_KEY = "namespace";
-    static final String CLASS_KEY = "class";
-    static final String TAGS_KEY = "tags";
-    static final String STRICT_KEY = "strictTags";
-    static final String INCOMPLETE_NAMESPACES_KEY = "namespaces";
-    static final String INCOMPLETE_ALL_KEY = "all";
-    static final String DYNAMIC_NAMESPACES_KEY = "dynamicTagNamespaces";
-    static final String UNQUALIFIED_KEY = "unqualifiedTagCalls";
-    static final String LOCAL_NAMESPACES_KEY = "localNamespaces";
+    static final String VERSION_KEY = 'version'
+    static final String NAMESPACE_KEY = 'namespace'
+    static final String CLASS_KEY = 'class'
+    static final String TAGS_KEY = 'tags'
+    static final String STRICT_KEY = 'strictTags'
+    static final String INCOMPLETE_NAMESPACES_KEY = 'namespaces'
+    static final String INCOMPLETE_ALL_KEY = 'all'
+    static final String DYNAMIC_NAMESPACES_KEY = 'dynamicTagNamespaces'
+    static final String UNQUALIFIED_KEY = 'unqualifiedTagCalls'
+    static final String LOCAL_NAMESPACES_KEY = 'localNamespaces'
 
     /**
      * One index per class loader. A compilation gets a class loader of its own, so this is read once
@@ -99,31 +87,31 @@ public final class TagLibraryIndex {
      * compilation in the same Gradle daemon.
      */
     private static final Map<ClassLoader, TagLibraryIndex> BY_CLASS_LOADER =
-            Collections.synchronizedMap(new WeakHashMap<>());
+            Collections.synchronizedMap(new WeakHashMap<ClassLoader, TagLibraryIndex>())
 
-    private final Map<String, Map<String, TagLibraryIndexEntry>> byNamespace;
-    private final Map<String, Set<String>> ambiguousByNamespace;
-    private final Map<String, Set<String>> tagNamesByClass;
-    private final boolean strict;
-    private final Set<String> dynamicNamespaces;
-    private final Set<String> incompleteNamespaces;
-    private final boolean everythingIncomplete;
-    private final boolean unqualifiedCalls;
-    private final Set<String> localNamespaces;
+    private final Map<String, Map<String, TagLibraryIndexEntry>> byNamespace
+    private final Map<String, Set<String>> ambiguousByNamespace
+    private final Map<String, Set<String>> tagNamesByClass
+    private final boolean strict
+    private final Set<String> dynamicNamespaces
+    private final Set<String> incompleteNamespaces
+    private final boolean everythingIncomplete
+    private final boolean unqualifiedCalls
+    private final Set<String> localNamespaces
 
     private TagLibraryIndex(Map<String, Map<String, TagLibraryIndexEntry>> byNamespace,
             Map<String, Set<String>> ambiguousByNamespace, Map<String, Set<String>> tagNamesByClass,
             boolean strict, Set<String> dynamicNamespaces, Set<String> incompleteNamespaces,
             boolean everythingIncomplete, boolean unqualifiedCalls, Set<String> localNamespaces) {
-        this.byNamespace = byNamespace;
-        this.ambiguousByNamespace = ambiguousByNamespace;
-        this.tagNamesByClass = tagNamesByClass;
-        this.strict = strict;
-        this.dynamicNamespaces = dynamicNamespaces;
-        this.incompleteNamespaces = incompleteNamespaces;
-        this.everythingIncomplete = everythingIncomplete;
-        this.unqualifiedCalls = unqualifiedCalls;
-        this.localNamespaces = localNamespaces;
+        this.byNamespace = byNamespace
+        this.ambiguousByNamespace = ambiguousByNamespace
+        this.tagNamesByClass = tagNamesByClass
+        this.strict = strict
+        this.dynamicNamespaces = dynamicNamespaces
+        this.incompleteNamespaces = incompleteNamespaces
+        this.everythingIncomplete = everythingIncomplete
+        this.unqualifiedCalls = unqualifiedCalls
+        this.localNamespaces = localNamespaces
     }
 
     /**
@@ -136,12 +124,12 @@ public final class TagLibraryIndex {
      * @param classLoader the loader to scan; when {@code null} the thread context loader is used
      * @return the merged index, never {@code null}
      */
-    public static TagLibraryIndex forClassLoader(ClassLoader classLoader) {
-        ClassLoader loader = classLoader != null ? classLoader : Thread.currentThread().getContextClassLoader();
+    static TagLibraryIndex forClassLoader(ClassLoader classLoader) {
+        ClassLoader loader = classLoader != null ? classLoader : Thread.currentThread().getContextClassLoader()
         if (loader == null) {
-            return load(null);
+            return load(null)
         }
-        return BY_CLASS_LOADER.computeIfAbsent(loader, TagLibraryIndex::load);
+        return BY_CLASS_LOADER.computeIfAbsent(loader, l -> load(l))
     }
 
     /**
@@ -150,110 +138,110 @@ public final class TagLibraryIndex {
      * @param classLoader the loader to scan; when {@code null} the thread context loader is used
      * @return the merged index, never {@code null}
      */
-    public static TagLibraryIndex load(ClassLoader classLoader) {
-        ClassLoader loader = classLoader != null ? classLoader : Thread.currentThread().getContextClassLoader();
-        Map<String, Map<String, TagLibraryIndexEntry>> merged = new TreeMap<>();
-        Map<String, Set<String>> ambiguous = new TreeMap<>();
-        Map<String, Set<String>> byClass = new TreeMap<>();
+    static TagLibraryIndex load(ClassLoader classLoader) {
+        ClassLoader loader = classLoader != null ? classLoader : Thread.currentThread().getContextClassLoader()
+        Map<String, Map<String, TagLibraryIndexEntry>> merged = new TreeMap<>()
+        Map<String, Set<String>> ambiguous = new TreeMap<>()
+        Map<String, Set<String>> byClass = new TreeMap<>()
         if (loader == null) {
-            return new TagLibraryIndex(merged, ambiguous, byClass, false, Collections.emptySet(),
-                    Collections.emptySet(), false, false, Collections.emptySet());
+            return new TagLibraryIndex(merged, ambiguous, byClass, false, Collections.<String> emptySet(),
+                    Collections.<String> emptySet(), false, false, Collections.<String> emptySet())
         }
         // A directory resource enumerates its children on some classpath layouts but not inside jars,
         // so the descriptors are discovered through the manifest of names each descriptor records
         // rather than by listing the directory.
-        for (URL url : listDescriptors(loader)) {
-            Properties properties = read(url);
+        for (URL url in listDescriptors(loader)) {
+            Properties properties = read(url)
             if (properties == null) {
-                continue;
+                continue
             }
-            if (!String.valueOf(FORMAT_VERSION).equals(properties.getProperty(VERSION_KEY))) {
-                continue;
+            if (String.valueOf(FORMAT_VERSION) != properties.getProperty(VERSION_KEY)) {
+                continue
             }
-            String namespace = properties.getProperty(NAMESPACE_KEY);
-            String className = properties.getProperty(CLASS_KEY);
-            String tags = properties.getProperty(TAGS_KEY, "");
+            String namespace = properties.getProperty(NAMESPACE_KEY)
+            String className = properties.getProperty(CLASS_KEY)
+            String tags = properties.getProperty(TAGS_KEY, '')
             if (namespace == null || namespace.isEmpty() || className == null || className.isEmpty()) {
-                continue;
+                continue
             }
             // Recorded from the descriptor rather than from its tags, so that a tag library declaring
             // none of them is still known to have been described. Deciding that from the tags alone
             // would have such a tag library described twice.
-            byClass.computeIfAbsent(className, k -> new TreeSet<>());
+            byClass.computeIfAbsent(className, k -> new TreeSet<String>())
             Map<String, TagLibraryIndexEntry> tagsForNamespace =
-                    merged.computeIfAbsent(namespace, k -> new TreeMap<>());
-            for (String encodedTag : tags.split(",")) {
-                String trimmed = encodedTag.trim();
+                    merged.computeIfAbsent(namespace, k -> new TreeMap<String, TagLibraryIndexEntry>())
+            for (String encodedTag in tags.split(',')) {
+                String trimmed = encodedTag.trim()
                 if (trimmed.isEmpty()) {
-                    continue;
+                    continue
                 }
                 // Recorded against the declaring class before ambiguity is considered, so that asking
                 // what one tag library declares is answered from its own descriptor and is unaffected
                 // by whether some other tag library happens to declare the same name.
-                byClass.computeIfAbsent(className, k -> new TreeSet<>()).add(trimmed);
-                TagLibraryIndexEntry existing = tagsForNamespace.get(trimmed);
-                if (existing != null && !existing.tagLibraryClassName().equals(className)) {
+                byClass.computeIfAbsent(className, k -> new TreeSet<String>()).add(trimmed)
+                TagLibraryIndexEntry existing = tagsForNamespace.get(trimmed)
+                if (existing != null && existing.tagLibraryClassName() != className) {
                     // At runtime the tag library registered last wins, and registration order comes
                     // from artefact scanning rather than from classpath order, so which of these two
                     // will win cannot be known here. Resolving it either way risks compiling against
                     // one implementation and dispatching to the other, so the tag is marked ambiguous
                     // and left to runtime resolution.
-                    ambiguous.computeIfAbsent(namespace, k -> new TreeSet<>()).add(trimmed);
-                    continue;
+                    ambiguous.computeIfAbsent(namespace, k -> new TreeSet<String>()).add(trimmed)
+                    continue
                 }
                 tagsForNamespace.put(trimmed,
-                        new TagLibraryIndexEntry(namespace, trimmed, className, true));
+                        new TagLibraryIndexEntry(namespace, trimmed, className, true))
             }
         }
-        Properties settings = readSettings(loader);
-        boolean strict = Boolean.parseBoolean(settings.getProperty(STRICT_KEY, "false"));
-        boolean unqualified = Boolean.parseBoolean(settings.getProperty(UNQUALIFIED_KEY, "false"));
-        Set<String> local = new TreeSet<>();
-        for (String namespace : settings.getProperty(LOCAL_NAMESPACES_KEY, "").split(",")) {
-            String trimmed = namespace.trim();
+        Properties settings = readSettings(loader)
+        boolean strict = Boolean.parseBoolean(settings.getProperty(STRICT_KEY, 'false'))
+        boolean unqualified = Boolean.parseBoolean(settings.getProperty(UNQUALIFIED_KEY, 'false'))
+        Set<String> local = new TreeSet<>()
+        for (String namespace in settings.getProperty(LOCAL_NAMESPACES_KEY, '').split(',')) {
+            String trimmed = namespace.trim()
             if (!trimmed.isEmpty()) {
-                local.add(trimmed);
+                local.add(trimmed)
             }
         }
-        Set<String> dynamic = new TreeSet<>();
-        for (String namespace : settings.getProperty(DYNAMIC_NAMESPACES_KEY, "").split(",")) {
-            String trimmed = namespace.trim();
+        Set<String> dynamic = new TreeSet<>()
+        for (String namespace in settings.getProperty(DYNAMIC_NAMESPACES_KEY, '').split(',')) {
+            String trimmed = namespace.trim()
             if (!trimmed.isEmpty()) {
-                dynamic.add(trimmed);
+                dynamic.add(trimmed)
             }
         }
-        Set<String> incomplete = new TreeSet<>();
-        boolean allIncomplete = false;
-        for (URL url : urls(loader, INCOMPLETE_LOCATION)) {
-            Properties recorded = read(url);
+        Set<String> incomplete = new TreeSet<>()
+        boolean allIncomplete = false
+        for (URL url in urls(loader, INCOMPLETE_LOCATION)) {
+            Properties recorded = read(url)
             if (recorded == null) {
-                continue;
+                continue
             }
-            allIncomplete |= Boolean.parseBoolean(recorded.getProperty(INCOMPLETE_ALL_KEY, "false"));
-            for (String namespace : recorded.getProperty(INCOMPLETE_NAMESPACES_KEY, "").split(",")) {
-                String trimmed = namespace.trim();
+            allIncomplete |= Boolean.parseBoolean(recorded.getProperty(INCOMPLETE_ALL_KEY, 'false'))
+            for (String namespace in recorded.getProperty(INCOMPLETE_NAMESPACES_KEY, '').split(',')) {
+                String trimmed = namespace.trim()
                 if (!trimmed.isEmpty()) {
-                    incomplete.add(trimmed);
+                    incomplete.add(trimmed)
                 }
             }
         }
         return new TagLibraryIndex(merged, ambiguous, byClass, strict,
                 Collections.unmodifiableSet(dynamic), Collections.unmodifiableSet(incomplete),
-                allIncomplete, unqualified, Collections.unmodifiableSet(local));
+                allIncomplete, unqualified, Collections.unmodifiableSet(local))
     }
 
     private static Set<URL> urls(ClassLoader loader, String location) {
-        Set<URL> found = new LinkedHashSet<>();
+        Set<URL> found = new LinkedHashSet<>()
         try {
-            Enumeration<URL> resources = loader.getResources(location);
+            Enumeration<URL> resources = loader.getResources(location)
             while (resources.hasMoreElements()) {
-                found.add(resources.nextElement());
+                found.add(resources.nextElement())
             }
         }
         catch (IOException unreadable) {
-            return found;
+            return found
         }
-        return found;
+        return found
     }
 
     /**
@@ -261,41 +249,42 @@ public final class TagLibraryIndex {
      * contributes them, so the first one found wins rather than several being merged.
      */
     private static Properties readSettings(ClassLoader loader) {
-        URL url = loader.getResource(SETTINGS_LOCATION);
+        URL url = loader.getResource(SETTINGS_LOCATION)
         if (url == null) {
-            return new Properties();
+            return new Properties()
         }
-        Properties settings = read(url);
-        return settings != null ? settings : new Properties();
+        Properties settings = read(url)
+        return settings != null ? settings : new Properties()
     }
 
     private static Set<URL> listDescriptors(ClassLoader loader) {
-        Set<URL> urls = new LinkedHashSet<>();
+        Set<URL> urls = new LinkedHashSet<>()
         try {
-            Enumeration<URL> manifests = loader.getResources(INDEX_LOCATION + "index.properties");
+            Enumeration<URL> manifests = loader.getResources(INDEX_LOCATION + 'index.properties')
             while (manifests.hasMoreElements()) {
-                URL manifest = manifests.nextElement();
-                Properties names = read(manifest);
+                URL manifest = manifests.nextElement()
+                Properties names = read(manifest)
                 if (names == null) {
-                    continue;
+                    continue
                 }
-                for (String className : names.stringPropertyNames()) {
+                for (String className in names.stringPropertyNames()) {
                     // Resolved against the manifest that names it rather than searched for on the
                     // classpath. A descriptor always sits beside its own manifest, and asking the
                     // loader instead would walk every classpath entry once per tag library - a few
                     // hundred full walks for an application with a few hundred of them.
-                    URL descriptor = resolveSibling(manifest, className + ".properties");
+                    URL descriptor = resolveSibling(manifest, className + '.properties')
                     if (descriptor != null) {
-                        urls.add(descriptor);
+                        urls.add(descriptor)
                     }
                 }
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             // A classpath that cannot be enumerated yields no statically known tags, which degrades to
             // the dynamic dispatch that was in place before the index existed.
-            return urls;
+            return urls
         }
-        return urls;
+        return urls
     }
 
     /**
@@ -311,25 +300,26 @@ public final class TagLibraryIndex {
      * @param fileName the descriptor's file name
      * @return the descriptor beside that manifest, or {@code null} when it cannot be addressed
      */
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings(['deprecation', 'GrDeprecatedAPIUsage'])
     private static URL resolveSibling(URL manifest, String fileName) {
         try {
-            return new URL(manifest, fileName);
+            return new URL(manifest, fileName)
         }
-        catch (java.net.MalformedURLException e) {
-            return null;
+        catch (MalformedURLException e) {
+            return null
         }
     }
 
     private static Properties read(URL url) {
-        try (InputStream in = url.openStream()) {
-            Properties properties = new Properties();
-            try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-                properties.load(reader);
+        try (InputStream inStream = url.openStream()) {
+            Properties properties = new Properties()
+            try (Reader reader = new InputStreamReader(inStream, StandardCharsets.UTF_8)) {
+                properties.load(reader)
             }
-            return properties;
-        } catch (IOException e) {
-            return null;
+            return properties
+        }
+        catch (IOException e) {
+            return null
         }
     }
 
@@ -337,8 +327,8 @@ public final class TagLibraryIndex {
      * @param namespace a tag library namespace, for example {@code g}
      * @return true if any compiled tag library declared that namespace
      */
-    public boolean hasNamespace(String namespace) {
-        return byNamespace.containsKey(namespace);
+    boolean hasNamespace(String namespace) {
+        return byNamespace.containsKey(namespace)
     }
 
     /**
@@ -346,12 +336,12 @@ public final class TagLibraryIndex {
      * @param tagName a tag name within that namespace
      * @return the declaring tag library, or {@code null} when the tag is not statically known
      */
-    public TagLibraryIndexEntry lookup(String namespace, String tagName) {
+    TagLibraryIndexEntry lookup(String namespace, String tagName) {
         if (isAmbiguous(namespace, tagName)) {
-            return null;
+            return null
         }
-        Map<String, TagLibraryIndexEntry> tags = byNamespace.get(namespace);
-        return tags != null ? tags.get(tagName) : null;
+        Map<String, TagLibraryIndexEntry> tags = byNamespace.get(namespace)
+        return tags != null ? tags.get(tagName) : null
     }
 
     /**
@@ -362,26 +352,26 @@ public final class TagLibraryIndex {
      * @param tagName a tag name within that namespace
      * @return true when the tag is declared by more than one tag library
      */
-    public boolean isAmbiguous(String namespace, String tagName) {
-        Set<String> ambiguousTags = ambiguousByNamespace.get(namespace);
-        return ambiguousTags != null && ambiguousTags.contains(tagName);
+    boolean isAmbiguous(String namespace, String tagName) {
+        Set<String> ambiguousTags = ambiguousByNamespace.get(namespace)
+        return ambiguousTags != null && ambiguousTags.contains(tagName)
     }
 
     /**
      * @return every namespace contributed by a compiled tag library
      */
-    public Set<String> getNamespaces() {
-        return Collections.unmodifiableSet(new TreeSet<>(byNamespace.keySet()));
+    Set<String> getNamespaces() {
+        return Collections.unmodifiableSet(new TreeSet<>(byNamespace.keySet()))
     }
 
     /**
      * @param namespace a tag library namespace
      * @return the tag names declared in that namespace, empty when the namespace is unknown
      */
-    public Set<String> getTagNames(String namespace) {
-        Map<String, TagLibraryIndexEntry> tags = byNamespace.get(namespace);
+    Set<String> getTagNames(String namespace) {
+        Map<String, TagLibraryIndexEntry> tags = byNamespace.get(namespace)
         return tags != null ? Collections.unmodifiableSet(new TreeSet<>(tags.keySet())) :
-                Collections.emptySet();
+                Collections.emptySet()
     }
 
     /**
@@ -397,13 +387,13 @@ public final class TagLibraryIndex {
      * @param tagLibraryClassName the binary name of a tag library
      * @return its tags, or an empty set when it has no descriptor
      */
-    public Set<String> getTagNamesForClass(String tagLibraryClassName) {
+    Set<String> getTagNamesForClass(String tagLibraryClassName) {
         if (tagLibraryClassName == null) {
-            return Collections.emptySet();
+            return Collections.emptySet()
         }
-        Set<String> tagNames = tagNamesByClass.get(tagLibraryClassName);
+        Set<String> tagNames = tagNamesByClass.get(tagLibraryClassName)
         return tagNames != null ? Collections.unmodifiableSet(new TreeSet<>(tagNames)) :
-                Collections.emptySet();
+                Collections.emptySet()
     }
 
     /**
@@ -417,8 +407,8 @@ public final class TagLibraryIndex {
      * @param tagLibraryClassName the binary name of a tag library
      * @return true when a descriptor for it was read
      */
-    public boolean isClassDescribed(String tagLibraryClassName) {
-        return tagLibraryClassName != null && tagNamesByClass.containsKey(tagLibraryClassName);
+    boolean isClassDescribed(String tagLibraryClassName) {
+        return tagLibraryClassName != null && tagNamesByClass.containsKey(tagLibraryClassName)
     }
 
     /**
@@ -432,8 +422,8 @@ public final class TagLibraryIndex {
      *
      * @return true when the build set {@code grails.compileStatic.unqualifiedTagCalls}
      */
-    public boolean rewritesUnqualifiedCalls() {
-        return unqualifiedCalls;
+    boolean rewritesUnqualifiedCalls() {
+        return unqualifiedCalls
     }
 
     /**
@@ -447,8 +437,8 @@ public final class TagLibraryIndex {
      * @param namespace a tag library namespace
      * @return true when a tag library of this project declares it
      */
-    public boolean declaresNamespace(String namespace) {
-        return localNamespaces.contains(namespace);
+    boolean declaresNamespace(String namespace) {
+        return localNamespaces.contains(namespace)
     }
 
     /**
@@ -456,8 +446,8 @@ public final class TagLibraryIndex {
      *
      * @return true when the build set {@code grails.compileStatic.strictTags}
      */
-    public boolean isStrict() {
-        return strict;
+    boolean isStrict() {
+        return strict
     }
 
     /**
@@ -466,8 +456,8 @@ public final class TagLibraryIndex {
      *
      * @return the declared dynamic namespaces, empty when none were declared
      */
-    public Set<String> getDynamicNamespaces() {
-        return dynamicNamespaces;
+    Set<String> getDynamicNamespaces() {
+        return dynamicNamespaces
     }
 
     /**
@@ -481,16 +471,16 @@ public final class TagLibraryIndex {
      * @param namespace a tag library namespace
      * @return true when every tag library contributing to it was described
      */
-    public boolean isNamespaceComplete(String namespace) {
-        return !this.everythingIncomplete && !this.incompleteNamespaces.contains(namespace);
+    boolean isNamespaceComplete(String namespace) {
+        return !this.everythingIncomplete && !this.incompleteNamespaces.contains(namespace)
     }
 
     /**
      * @param namespace a tag library namespace
      * @return true when the build declared this namespace as filled in at runtime
      */
-    public boolean isDynamicNamespace(String namespace) {
-        return namespace != null && dynamicNamespaces.contains(namespace);
+    boolean isDynamicNamespace(String namespace) {
+        return namespace != null && dynamicNamespaces.contains(namespace)
     }
 
     /**
@@ -501,26 +491,26 @@ public final class TagLibraryIndex {
      * @param tagName a tag name within that namespace
      * @return true when the tag is known to the index
      */
-    public boolean isKnown(String namespace, String tagName) {
+    boolean isKnown(String namespace, String tagName) {
         if (isAmbiguous(namespace, tagName)) {
-            return true;
+            return true
         }
-        Map<String, TagLibraryIndexEntry> tags = byNamespace.get(namespace);
-        return tags != null && tags.containsKey(tagName);
+        Map<String, TagLibraryIndexEntry> tags = byNamespace.get(namespace)
+        return tags != null && tags.containsKey(tagName)
     }
 
     /**
      * @return true when no compiled tag library was found, in which case callers must fall back to
      *         runtime resolution
      */
-    public boolean isEmpty() {
-        return byNamespace.isEmpty();
+    boolean isEmpty() {
+        return byNamespace.isEmpty()
     }
 
     @Override
-    public String toString() {
-        Map<String, Set<String>> summary = new LinkedHashMap<>();
-        byNamespace.forEach((ns, tags) -> summary.put(ns, tags.keySet()));
-        return "TagLibraryIndex" + summary;
+    String toString() {
+        Map<String, Set<String>> summary = new LinkedHashMap<>()
+        byNamespace.forEach((ns, tags) -> summary.put(ns, tags.keySet()))
+        return 'TagLibraryIndex' + summary
     }
 }

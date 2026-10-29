@@ -16,20 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib;
+package org.grails.taglib
 
-import java.io.Writer;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import groovy.transform.CompileStatic
 
-import groovy.lang.Binding;
-import groovy.lang.Closure;
+import org.springframework.util.Assert
 
-import org.springframework.util.Assert;
-
-import org.grails.taglib.encoder.OutputContext;
-import org.grails.taglib.encoder.OutputEncodingStack;
+import org.grails.taglib.encoder.OutputContext
+import org.grails.taglib.encoder.OutputEncodingStack
 
 /**
  * Represents the body of a tag and captures its output returning the result
@@ -38,46 +32,49 @@ import org.grails.taglib.encoder.OutputEncodingStack;
  * @author Graeme Rocher
  * @since 0.5
  */
-@SuppressWarnings("rawtypes")
-public class TagBodyClosure extends Closure {
-    private static final long serialVersionUID = 4396762064131558457L;
-    private static final Class[] PARAMETER_TYPES = new Class[]{Map.class};
-    private Closure<?> bodyClosure;
-    private OutputContext outputContext;
+@SuppressWarnings('rawtypes')
+@CompileStatic
+class TagBodyClosure extends Closure {
 
-    public TagBodyClosure(Object owner, OutputContext outputContext, Closure<?> bodyClosure) {
-        this(owner, outputContext, bodyClosure, false);
+    private static final long serialVersionUID = 4396762064131558457L
+    private static final Class[] PARAMETER_TYPES = new Class[]{Map}
+    private Closure<?> bodyClosure
+    private OutputContext outputContext
+
+    TagBodyClosure(Object owner, OutputContext outputContext, Closure<?> bodyClosure) {
+        this(owner, outputContext, bodyClosure, false)
     }
 
-    public TagBodyClosure(Object owner, OutputContext outputContext,
+    TagBodyClosure(Object owner, OutputContext outputContext,
                           Closure<?> bodyClosure, boolean changeBodyClosureOwner) {
-        super(owner);
+        super(owner)
 
-        Assert.notNull(bodyClosure, "Argument [bodyClosure] cannot be null!");
-        Assert.notNull(outputContext, "Argument [outputContext] cannot be null!");
+        Assert.notNull(bodyClosure, 'Argument [bodyClosure] cannot be null!')
+        Assert.notNull(outputContext, 'Argument [outputContext] cannot be null!')
 
         if (changeBodyClosureOwner && bodyClosure != null && !(bodyClosure instanceof TagOutput.ConstantClosure)) {
-            this.bodyClosure = bodyClosure.rehydrate(bodyClosure.getDelegate(), owner, bodyClosure.getThisObject());
-            this.bodyClosure.setResolveStrategy(OWNER_ONLY);
-        } else {
-            this.bodyClosure = bodyClosure;
+            this.bodyClosure = bodyClosure.rehydrate(bodyClosure.getDelegate(), owner, bodyClosure.getThisObject())
+            this.bodyClosure.setResolveStrategy(OWNER_ONLY)
         }
-        this.outputContext = outputContext;
+        else {
+            this.bodyClosure = bodyClosure
+        }
+        this.outputContext = outputContext
     }
 
     private Object captureClosureOutput(Object args, boolean hasArgument) {
-        final GroovyPageTagWriter capturedOut = new GroovyPageTagWriter();
-        Binding currentBinding = outputContext.getBinding();
-        Map<String, Object> savedVariablesMap = null;
-        Object originalIt = null;
+        final GroovyPageTagWriter capturedOut = new GroovyPageTagWriter()
+        Binding currentBinding = outputContext.getBinding()
+        Map<String, Object> savedVariablesMap = null
+        Object originalIt = null
         try {
-            pushCapturedOut(capturedOut);
+            pushCapturedOut(capturedOut)
 
-            Object bodyResult;
+            Object bodyResult
 
             if (currentBinding != null) {
                 if (hasArgument) {
-                    originalIt = saveItVariable(currentBinding, args);
+                    originalIt = saveItVariable(currentBinding, args)
                 }
 
                 if (args instanceof Map && ((Map) args).size() > 0) {
@@ -101,24 +98,24 @@ public class TagBodyClosure extends Closure {
 
                     // Binding is only changed currently when body gets a map
                     // argument
-                    savedVariablesMap = addAndSaveVariables(currentBinding, (Map) args);
+                    savedVariablesMap = addAndSaveVariables(currentBinding, (Map) args)
                 }
             }
-            bodyResult = executeClosure(args);
+            bodyResult = executeClosure(args)
 
             if (!capturedOut.isUsed() && bodyResult != null && !(bodyResult instanceof Writer)) {
-                return bodyResult;
+                return bodyResult
             }
-            return capturedOut.getBuffer();
+            return capturedOut.getBuffer()
         }
         finally {
             if (currentBinding != null) {
-                restoreVariables(currentBinding, savedVariablesMap);
+                restoreVariables(currentBinding, savedVariablesMap)
                 if (hasArgument) {
-                    restoreItVariable(currentBinding, originalIt);
+                    restoreItVariable(currentBinding, originalIt)
                 }
             }
-            popCapturedOut();
+            popCapturedOut()
         }
     }
 
@@ -128,45 +125,46 @@ public class TagBodyClosure extends Closure {
      * changing "it" variable is required to support refering to body argument with "it"; that was supported pre Grails 2.0
      * "it" is in binding because g:each loops are converted to ordinary for loops in Grails 2.0 with a generated variable name (if no variable name is specified)
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     private Object saveItVariable(Binding currentBinding, Object args) {
-        Object originalIt;
+        Object originalIt
         Map<String, Object> variablesMap = (currentBinding instanceof AbstractTemplateVariableBinding) ? ((AbstractTemplateVariableBinding) currentBinding)
-                .getVariablesMap() : currentBinding.getVariables();
-        originalIt = variablesMap.get("it");
-        variablesMap.put("it", args);
-        return originalIt;
+                .getVariablesMap() : currentBinding.getVariables()
+        originalIt = variablesMap.get('it')
+        variablesMap.put('it', args)
+        return originalIt
     }
 
     /**
      * Restores "it" variable to binding.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     private void restoreItVariable(Binding currentBinding, Object originalIt) {
         Map<String, Object> variablesMap = (currentBinding instanceof AbstractTemplateVariableBinding) ? ((AbstractTemplateVariableBinding) currentBinding)
-                .getVariablesMap() : currentBinding.getVariables();
-        variablesMap.put("it", originalIt);
+                .getVariablesMap() : currentBinding.getVariables()
+        variablesMap.put('it', originalIt)
     }
 
     /**
      * Adds variables to binding and returns a map with previous values.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     private Map<String, Object> addAndSaveVariables(Binding binding, Map args) {
-        Map<String, Object> savedVariablesMap = new LinkedHashMap<>();
-        for (Iterator<Object> i = args.keySet().iterator(); i.hasNext(); ) {
-            String varname = String.valueOf(i.next());
-            savedVariablesMap.put(varname, binding.getVariable(varname));
+        Map<String, Object> savedVariablesMap = new LinkedHashMap<>()
+        for (Iterator<Object> i = args.keySet().iterator(); i.hasNext();) {
+            String varname = String.valueOf(i.next())
+            savedVariablesMap.put(varname, binding.getVariable(varname))
         }
         if (binding instanceof AbstractTemplateVariableBinding) {
-            ((AbstractTemplateVariableBinding) binding).addMap(args);
-        } else {
-            for (Iterator<Map.Entry> i = args.entrySet().iterator(); i.hasNext(); ) {
-                Map.Entry entry = i.next();
-                binding.setVariable(String.valueOf(entry.getKey()), entry.getValue());
+            ((AbstractTemplateVariableBinding) binding).addMap(args)
+        }
+        else {
+            for (Iterator<Map.Entry> i = args.entrySet().iterator(); i.hasNext();) {
+                Map.Entry entry = i.next()
+                binding.setVariable(String.valueOf(entry.getKey()), entry.getValue())
             }
         }
-        return savedVariablesMap;
+        return savedVariablesMap
     }
 
     /**
@@ -174,71 +172,71 @@ public class TagBodyClosure extends Closure {
      */
     private void restoreVariables(Binding binding, Map<String, Object> savedVariablesMap) {
         if (savedVariablesMap != null) {
-            for (Map.Entry<String, Object> entry : savedVariablesMap.entrySet()) {
-                binding.setVariable(entry.getKey(), entry.getValue());
+            for (Map.Entry<String, Object> entry in savedVariablesMap.entrySet()) {
+                binding.setVariable(entry.getKey(), entry.getValue())
             }
         }
     }
 
     private void popCapturedOut() {
         if (outputContext != null) {
-            OutputEncodingStack.currentStack(outputContext).pop();
+            OutputEncodingStack.currentStack(outputContext).pop()
         }
         else {
-            OutputEncodingStack.currentStack().pop();
+            OutputEncodingStack.currentStack().pop()
         }
     }
 
     private void pushCapturedOut(GroovyPageTagWriter capturedOut) {
         if (outputContext != null) {
-            OutputEncodingStack.currentStack(outputContext).push(capturedOut);
+            OutputEncodingStack.currentStack(outputContext).push(capturedOut)
         }
         else {
-            OutputEncodingStack.currentStack().push(capturedOut);
+            OutputEncodingStack.currentStack().push(capturedOut)
         }
     }
 
     private Object executeClosure(Object args) {
         if (args != null && bodyClosure.getMaximumNumberOfParameters() > 0) {
-            return bodyClosure.call(args);
+            return bodyClosure.call(args)
         }
-        return bodyClosure.call();
+        return bodyClosure.call()
     }
 
-    public Object doCall() {
-        return captureClosureOutput(null, false);
+    Object doCall() {
+        return captureClosureOutput(null, false)
     }
 
-    public Object doCall(Object arguments) {
-        return captureClosureOutput(arguments, true);
-    }
-
-    @Override
-    public Object call() {
-        return captureClosureOutput(null, false);
+    Object doCall(Object arguments) {
+        return captureClosureOutput(arguments, true)
     }
 
     @Override
-    public Object call(Object... args) {
-        return captureClosureOutput(args, args != null && args.length > 0);
+    Object call() {
+        return captureClosureOutput(null, false)
     }
 
     @Override
-    public Object call(Object arguments) {
-        return captureClosureOutput(arguments, true);
+    Object call(Object... args) {
+        return captureClosureOutput(args, args != null && args.length > 0)
     }
 
     @Override
-    public int getMaximumNumberOfParameters() {
-        return 1;
+    Object call(Object arguments) {
+        return captureClosureOutput(arguments, true)
     }
 
     @Override
-    public Class[] getParameterTypes() {
-        return PARAMETER_TYPES;
+    int getMaximumNumberOfParameters() {
+        return 1
     }
 
-    public Closure<?> getBodyClosure() {
-        return bodyClosure;
+    @Override
+    Class[] getParameterTypes() {
+        return PARAMETER_TYPES
+    }
+
+    Closure<?> getBodyClosure() {
+        return bodyClosure
     }
 }

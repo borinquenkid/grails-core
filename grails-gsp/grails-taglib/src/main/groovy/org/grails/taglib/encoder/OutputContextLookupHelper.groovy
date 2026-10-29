@@ -16,9 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib.encoder;
+package org.grails.taglib.encoder
 
-import org.grails.core.io.support.GrailsFactoriesLoader;
+import groovy.transform.CompileStatic
+
+import org.grails.core.io.support.GrailsFactoriesLoader
 
 /**
  * Used to load the {@link OutputContextLookup} class for GSP
@@ -26,27 +28,29 @@ import org.grails.core.io.support.GrailsFactoriesLoader;
  * @author Lari Hotari
  * @author Graeme Rocher
  */
-public class OutputContextLookupHelper {
-    private static final OutputContextLookup outputContextLookup;
+@CompileStatic
+class OutputContextLookupHelper {
+
+    private static final OutputContextLookup outputContextLookup
 
     static {
-        OutputContextLookup foundViaFactory = GrailsFactoriesLoader.loadFactory(OutputContextLookup.class, OutputContextLookupHelper.class.getClassLoader());
+        OutputContextLookup foundViaFactory = GrailsFactoriesLoader.loadFactory(OutputContextLookup, OutputContextLookupHelper.classLoader)
         if (foundViaFactory != null) {
-            outputContextLookup = foundViaFactory;
+            outputContextLookup = foundViaFactory
         }
         else {
-            outputContextLookup = new DefaultOutputContextLookup();
+            outputContextLookup = new DefaultOutputContextLookup()
         }
     }
 
     private OutputContextLookupHelper() {
     }
 
-    public static OutputContext lookupOutputContext() {
-        return outputContextLookup.lookupOutputContext();
+    static OutputContext lookupOutputContext() {
+        return outputContextLookup.lookupOutputContext()
     }
 
-    public static OutputContextLookup getOutputContextLookup() {
-        return outputContextLookup;
+    static OutputContextLookup getOutputContextLookup() {
+        return outputContextLookup
     }
 }

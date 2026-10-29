@@ -16,44 +16,58 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib;
+package org.grails.taglib
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Map;
+import groovy.transform.CompileStatic
 
-import groovy.lang.Closure;
+@CompileStatic
+final class TagMethodContext {
 
-public final class TagMethodContext {
-
-    private static final ThreadLocal<Deque<TagMethodContextEntry>> CONTEXT_STACK = ThreadLocal.withInitial(ArrayDeque::new);
+    private static final ThreadLocal<Deque<TagMethodContextEntry>> CONTEXT_STACK =
+            ThreadLocal.withInitial(() -> (Deque<TagMethodContextEntry>) new ArrayDeque<TagMethodContextEntry>())
 
     private TagMethodContext() {
     }
 
-    public static void push(Map<?, ?> attrs, Closure<?> body) {
-        CONTEXT_STACK.get().push(new TagMethodContextEntry(attrs, body));
+    static void push(Map<?, ?> attrs, Closure<?> body) {
+        CONTEXT_STACK.get().push(new TagMethodContextEntry(attrs, body))
     }
 
-    public static void pop() {
-        Deque<TagMethodContextEntry> stack = CONTEXT_STACK.get();
+    static void pop() {
+        Deque<TagMethodContextEntry> stack = CONTEXT_STACK.get()
         if (!stack.isEmpty()) {
-            stack.pop();
+            stack.pop()
         }
         if (stack.isEmpty()) {
-            CONTEXT_STACK.remove();
+            CONTEXT_STACK.remove()
         }
     }
 
-    public static Map<?, ?> currentAttrs() {
-        Deque<TagMethodContextEntry> stack = CONTEXT_STACK.get();
-        return stack.isEmpty() ? null : stack.peek().attrs();
+    static Map<?, ?> currentAttrs() {
+        Deque<TagMethodContextEntry> stack = CONTEXT_STACK.get()
+        return stack.isEmpty() ? null : stack.peek().attrs()
     }
 
-    public static Closure<?> currentBody() {
-        Deque<TagMethodContextEntry> stack = CONTEXT_STACK.get();
-        return stack.isEmpty() ? null : stack.peek().body();
+    static Closure<?> currentBody() {
+        Deque<TagMethodContextEntry> stack = CONTEXT_STACK.get()
+        return stack.isEmpty() ? null : stack.peek().body()
     }
 
-    private record TagMethodContextEntry(Map<?, ?> attrs, Closure<?> body) { }
+    private static final class TagMethodContextEntry {
+        private final Map<?, ?> attrs
+        private final Closure<?> body
+
+        TagMethodContextEntry(Map<?, ?> attrs, Closure<?> body) {
+            this.attrs = attrs
+            this.body = body
+        }
+
+        Map<?, ?> attrs() {
+            return attrs
+        }
+
+        Closure<?> body() {
+            return body
+        }
+    }
 }

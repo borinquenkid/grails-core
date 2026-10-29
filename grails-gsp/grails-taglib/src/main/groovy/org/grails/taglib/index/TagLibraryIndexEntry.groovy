@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib.index;
+package org.grails.taglib.index
 
 /**
  * One tag recorded in the {@link TagLibraryIndex} at compile time.
@@ -27,6 +27,4 @@ package org.grails.taglib.index;
  * @param acceptsBody whether the tag can be called with a body
  * @since 8.0.0
  */
-public record TagLibraryIndexEntry(String namespace, String tagName, String tagLibraryClassName,
-        boolean acceptsBody) {
-}
+record TagLibraryIndexEntry(String namespace, String tagName, String tagLibraryClassName, boolean acceptsBody) { }

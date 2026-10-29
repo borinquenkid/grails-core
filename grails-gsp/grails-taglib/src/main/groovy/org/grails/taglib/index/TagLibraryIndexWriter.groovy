@@ -16,24 +16,16 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib.index;
+package org.grails.taglib.index
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
-import java.util.Collection;
-import java.util.Properties;
-import java.util.TreeSet;
+import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
+import java.nio.channels.FileLock
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
+
+import groovy.transform.CompileStatic
 
 /**
  * Writes the compile-time descriptor for a single tag library.
@@ -45,12 +37,13 @@ import java.util.TreeSet;
  *
  * @since 8.0.0
  */
-public final class TagLibraryIndexWriter {
+@CompileStatic
+final class TagLibraryIndexWriter {
 
     /**
      * Serialises the read-modify-write of the shared manifest across threads of this JVM.
      */
-    private static final Object MANIFEST_MONITOR = new Object();
+    private static final Object MANIFEST_MONITOR = new Object()
 
     private TagLibraryIndexWriter() {
     }
@@ -63,18 +56,18 @@ public final class TagLibraryIndexWriter {
      * @param outputDirectory the directory the index is written beneath
      * @throws IOException if an existing index cannot be removed
      */
-    public static void clear(File outputDirectory) throws IOException {
+    static void clear(File outputDirectory) throws IOException {
         if (outputDirectory == null) {
-            return;
+            return
         }
-        File indexDirectory = new File(outputDirectory, TagLibraryIndex.INDEX_LOCATION);
-        File[] existing = indexDirectory.listFiles();
+        File indexDirectory = new File(outputDirectory, TagLibraryIndex.INDEX_LOCATION)
+        File[] existing = indexDirectory.listFiles()
         if (existing == null) {
-            return;
+            return
         }
-        for (File file : existing) {
-            if (file.isFile() && file.getName().endsWith(".properties")) {
-                Files.deleteIfExists(file.toPath());
+        for (File file in existing) {
+            if (file.isFile() && file.getName().endsWith('.properties')) {
+                Files.deleteIfExists(file.toPath())
             }
         }
     }
@@ -88,27 +81,27 @@ public final class TagLibraryIndexWriter {
      * @param tagNames the tag names the tag library declares
      * @throws IOException if the descriptor cannot be written
      */
-    public static void write(File outputDirectory, String className, String namespace,
+    static void write(File outputDirectory, String className, String namespace,
             Collection<String> tagNames) throws IOException {
         if (outputDirectory == null || className == null || className.isEmpty() ||
                 namespace == null || namespace.isEmpty()) {
-            return;
+            return
         }
-        File indexDirectory = new File(outputDirectory, TagLibraryIndex.INDEX_LOCATION);
+        File indexDirectory = new File(outputDirectory, TagLibraryIndex.INDEX_LOCATION)
         if (!indexDirectory.isDirectory() && !indexDirectory.mkdirs() && !indexDirectory.isDirectory()) {
-            return;
+            return
         }
 
-        Properties descriptor = new Properties();
-        descriptor.setProperty(TagLibraryIndex.VERSION_KEY, String.valueOf(TagLibraryIndex.FORMAT_VERSION));
-        descriptor.setProperty(TagLibraryIndex.NAMESPACE_KEY, namespace);
-        descriptor.setProperty(TagLibraryIndex.CLASS_KEY, className);
+        Properties descriptor = new Properties()
+        descriptor.setProperty(TagLibraryIndex.VERSION_KEY, String.valueOf(TagLibraryIndex.FORMAT_VERSION))
+        descriptor.setProperty(TagLibraryIndex.NAMESPACE_KEY, namespace)
+        descriptor.setProperty(TagLibraryIndex.CLASS_KEY, className)
         // Sorted so that recompiling unchanged sources produces byte-identical output, which keeps
         // the build reproducible and avoids spurious up-to-date checks failing downstream.
-        descriptor.setProperty(TagLibraryIndex.TAGS_KEY, String.join(",", new TreeSet<>(tagNames)));
-        store(new File(indexDirectory, className + ".properties"), descriptor);
+        descriptor.setProperty(TagLibraryIndex.TAGS_KEY, String.join(',', new TreeSet<>(tagNames)))
+        store(new File(indexDirectory, className + '.properties'), descriptor)
 
-        addToManifest(new File(indexDirectory, "index.properties"), className);
+        addToManifest(new File(indexDirectory, 'index.properties'), className)
     }
 
     /**
@@ -134,24 +127,24 @@ public final class TagLibraryIndexWriter {
             try (FileChannel channel = FileChannel.open(manifest.toPath(),
                     StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE)) {
                 try (FileLock ignored = channel.lock()) {
-                    Properties names = new Properties();
-                    channel.position(0);
+                    Properties names = new Properties()
+                    channel.position(0)
                     // Reads the channel rather than reopening the file, so the content read is the
                     // content the lock is held over.
-                    byte[] existing = new byte[(int) channel.size()];
-                    ByteBuffer buffer = ByteBuffer.wrap(existing);
+                    byte[] existing = new byte[(int) channel.size()]
+                    ByteBuffer buffer = ByteBuffer.wrap(existing)
                     while (buffer.hasRemaining() && channel.read(buffer) >= 0) {
                         // read until the buffer is filled or the channel is exhausted
                     }
                     if (existing.length > 0) {
                         names.load(new InputStreamReader(new ByteArrayInputStream(existing),
-                                StandardCharsets.UTF_8));
+                                StandardCharsets.UTF_8))
                     }
-                    names.setProperty(className, "");
-                    byte[] updated = render(names).getBytes(StandardCharsets.UTF_8);
-                    channel.truncate(0);
-                    channel.position(0);
-                    channel.write(ByteBuffer.wrap(updated));
+                    names.setProperty(className, '')
+                    byte[] updated = render(names).getBytes(StandardCharsets.UTF_8)
+                    channel.truncate(0)
+                    channel.position(0)
+                    channel.write(ByteBuffer.wrap(updated))
                 }
             }
         }
@@ -167,29 +160,30 @@ public final class TagLibraryIndexWriter {
      *        which case nothing in the index may be treated as complete
      * @throws IOException if the record cannot be written
      */
-    public static void writeIncomplete(File outputDirectory, Collection<String> namespaces,
+    static void writeIncomplete(File outputDirectory, Collection<String> namespaces,
             boolean everything) throws IOException {
         if (outputDirectory == null) {
-            return;
+            return
         }
         if (namespaces.isEmpty() && !everything) {
-            return;
+            return
         }
-        File indexDirectory = new File(outputDirectory, TagLibraryIndex.INDEX_LOCATION);
+        File indexDirectory = new File(outputDirectory, TagLibraryIndex.INDEX_LOCATION)
         if (!indexDirectory.isDirectory() && !indexDirectory.mkdirs() && !indexDirectory.isDirectory()) {
-            return;
+            return
         }
-        Properties recorded = new Properties();
+        Properties recorded = new Properties()
         recorded.setProperty(TagLibraryIndex.INCOMPLETE_NAMESPACES_KEY,
-                String.join(",", new TreeSet<>(namespaces)));
-        recorded.setProperty(TagLibraryIndex.INCOMPLETE_ALL_KEY, String.valueOf(everything));
-        store(new File(indexDirectory, "incomplete.properties"), recorded);
+                String.join(',', new TreeSet<>(namespaces)))
+        recorded.setProperty(TagLibraryIndex.INCOMPLETE_ALL_KEY, String.valueOf(everything))
+        store(new File(indexDirectory, 'incomplete.properties'), recorded)
     }
 
     private static void store(File file, Properties properties) throws IOException {
-        try (OutputStream out = Files.newOutputStream(file.toPath());
-             Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
-            writer.write(render(properties));
+        try (OutputStream out = Files.newOutputStream(file.toPath())) {
+            try (Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
+                writer.write(render(properties))
+            }
         }
     }
 
@@ -199,14 +193,14 @@ public final class TagLibraryIndexWriter {
      *         stamps in, which would make otherwise identical builds differ
      */
     private static String render(Properties properties) {
-        StringBuilder text = new StringBuilder();
-        for (String key : new TreeSet<>(properties.stringPropertyNames())) {
-            text.append(escape(key)).append('=').append(escape(properties.getProperty(key))).append('\n');
+        StringBuilder text = new StringBuilder()
+        for (String key in new TreeSet<>(properties.stringPropertyNames())) {
+            text.append(escape(key)).append('=').append(escape(properties.getProperty(key))).append('\n')
         }
-        return text.toString();
+        return text.toString()
     }
 
     private static String escape(String value) {
-        return value.replace("\\", "\\\\").replace("=", "\\=").replace(":", "\\:");
+        return value.replace('\\', '\\\\').replace('=', '\\=').replace(':', '\\:')
     }
 }

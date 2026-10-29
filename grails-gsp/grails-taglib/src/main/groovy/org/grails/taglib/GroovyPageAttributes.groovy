@@ -16,12 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib;
+package org.grails.taglib
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import groovy.transform.CompileStatic
 
-import grails.util.TypeConvertingMap;
+import grails.util.TypeConvertingMap
 
 /**
  * Defines attributes passed to a GSP tag. Mixes in TypeConvertingMap for ease of type conversion.
@@ -30,21 +29,28 @@ import grails.util.TypeConvertingMap;
  * @author Lari Hotari
  * @since 1.2
  */
-@SuppressWarnings({ "unchecked", "rawtypes" })
-public class GroovyPageAttributes extends TypeConvertingMap implements Cloneable {
-    boolean gspTagSyntaxCall = true;
+@SuppressWarnings(['unchecked', 'rawtypes'])
+@CompileStatic
+class GroovyPageAttributes extends TypeConvertingMap implements Cloneable {
 
-    public GroovyPageAttributes() {
-        super();
+    // Deliberately a plain private field with a non-JavaBean-named accessor below (not
+    // isGspTagSyntaxCall()): this class implements Map, and a JavaBean accessor on a map
+    // shadows the map entry of the same name, both for the implicit Groovy property this
+    // field would otherwise generate and for a conventionally-named Java accessor. See
+    // grails.util.AbstractTypeConvertingMap for the rule.
+    private boolean gspTagSyntaxCall = true
+
+    GroovyPageAttributes() {
+        super()
     }
 
-    public GroovyPageAttributes(Map map) {
-        this(map, true);
+    GroovyPageAttributes(Map map) {
+        this(map, true)
     }
 
-    public GroovyPageAttributes(Map map, boolean gspTagSyntaxCall) {
-        super(map);
-        this.gspTagSyntaxCall = gspTagSyntaxCall;
+    GroovyPageAttributes(Map map, boolean gspTagSyntaxCall) {
+        super(map)
+        this.gspTagSyntaxCall = gspTagSyntaxCall
     }
 
     /**
@@ -58,12 +64,12 @@ public class GroovyPageAttributes extends TypeConvertingMap implements Cloneable
      * @return {@code true} when invoked with GSP tag syntax
      * @since 8.0
      */
-    public boolean gspTagSyntaxCall() {
-        return gspTagSyntaxCall;
+    boolean gspTagSyntaxCall() {
+        return gspTagSyntaxCall
     }
 
-    public void setGspTagSyntaxCall(boolean gspTagSyntaxCall) {
-        this.gspTagSyntaxCall = gspTagSyntaxCall;
+    void setGspTagSyntaxCall(boolean gspTagSyntaxCall) {
+        this.gspTagSyntaxCall = gspTagSyntaxCall
     }
 
     /**
@@ -78,12 +84,12 @@ public class GroovyPageAttributes extends TypeConvertingMap implements Cloneable
      * @param value the attribute value
      * @since 8.0
      */
-    public void putAt(String key, Object value) {
-        put(key, value);
+    void putAt(String key, Object value) {
+        put(key, value)
     }
 
     @Override
-    public Object clone() {
-        return new GroovyPageAttributes(new LinkedHashMap(wrappedMap));
+    Object clone() {
+        return new GroovyPageAttributes(new LinkedHashMap((Map) this.@wrappedMap))
     }
 }

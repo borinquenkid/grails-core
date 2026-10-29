@@ -16,77 +16,75 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib;
+package org.grails.taglib
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import groovy.transform.CompileStatic
 
-import groovy.lang.Binding;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 
 /**
  * Script Binding that is used in GSP evaluation.
  *
  * @author Lari Hotari
  */
-public class TemplateVariableBinding extends AbstractTemplateVariableBinding {
-    private static final Log log = LogFactory.getLog(TemplateVariableBinding.class);
+@CompileStatic
+class TemplateVariableBinding extends AbstractTemplateVariableBinding {
 
-    private Binding parent;
-    private Object owner;
-    private Set<String> cachedParentVariableNames = new HashSet<>();
-    private boolean root;
+    private static final Log log = LogFactory.getLog(TemplateVariableBinding)
 
-    public TemplateVariableBinding() {
-        super();
+    private Binding parent
+    private Object owner
+    private Set<String> cachedParentVariableNames = new HashSet<>()
+    private boolean root
+
+    TemplateVariableBinding() {
+        super()
     }
 
-    public TemplateVariableBinding(Binding parent) {
-        setParent(parent);
+    TemplateVariableBinding(Binding parent) {
+        setParent(parent)
     }
 
-    @SuppressWarnings("rawtypes")
-    public TemplateVariableBinding(Map variables) {
-        super(variables);
+    @SuppressWarnings('rawtypes')
+    TemplateVariableBinding(Map variables) {
+        super(variables)
     }
 
-    public TemplateVariableBinding(String[] args) {
-        super(args);
+    TemplateVariableBinding(String[] args) {
+        super(args)
     }
 
     @Override
-    public Object getProperty(String property) {
-        return getVariable(property);
+    Object getProperty(String property) {
+        return getVariable(property)
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     @Override
-    public Object getVariable(String name) {
-        Object val = getVariablesMap().get(name);
+    Object getVariable(String name) {
+        Object val = getVariablesMap().get(name)
         if (val == null && !getVariablesMap().containsKey(name)) {
-            if ("variables".equals(name)) return getVariables();
-            if ("metaClass".equals(name)) return getMetaClass();
-            Binding variableBinding = findBindingForVariable(name);
+            if ('variables'.equals(name)) return getVariables()
+            if ('metaClass'.equals(name)) return getMetaClass()
+            Binding variableBinding = findBindingForVariable(name)
             if (variableBinding != null) {
-                val = variableBinding.getVariable(name);
+                val = variableBinding.getVariable(name)
                 if (val != null) {
                     if (!(variableBinding instanceof AbstractTemplateVariableBinding) || ((AbstractTemplateVariableBinding) variableBinding).isVariableCachingAllowed(name)) {
                         // cache variable in this context since parent context cannot change during usage of this context
-                        getVariablesMap().put(name, val);
-                        cachedParentVariableNames.add(name);
+                        getVariablesMap().put(name, val)
+                        cachedParentVariableNames.add(name)
                     }
                 }
             }
         }
-        return val;
+        return val
     }
 
     @Override
-    public void setProperty(String property, Object newValue) {
-        setVariable(property, newValue);
+    void setProperty(String property, Object newValue) {
+        setVariable(property, newValue)
     }
 
     /**
@@ -95,115 +93,118 @@ public class TemplateVariableBinding extends AbstractTemplateVariableBinding {
      * @param name The name of the variable
      * @return The binding
      */
-    public Binding findBindingForVariable(String name) {
+    Binding findBindingForVariable(String name) {
         if (cachedParentVariableNames.contains(name)) {
             if (parent instanceof AbstractTemplateVariableBinding) {
-                return ((AbstractTemplateVariableBinding) parent).findBindingForVariable(name);
+                return ((AbstractTemplateVariableBinding) parent).findBindingForVariable(name)
             }
-            return parent;
+            return parent
         }
 
         if (getVariablesMap().containsKey(name)) {
-            return this;
+            return this
         }
 
         if (parent instanceof AbstractTemplateVariableBinding) {
-            return ((AbstractTemplateVariableBinding) parent).findBindingForVariable(name);
+            return ((AbstractTemplateVariableBinding) parent).findBindingForVariable(name)
         }
 
         if (parent != null && parent.getVariables().containsKey(name)) {
-            return parent;
+            return parent
         }
 
-        return null;
+        return null
     }
 
     @Override
-    public void setVariable(String name, Object value) {
-        internalSetVariable(null, name, value);
+    void setVariable(String name, Object value) {
+        internalSetVariable(null, name, value)
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     private void internalSetVariable(Binding bindingToUse, String name, Object value) {
         if (!isReservedName(name)) {
             if (bindingToUse == null) {
-                bindingToUse = findBindingForVariable(name);
+                bindingToUse = findBindingForVariable(name)
                 if (bindingToUse == null || (bindingToUse instanceof TemplateVariableBinding && ((TemplateVariableBinding) bindingToUse).shouldUseChildBinding(this))) {
-                    bindingToUse = this;
+                    bindingToUse = this
                 }
             }
             if (bindingToUse instanceof AbstractTemplateVariableBinding) {
-                ((AbstractTemplateVariableBinding) bindingToUse).getVariablesMap().put(name, value);
-            } else {
-                bindingToUse.getVariables().put(name, value);
+                ((AbstractTemplateVariableBinding) bindingToUse).getVariablesMap().put(name, value)
+            }
+            else {
+                bindingToUse.getVariables().put(name, value)
             }
 
             if (bindingToUse != this && cachedParentVariableNames.contains(name)) {
                 // maintain cached value
-                getVariablesMap().put(name, value);
+                getVariablesMap().put(name, value)
             }
-        } else {
+        }
+        else {
             if (log.isDebugEnabled()) {
-                log.debug("Cannot override reserved variable '" + name + "'");
+                log.debug("Cannot override reserved variable '$name'")
             }
         }
     }
 
     protected boolean isReservedName(String name) {
-        return false;
+        return false
     }
 
     protected boolean shouldUseChildBinding(TemplateVariableBinding childBinding) {
-        return isRoot();
+        return isRoot()
     }
 
-    public Binding getParent() {
-        return parent;
+    Binding getParent() {
+        return parent
     }
 
-    public void setParent(Binding parent) {
-        this.parent = parent;
+    void setParent(Binding parent) {
+        this.parent = parent
     }
 
     protected void internalSetVariable(String name, Object value) {
-        internalSetVariable(this, name, value);
+        internalSetVariable(this, name, value)
     }
 
-    public Object getOwner() {
-        return owner;
+    Object getOwner() {
+        return owner
     }
 
-    public void setOwner(Object owner) {
-        this.owner = owner;
+    void setOwner(Object owner) {
+        this.owner = owner
     }
 
-    public boolean isRoot() {
-        return root;
+    boolean isRoot() {
+        return root
     }
 
-    public void setRoot(boolean root) {
-        this.root = root;
+    void setRoot(boolean root) {
+        this.root = root
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     @Override
-    public Set<String> getVariableNames() {
-        Set<String> variableNames = new HashSet<>();
+    Set<String> getVariableNames() {
+        Set<String> variableNames = new HashSet<>()
         if (parent != null) {
             if (parent instanceof AbstractTemplateVariableBinding) {
-                variableNames.addAll(((AbstractTemplateVariableBinding) parent).getVariableNames());
-            } else {
-                variableNames.addAll(parent.getVariables().keySet());
+                variableNames.addAll(((AbstractTemplateVariableBinding) parent).getVariableNames())
+            }
+            else {
+                variableNames.addAll((Set<String>) parent.getVariables().keySet())
             }
         }
-        variableNames.addAll(getVariablesMap().keySet());
-        return variableNames;
+        variableNames.addAll((Set<String>) getVariablesMap().keySet())
+        return variableNames
     }
 
     @Override
-    public boolean hasVariable(String name) {
+    boolean hasVariable(String name) {
         return super.hasVariable(name) ||
                 cachedParentVariableNames.contains(name) ||
-                (parent != null && parent.hasVariable(name));
+                (parent != null && parent.hasVariable(name))
     }
 }

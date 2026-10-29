@@ -16,33 +16,26 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib.index;
+package org.grails.taglib.index
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Stream;
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.stream.Stream
 
-import org.codehaus.groovy.ast.AnnotationNode;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.FieldNode;
-import org.codehaus.groovy.ast.expr.ConstantExpression;
-import org.codehaus.groovy.control.ClassNodeResolver;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.Phases;
+import groovy.transform.CompileStatic
 
-import org.grails.taglib.discovery.TagLibraryAstDiscovery;
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.FieldNode
+import org.codehaus.groovy.ast.expr.ConstantExpression
+import org.codehaus.groovy.ast.expr.Expression
+import org.codehaus.groovy.control.ClassNodeResolver
+import org.codehaus.groovy.control.ClassNodeResolver.LookupResult
+import org.codehaus.groovy.control.CompilationUnit
+import org.codehaus.groovy.control.CompilerConfiguration
+import org.codehaus.groovy.control.Phases
+
+import org.grails.taglib.discovery.TagLibraryAstDiscovery
 
 /**
  * Writes the tag library index for a source set.
@@ -60,13 +53,14 @@ import org.grails.taglib.discovery.TagLibraryAstDiscovery;
  *
  * @since 8.0.0
  */
-public final class TagLibraryIndexGenerator {
+@CompileStatic
+final class TagLibraryIndexGenerator {
 
-    private static final String TAG_LIB_ANNOTATION = "grails.gsp.TagLib";
-    private static final String ARTEFACT_ANNOTATION = "grails.artefact.Artefact";
-    private static final String TAG_LIB_ARTEFACT = "TagLib";
+    private static final String TAG_LIB_ANNOTATION = 'grails.gsp.TagLib'
+    private static final String ARTEFACT_ANNOTATION = 'grails.artefact.Artefact'
+    private static final String TAG_LIB_ARTEFACT = 'TagLib'
 
-    private static final String NAMESPACE_FIELD = "namespace";
+    private static final String NAMESPACE_FIELD = 'namespace'
 
     private TagLibraryIndexGenerator() {
     }
@@ -76,21 +70,21 @@ public final class TagLibraryIndexGenerator {
      *        many source directories follow, those directories, and then the source roots a type this
      *        project declares may be resolved from
      */
-    public static void main(String[] args) throws IOException {
+    static void main(String[] args) throws IOException {
         if (args.length < 4) {
-            throw new IllegalArgumentException("Usage: <outputDir> <parameterNamesRetained> " +
-                    "<sourceEncoding> <sourceDirCount> <sourceDir>... <resolutionRoot>...");
+            throw new IllegalArgumentException('Usage: <outputDir> <parameterNamesRetained> ' +
+                    '<sourceEncoding> <sourceDirCount> <sourceDir>... <resolutionRoot>...')
         }
-        File outputDir = new File(args[0]);
-        boolean parameterNamesRetained = Boolean.parseBoolean(args[1]);
-        String encoding = args[2].isEmpty() ? "UTF-8" : args[2];
-        int sourceDirCount = Integer.parseInt(args[3]);
-        List<File> sourceDirs = new ArrayList<>(sourceDirCount);
-        List<File> resolutionRoots = new ArrayList<>();
+        File outputDir = new File(args[0])
+        boolean parameterNamesRetained = Boolean.parseBoolean(args[1])
+        String encoding = args[2].isEmpty() ? 'UTF-8' : args[2]
+        int sourceDirCount = Integer.parseInt(args[3])
+        List<File> sourceDirs = new ArrayList<>(sourceDirCount)
+        List<File> resolutionRoots = new ArrayList<>()
         for (int i = 4; i < args.length; i++) {
-            (i - 4 < sourceDirCount ? sourceDirs : resolutionRoots).add(new File(args[i]));
+            (i - 4 < sourceDirCount ? sourceDirs : resolutionRoots).add(new File(args[i]))
         }
-        generate(sourceDirs, resolutionRoots, outputDir, parameterNamesRetained, encoding);
+        generate(sourceDirs, resolutionRoots, outputDir, parameterNamesRetained, encoding)
     }
 
     /**
@@ -102,10 +96,10 @@ public final class TagLibraryIndexGenerator {
      * @param encoding the source encoding
      * @throws IOException if the index cannot be written
      */
-    public static void generate(File sourceDir, File outputDir, boolean parameterNamesRetained,
+    static void generate(File sourceDir, File outputDir, boolean parameterNamesRetained,
             String encoding) throws IOException {
-        generate(Collections.singletonList(sourceDir), Collections.emptyList(), outputDir,
-                parameterNamesRetained, encoding);
+        generate(Collections.singletonList(sourceDir), Collections.<File> emptyList(), outputDir,
+                parameterNamesRetained, encoding)
     }
 
     /**
@@ -117,9 +111,9 @@ public final class TagLibraryIndexGenerator {
      * @param encoding the source encoding
      * @throws IOException if the index cannot be written
      */
-    public static void generate(List<File> sourceDirs, File outputDir, boolean parameterNamesRetained,
+    static void generate(List<File> sourceDirs, File outputDir, boolean parameterNamesRetained,
             String encoding) throws IOException {
-        generate(sourceDirs, Collections.emptyList(), outputDir, parameterNamesRetained, encoding);
+        generate(sourceDirs, Collections.<File> emptyList(), outputDir, parameterNamesRetained, encoding)
     }
 
     /**
@@ -137,48 +131,48 @@ public final class TagLibraryIndexGenerator {
      * @param encoding the source encoding
      * @throws IOException if the index cannot be written
      */
-    public static void generate(List<File> sourceDirs, List<File> resolutionRoots, File outputDir,
+    static void generate(List<File> sourceDirs, List<File> resolutionRoots, File outputDir,
             boolean parameterNamesRetained, String encoding) throws IOException {
-        TagLibraryIndexWriter.clear(outputDir);
-        List<File> sources = new ArrayList<>();
+        TagLibraryIndexWriter.clear(outputDir)
+        List<File> sources = new ArrayList<>()
         if (sourceDirs != null) {
-            for (File sourceDir : sourceDirs) {
+            for (File sourceDir in sourceDirs) {
                 if (sourceDir != null && sourceDir.isDirectory()) {
-                    sources.addAll(findGroovySources(sourceDir));
+                    sources.addAll(findGroovySources(sourceDir))
                 }
             }
         }
         if (sources.isEmpty()) {
-            return;
+            return
         }
 
-        List<File> roots = resolutionRoots != null ? resolutionRoots : Collections.emptyList();
-        List<File> skipped = new ArrayList<>();
+        List<File> roots = resolutionRoots != null ? resolutionRoots : Collections.<File> emptyList()
+        List<File> skipped = new ArrayList<>()
         // The resolver adds a collaborator's source to the compilation unit so its type can be read,
         // which puts that class in the parse output too. Only the sources this generator was pointed
         // at may be described: a helper named *TagLib under src/main/groovy would otherwise be filed
         // as a tag library of the default namespace, making its methods g tags that either collide
         // with real ones - silently disabling rewriting for that name - or resolve to a tag that does
         // not exist at runtime.
-        Set<String> describable = new HashSet<>();
-        for (File source : sources) {
-            describable.add(source.getAbsolutePath());
+        Set<String> describable = new HashSet<>()
+        for (File source in sources) {
+            describable.add(source.getAbsolutePath())
         }
-        for (ClassNode classNode : parse(sources, roots, parameterNamesRetained, encoding, skipped)) {
+        for (ClassNode classNode in parse(sources, roots, parameterNamesRetained, encoding, skipped)) {
             if (!isTagLibrary(classNode) || !isRegistrable(classNode) ||
                     !wasAskedFor(classNode, describable)) {
-                continue;
+                continue
             }
-            String namespace = TagLibraryAstDiscovery.resolveNamespace(classNode);
+            String namespace = TagLibraryAstDiscovery.resolveNamespace(classNode)
             if (namespace == null) {
                 // Only knowable once the initialiser runs, so recording it would file the tags under
                 // a guess. Left out, which leaves the tag library to runtime resolution.
-                continue;
+                continue
             }
             TagLibraryIndexWriter.write(outputDir, classNode.getName(), namespace,
-                    TagLibraryAstDiscovery.findTags(classNode, parameterNamesRetained));
+                    TagLibraryAstDiscovery.findTags(classNode, parameterNamesRetained))
         }
-        recordWhatWasMissed(outputDir, skipped, encoding);
+        recordWhatWasMissed(outputDir, skipped, encoding)
     }
 
     /**
@@ -187,18 +181,18 @@ public final class TagLibraryIndexGenerator {
      */
     private static void recordWhatWasMissed(File outputDir, List<File> skipped, String encoding)
             throws IOException {
-        Set<String> namespaces = new TreeSet<>();
-        boolean everything = false;
-        for (File source : skipped) {
-            String namespace = declaredNamespace(source, encoding);
+        Set<String> namespaces = new TreeSet<>()
+        boolean everything = false
+        for (File source in skipped) {
+            String namespace = declaredNamespace(source, encoding)
             if (namespace != null) {
-                namespaces.add(namespace);
+                namespaces.add(namespace)
             }
             else {
-                everything = true;
+                everything = true
             }
         }
-        TagLibraryIndexWriter.writeIncomplete(outputDir, namespaces, everything);
+        TagLibraryIndexWriter.writeIncomplete(outputDir, namespaces, everything)
     }
 
     /**
@@ -215,27 +209,29 @@ public final class TagLibraryIndexGenerator {
     private static List<ClassNode> parse(List<File> sources, List<File> resolutionRoots,
             boolean parameterNamesRetained, String encoding, List<File> skippedOut) {
         try {
-            return collectClassNodes(compile(sources, resolutionRoots, parameterNamesRetained, encoding));
-        } catch (Exception wholeSourceSetFailed) {
-            List<ClassNode> classNodes = new ArrayList<>();
-            for (File source : sources) {
+            return collectClassNodes(compile(sources, resolutionRoots, parameterNamesRetained, encoding))
+        }
+        catch (Exception wholeSourceSetFailed) {
+            List<ClassNode> classNodes = new ArrayList<>()
+            for (File source in sources) {
                 try {
                     classNodes.addAll(collectClassNodes(
-                            compile(List.of(source), resolutionRoots, parameterNamesRetained, encoding)));
-                } catch (Exception singleSourceFailed) {
-                    skippedOut.add(source);
+                            compile(List.of(source), resolutionRoots, parameterNamesRetained, encoding)))
+                }
+                catch (Exception singleSourceFailed) {
+                    skippedOut.add(source)
                 }
             }
             if (!skippedOut.isEmpty()) {
-                List<String> names = new ArrayList<>();
-                for (File skipped : skippedOut) {
-                    names.add(skipped.getName());
+                List<String> names = new ArrayList<>()
+                for (File skipped in skippedOut) {
+                    names.add(skipped.getName())
                 }
-                System.out.println("Tag library index: could not read " + String.join(", ", names) +
-                        " before compilation; their tags resolve dynamically until they are compiled.");
+                System.out.println('Tag library index: could not read ' + String.join(', ', names) +
+                        ' before compilation; their tags resolve dynamically until they are compiled.')
             }
-            classNodes.sort(Comparator.comparing(ClassNode::getName));
-            return classNodes;
+            classNodes.sort(Comparator.comparing(ClassNode::getName))
+            return classNodes
         }
     }
 
@@ -256,63 +252,67 @@ public final class TagLibraryIndexGenerator {
      */
     private static String declaredNamespace(File source, String encoding) {
         try {
-            CompilerConfiguration configuration = new CompilerConfiguration();
-            configuration.setSourceEncoding(encoding);
-            CompilationUnit unit = new CompilationUnit(configuration);
-            unit.addSource(source);
+            CompilerConfiguration configuration = new CompilerConfiguration()
+            configuration.setSourceEncoding(encoding)
+            CompilationUnit unit = new CompilationUnit(configuration)
+            unit.addSource(source)
             // Conversion builds the tree and stops before resolving anything, so a type this project
             // has not compiled yet cannot make it fail.
-            unit.compile(Phases.CONVERSION);
+            unit.compile(Phases.CONVERSION)
 
-            ClassNode candidate = null;
-            for (ClassNode classNode : collectClassNodes(unit)) {
+            ClassNode candidate = null
+            for (ClassNode classNode in collectClassNodes(unit)) {
                 if (!isTagLibrary(classNode)) {
-                    continue;
+                    continue
                 }
                 if (candidate != null) {
                     // Which of them failed is not knowable, so neither is claimed.
-                    return null;
+                    return null
                 }
-                candidate = classNode;
+                candidate = classNode
             }
             if (candidate == null) {
-                return null;
+                return null
             }
 
-            FieldNode field = candidate.getDeclaredField(NAMESPACE_FIELD);
+            FieldNode field = candidate.getDeclaredField(NAMESPACE_FIELD)
             if (field == null || !field.isStatic()) {
                 // Either the default namespace or one inherited from a base class whose resolution is
                 // the very thing in doubt. Not distinguishable here, so not claimed.
-                return null;
+                return null
             }
-            if (!(field.getInitialExpression() instanceof ConstantExpression constant) ||
-                    constant.getValue() == null) {
-                return null;
+            Expression initial = field.getInitialExpression()
+            if (!(initial instanceof ConstantExpression)) {
+                return null
             }
-            String namespace = constant.getValue().toString().trim();
-            return namespace.isEmpty() ? null : namespace;
+            ConstantExpression constant = (ConstantExpression) initial
+            if (constant.getValue() == null) {
+                return null
+            }
+            String namespace = constant.getValue().toString().trim()
+            return namespace.isEmpty() ? null : namespace
         }
         catch (Exception unparseable) {
-            return null;
+            return null
         }
     }
 
     private static CompilationUnit compile(List<File> sources, List<File> resolutionRoots,
             boolean parameterNamesRetained, String encoding) {
-        CompilerConfiguration configuration = new CompilerConfiguration();
-        configuration.setParameters(parameterNamesRetained);
-        configuration.setSourceEncoding(encoding);
-        CompilationUnit unit = new CompilationUnit(configuration);
+        CompilerConfiguration configuration = new CompilerConfiguration()
+        configuration.setParameters(parameterNamesRetained)
+        configuration.setSourceEncoding(encoding)
+        CompilationUnit unit = new CompilationUnit(configuration)
         if (!resolutionRoots.isEmpty()) {
-            unit.setClassNodeResolver(new SourceRootClassNodeResolver(resolutionRoots, encoding));
+            unit.setClassNodeResolver(new SourceRootClassNodeResolver(resolutionRoots, encoding))
         }
-        for (File source : sources) {
-            unit.addSource(source);
+        for (File source in sources) {
+            unit.addSource(source)
         }
         // Canonicalization is the last phase before bytecode, by which point traits are applied and
         // annotations resolved, and it stops short of generating or loading any class.
-        unit.compile(Phases.CANONICALIZATION);
-        return unit;
+        unit.compile(Phases.CANONICALIZATION)
+        return unit
     }
 
     /**
@@ -338,42 +338,42 @@ public final class TagLibraryIndexGenerator {
      */
     private static final class SourceRootClassNodeResolver extends ClassNodeResolver {
 
-        private final List<File> roots;
-        private final String encoding;
-        private final Map<File, Set<String>> declaredClasses = new HashMap<>();
+        private final List<File> roots
+        private final String encoding
+        private final Map<File, Set<String>> declaredClasses = new HashMap<>()
 
         private SourceRootClassNodeResolver(List<File> roots, String encoding) {
-            this.roots = roots;
-            this.encoding = encoding;
+            this.roots = roots
+            this.encoding = encoding
         }
 
         @Override
-        public LookupResult resolveName(String name, CompilationUnit compilationUnit) {
-            LookupResult onTheClasspath = super.resolveName(name, compilationUnit);
+        LookupResult resolveName(String name, CompilationUnit compilationUnit) {
+            LookupResult onTheClasspath = super.resolveName(name, compilationUnit)
             if (onTheClasspath != null) {
-                return onTheClasspath;
+                return onTheClasspath
             }
-            File source = findSource(name);
+            File source = findSource(name)
             if (source == null) {
                 // Not something this project declares. Left unresolved so that resolution carries on
                 // to the next candidate a star import offers, and so that a name that is simply
                 // misspelled still fails rather than being quietly invented.
-                return null;
+                return null
             }
-            return new LookupResult(compilationUnit.addSource(source), null);
+            return new LookupResult(compilationUnit.addSource(source), null)
         }
 
         private File findSource(String name) {
-            int nested = name.indexOf('$');
-            String outermost = nested < 0 ? name : name.substring(0, nested);
-            String relativePath = outermost.replace('.', File.separatorChar) + ".groovy";
-            for (File root : roots) {
-                File candidate = new File(root, relativePath);
+            int nested = name.indexOf('$')
+            String outermost = nested < 0 ? name : name.substring(0, nested)
+            String relativePath = outermost.replace('.' as char, File.separatorChar) + '.groovy'
+            for (File root in roots) {
+                File candidate = new File(root, relativePath)
                 if (candidate.isFile()) {
-                    return nested < 0 || declares(candidate, name) ? candidate : null;
+                    return nested < 0 || declares(candidate, name) ? candidate : null
                 }
             }
-            return null;
+            return null
         }
 
         /**
@@ -381,49 +381,49 @@ public final class TagLibraryIndexGenerator {
          * stops before resolving anything, so this cannot fail on a type the source refers to.
          */
         private boolean declares(File source, String className) {
-            return declaredClasses.computeIfAbsent(source, file -> {
-                Set<String> names = new HashSet<>();
+            return declaredClasses.computeIfAbsent(source) { File file ->
+                Set<String> names = new HashSet<>()
                 try {
-                    CompilerConfiguration configuration = new CompilerConfiguration();
-                    configuration.setSourceEncoding(encoding);
-                    CompilationUnit unit = new CompilationUnit(configuration);
-                    unit.addSource(file);
-                    unit.compile(Phases.CONVERSION);
+                    CompilerConfiguration configuration = new CompilerConfiguration()
+                    configuration.setSourceEncoding(encoding)
+                    CompilationUnit unit = new CompilationUnit(configuration)
+                    unit.addSource(file)
+                    unit.compile(Phases.CONVERSION)
                     for (ClassNode classNode : collectClassNodes(unit)) {
-                        names.add(classNode.getName());
+                        names.add(classNode.getName())
                     }
                 }
-                catch (Exception unparseable) {
+                catch (Exception ignored) {
                     // Declares nothing that can be read, so the name stays unresolved.
                 }
-                return names;
-            }).contains(className);
+                return names
+            }.contains(className)
         }
     }
 
     private static List<ClassNode> collectClassNodes(CompilationUnit unit) {
-        List<ClassNode> classNodes = new ArrayList<>();
-        unit.getAST().getModules().forEach(module -> classNodes.addAll(module.getClasses()));
+        List<ClassNode> classNodes = new ArrayList<>()
+        unit.getAST().getModules().forEach(module -> classNodes.addAll(module.getClasses()))
         // Sorted so that the index is identical for identical sources regardless of the order the
         // file system enumerated them, keeping the build reproducible.
-        classNodes.sort(Comparator.comparing(ClassNode::getName));
-        return classNodes;
+        classNodes.sort(Comparator.comparing(ClassNode::getName))
+        return classNodes
     }
 
     private static boolean isTagLibrary(ClassNode classNode) {
-        for (AnnotationNode annotation : classNode.getAnnotations()) {
-            String annotationName = annotation.getClassNode().getName();
-            if (TAG_LIB_ANNOTATION.equals(annotationName)) {
-                return true;
+        for (AnnotationNode annotation in classNode.getAnnotations()) {
+            String annotationName = annotation.getClassNode().getName()
+            if (TAG_LIB_ANNOTATION == annotationName) {
+                return true
             }
-            if (ARTEFACT_ANNOTATION.equals(annotationName)) {
-                var member = annotation.getMember("value");
-                if (member != null && TAG_LIB_ARTEFACT.equals(member.getText())) {
-                    return true;
+            if (ARTEFACT_ANNOTATION == annotationName) {
+                Expression member = annotation.getMember('value')
+                if (member != null && TAG_LIB_ARTEFACT == member.getText()) {
+                    return true
                 }
             }
         }
-        return classNode.getName().endsWith(TAG_LIB_ARTEFACT);
+        return classNode.getName().endsWith(TAG_LIB_ARTEFACT)
     }
 
     /**
@@ -439,7 +439,7 @@ public final class TagLibraryIndexGenerator {
      * @return true when an application could register it
      */
     private static boolean isRegistrable(ClassNode classNode) {
-        return !classNode.isAbstract() && !classNode.isInterface();
+        return !classNode.isAbstract() && !classNode.isInterface()
     }
 
     /**
@@ -449,19 +449,20 @@ public final class TagLibraryIndexGenerator {
      */
     private static boolean wasAskedFor(ClassNode classNode, Set<String> describable) {
         if (classNode.getModule() == null || classNode.getModule().getContext() == null) {
-            return false;
+            return false
         }
-        String name = classNode.getModule().getContext().getName();
-        return name != null && describable.contains(new File(name).getAbsolutePath());
+        String name = classNode.getModule().getContext().getName()
+        return name != null && describable.contains(new File(name).getAbsolutePath())
     }
 
     private static List<File> findGroovySources(File sourceDir) throws IOException {
         try (Stream<Path> paths = Files.walk(sourceDir.toPath())) {
             return paths.filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".groovy"))
+                    .filter(path -> path.toString().endsWith('.groovy'))
                     .sorted()
                     .map(Path::toFile)
-                    .toList();
+                    .toList()
         }
     }
+
 }

@@ -16,11 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.taglib.encoder;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Stack;
+import groovy.transform.CompileStatic;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,26 +37,30 @@ import org.grails.encoder.EncodingStateRegistry;
 import org.grails.encoder.StreamingEncoder;
 import org.grails.encoder.StreamingEncoderWriter;
 
-public final class OutputEncodingStack {
-    public static final Log log = LogFactory.getLog(OutputEncodingStack.class);
+@CompileStatic
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+final class OutputEncodingStack {
 
-    private static final String ATTRIBUTE_NAME_OUTPUT_STACK = "org.grails.taglib.encoder.OUTPUT_ENCODING_STACK";
+    public static final Log log = LogFactory.getLog(OutputEncodingStack);
+
+    private static final String ATTRIBUTE_NAME_OUTPUT_STACK = 'org.grails.taglib.encoder.OUTPUT_ENCODING_STACK';
 
     private final OutputContext outputContext;
 
-    public static OutputEncodingStack currentStack() {
+    static OutputEncodingStack currentStack() {
         return currentStack(true);
     }
 
-    public static OutputEncodingStack currentStack(OutputContext outputContext) {
+    static OutputEncodingStack currentStack(OutputContext outputContext) {
         return currentStack(outputContext, true);
     }
 
-    public static OutputEncodingStack currentStack(boolean allowCreate) {
+    static OutputEncodingStack currentStack(boolean allowCreate) {
         return currentStack(OutputContextLookupHelper.lookupOutputContext(), allowCreate);
     }
 
-    public static OutputEncodingStack currentStack(OutputContext outputContext, boolean allowCreate) {
+    static OutputEncodingStack currentStack(OutputContext outputContext, boolean allowCreate) {
         OutputEncodingStack outputStack = lookupStack(outputContext);
         if (outputStack == null && allowCreate) {
             outputStack = currentStack(outputContext, allowCreate, null, allowCreate, false);
@@ -65,15 +68,17 @@ public final class OutputEncodingStack {
         return outputStack;
     }
 
-    public static OutputEncodingStack currentStack(boolean allowCreate, Writer topWriter, boolean autoSync, boolean pushTop) {
+    static OutputEncodingStack currentStack(boolean allowCreate, Writer topWriter, boolean autoSync, boolean pushTop) {
         return currentStack(OutputContextLookupHelper.lookupOutputContext(), allowCreate, topWriter, autoSync, pushTop);
     }
 
-    public static OutputEncodingStack currentStack(OutputContext outputContext, boolean allowCreate, Writer topWriter, boolean autoSync, boolean pushTop) {
-        return currentStack(new OutputEncodingStackAttributes.Builder().outputContext(outputContext).allowCreate(allowCreate).topWriter(topWriter).autoSync(autoSync).pushTop(pushTop).build());
+    static OutputEncodingStack currentStack(OutputContext outputContext, boolean allowCreate, Writer topWriter,
+            boolean autoSync, boolean pushTop) {
+        return currentStack(new OutputEncodingStackAttributes.Builder().outputContext(outputContext)
+                .allowCreate(allowCreate).topWriter(topWriter).autoSync(autoSync).pushTop(pushTop).build());
     }
 
-    public static OutputEncodingStack currentStack(OutputEncodingStackAttributes attributes) {
+    static OutputEncodingStack currentStack(OutputEncodingStackAttributes attributes) {
         OutputEncodingStack outputStack = lookupStack(attributes.getOutputContext());
         if (outputStack != null) {
             if (attributes.isPushTop()) {
@@ -89,12 +94,13 @@ public final class OutputEncodingStack {
         return null;
     }
 
-    private static final OutputEncodingStack createNew(OutputEncodingStackAttributes attributes) {
-        if (attributes.getTopWriter() == null) {
-            attributes = new OutputEncodingStackAttributes.Builder(attributes).topWriter(lookupCurrentWriter(attributes.getOutputContext())).build();
+    private static OutputEncodingStack createNew(OutputEncodingStackAttributes attributes) {
+        OutputEncodingStackAttributes attrs = attributes;
+        if (attrs.getTopWriter() == null) {
+            attrs = new OutputEncodingStackAttributes.Builder(attrs).topWriter(lookupCurrentWriter(attrs.getOutputContext())).build();
         }
-        OutputEncodingStack instance = new OutputEncodingStack(attributes);
-        attributes.getOutputContext().setCurrentOutputEncodingStack(instance);
+        OutputEncodingStack instance = new OutputEncodingStack(attrs);
+        attrs.getOutputContext().setCurrentOutputEncodingStack(instance);
         return instance;
     }
 
@@ -103,7 +109,7 @@ public final class OutputEncodingStack {
         return outputStack;
     }
 
-    public static final Writer currentWriter() {
+    static final Writer currentWriter() {
         OutputEncodingStack outputStack = currentStack(false);
         if (outputStack != null) {
             return outputStack.getOutWriter();
@@ -148,7 +154,7 @@ public final class OutputEncodingStack {
         }
 
         @Override
-        public StackEntry clone() {
+        StackEntry clone() {
             StackEntry newEntry = new StackEntry(originalTarget, unwrappedTarget);
             newEntry.staticEncoder = staticEncoder;
             newEntry.outEncoder = outEncoder;
@@ -160,6 +166,7 @@ public final class OutputEncodingStack {
     }
 
     static class OutputProxyWriterGroup {
+
         OutputProxyWriter activeWriter;
 
         void reset() {
@@ -178,9 +185,11 @@ public final class OutputEncodingStack {
                 activeWriter.flush();
             }
         }
+
     }
 
-    public class OutputProxyWriter extends GrailsLazyProxyPrintWriter implements EncodedAppenderFactory, EncoderAware {
+    class OutputProxyWriter extends GrailsLazyProxyPrintWriter implements EncodedAppenderFactory, EncoderAware {
+
         OutputProxyWriterGroup writerGroup;
 
         OutputProxyWriter(OutputProxyWriterGroup writerGroup, DestinationFactory factory) {
@@ -188,64 +197,76 @@ public final class OutputEncodingStack {
             this.writerGroup = writerGroup;
         }
 
-        public OutputEncodingStack getOutputStack() {
+        OutputEncodingStack getOutputStack() {
             return OutputEncodingStack.this;
         }
 
         @Override
-        public Writer getOut() {
+        Writer getOut() {
             writerGroup.activateWriter(this);
             return super.getOut();
         }
 
         @Override
-        public EncodedAppender getEncodedAppender() {
+        EncodedAppender getEncodedAppender() {
             Writer out = getOut();
             if (out instanceof EncodedAppenderFactory) {
                 return ((EncodedAppenderFactory) out).getEncodedAppender();
-            } else if (out instanceof EncodedAppender) {
+            }
+            else if (out instanceof EncodedAppender) {
                 return (EncodedAppender) getOut();
-            } else {
+            }
+            else {
                 return null;
             }
         }
 
         @Override
-        public Encoder getEncoder() {
+        Encoder getEncoder() {
             Writer out = getOut();
             if (out instanceof EncoderAware) {
                 return ((EncoderAware) out).getEncoder();
             }
             return null;
         }
+
     }
 
     private OutputEncodingStack(OutputEncodingStackAttributes attributes) {
         outWriter = new OutputProxyWriter(writerGroup, new DestinationFactory() {
-            public Writer activateDestination() throws IOException {
-                StackEntry stackEntry = stack.peek();
-                return createEncodingWriter(stackEntry.unwrappedTarget, stackEntry.outEncoder, encodingStateRegistry, OutputEncodingSettings.OUT_CODEC_NAME);
+            @Override
+            Writer activateDestination() throws IOException {
+                StackEntry stackEntry = OutputEncodingStack.this.@stack.peek();
+                return OutputEncodingStack.this.createEncodingWriter(stackEntry.unwrappedTarget, stackEntry.outEncoder,
+                        OutputEncodingStack.this.@encodingStateRegistry, OutputEncodingSettings.OUT_CODEC_NAME);
             }
         });
         staticWriter = new OutputProxyWriter(writerGroup, new DestinationFactory() {
-            public Writer activateDestination() throws IOException {
-                StackEntry stackEntry = stack.peek();
+            @Override
+            Writer activateDestination() throws IOException {
+                StackEntry stackEntry = OutputEncodingStack.this.@stack.peek();
                 if (stackEntry.staticEncoder == null) {
                     return stackEntry.unwrappedTarget;
                 }
-                return createEncodingWriter(stackEntry.unwrappedTarget, stackEntry.staticEncoder, encodingStateRegistry, OutputEncodingSettings.STATIC_CODEC_NAME);
+                return OutputEncodingStack.this.createEncodingWriter(stackEntry.unwrappedTarget, stackEntry.staticEncoder,
+                        OutputEncodingStack.this.@encodingStateRegistry, OutputEncodingSettings.STATIC_CODEC_NAME);
             }
         });
         expressionWriter = new OutputProxyWriter(writerGroup, new DestinationFactory() {
-            public Writer activateDestination() throws IOException {
-                StackEntry stackEntry = stack.peek();
-                return createEncodingWriter(stackEntry.unwrappedTarget, stackEntry.expressionEncoder, encodingStateRegistry, OutputEncodingSettings.EXPRESSION_CODEC_NAME);
+            @Override
+            Writer activateDestination() throws IOException {
+                StackEntry stackEntry = OutputEncodingStack.this.@stack.peek();
+                return OutputEncodingStack.this.createEncodingWriter(stackEntry.unwrappedTarget, stackEntry.expressionEncoder,
+                        OutputEncodingStack.this.@encodingStateRegistry, OutputEncodingSettings.EXPRESSION_CODEC_NAME);
             }
         });
         taglibWriter = new OutputProxyWriter(writerGroup, new DestinationFactory() {
-            public Writer activateDestination() throws IOException {
-                StackEntry stackEntry = stack.peek();
-                return createEncodingWriter(stackEntry.unwrappedTarget, stackEntry.taglibEncoder != null ? stackEntry.taglibEncoder : stackEntry.defaultTaglibEncoder, encodingStateRegistry, OutputEncodingSettings.TAGLIB_CODEC_NAME);
+            @Override
+            Writer activateDestination() throws IOException {
+                StackEntry stackEntry = OutputEncodingStack.this.@stack.peek();
+                return OutputEncodingStack.this.createEncodingWriter(stackEntry.unwrappedTarget,
+                        stackEntry.taglibEncoder != null ? stackEntry.taglibEncoder : stackEntry.defaultTaglibEncoder,
+                        OutputEncodingStack.this.@encodingStateRegistry, OutputEncodingSettings.TAGLIB_CODEC_NAME);
             }
         });
         this.autoSync = attributes.isAutoSync();
@@ -264,22 +285,22 @@ public final class OutputEncodingStack {
         return targetWriter;
     }
 
-    public void push(final Writer newWriter) {
+    void push(Writer newWriter) {
         push(newWriter, false);
     }
 
-    public void push(final Writer newWriter, final boolean checkExisting) {
+    void push(Writer newWriter, boolean checkExisting) {
         OutputEncodingStackAttributes.Builder attributesBuilder = new OutputEncodingStackAttributes.Builder();
         attributesBuilder.inheritPreviousEncoders(true);
         attributesBuilder.topWriter(newWriter);
         push(attributesBuilder.build(), checkExisting);
     }
 
-    public void push(final OutputEncodingStackAttributes attributes) {
+    void push(OutputEncodingStackAttributes attributes) {
         push(attributes, false);
     }
 
-    public void push(final OutputEncodingStackAttributes attributes, final boolean checkExisting) {
+    void push(OutputEncodingStackAttributes attributes, boolean checkExisting) {
         writerGroup.reset();
 
         if (checkExisting) checkExistingStack(attributes.getTopWriter());
@@ -296,19 +317,31 @@ public final class OutputEncodingStack {
                 topWriter = ((OutputProxyWriter) topWriter).getOut();
             }
             unwrappedWriter = unwrapTargetWriter(topWriter);
-        } else if (previousStackEntry != null) {
+        }
+        else if (previousStackEntry != null) {
             topWriter = previousStackEntry.originalTarget;
             unwrappedWriter = previousStackEntry.unwrappedTarget;
-        } else {
-            throw new NullPointerException("attributes.getTopWriter() is null and there is no previous stack item");
+        }
+        else {
+            throw new NullPointerException('attributes.getTopWriter() is null and there is no previous stack item');
         }
 
         StackEntry stackEntry = new StackEntry(topWriter, unwrappedWriter);
-        stackEntry.outEncoder = applyEncoder(attributes.getOutEncoder(), previousStackEntry != null ? previousStackEntry.outEncoder : null, attributes.isInheritPreviousEncoders(), attributes.isReplaceOnly());
-        stackEntry.staticEncoder = applyEncoder(attributes.getStaticEncoder(), previousStackEntry != null ? previousStackEntry.staticEncoder : null, attributes.isInheritPreviousEncoders(), attributes.isReplaceOnly());
-        stackEntry.expressionEncoder = applyEncoder(attributes.getExpressionEncoder(), previousStackEntry != null ? previousStackEntry.expressionEncoder : null, attributes.isInheritPreviousEncoders(), attributes.isReplaceOnly());
-        stackEntry.taglibEncoder = applyEncoder(attributes.getTaglibEncoder(), previousStackEntry != null ? previousStackEntry.taglibEncoder : null, attributes.isInheritPreviousEncoders(), attributes.isReplaceOnly());
-        stackEntry.defaultTaglibEncoder = applyEncoder(attributes.getDefaultTaglibEncoder(), previousStackEntry != null ? previousStackEntry.defaultTaglibEncoder : null, attributes.isInheritPreviousEncoders(), attributes.isReplaceOnly());
+        stackEntry.outEncoder = applyEncoder(attributes.getOutEncoder(),
+                previousStackEntry != null ? previousStackEntry.outEncoder : null,
+                attributes.isInheritPreviousEncoders(), attributes.isReplaceOnly());
+        stackEntry.staticEncoder = applyEncoder(attributes.getStaticEncoder(),
+                previousStackEntry != null ? previousStackEntry.staticEncoder : null,
+                attributes.isInheritPreviousEncoders(), attributes.isReplaceOnly());
+        stackEntry.expressionEncoder = applyEncoder(attributes.getExpressionEncoder(),
+                previousStackEntry != null ? previousStackEntry.expressionEncoder : null,
+                attributes.isInheritPreviousEncoders(), attributes.isReplaceOnly());
+        stackEntry.taglibEncoder = applyEncoder(attributes.getTaglibEncoder(),
+                previousStackEntry != null ? previousStackEntry.taglibEncoder : null,
+                attributes.isInheritPreviousEncoders(), attributes.isReplaceOnly());
+        stackEntry.defaultTaglibEncoder = applyEncoder(attributes.getDefaultTaglibEncoder(),
+                previousStackEntry != null ? previousStackEntry.defaultTaglibEncoder : null,
+                attributes.isInheritPreviousEncoders(), attributes.isReplaceOnly());
 
         stack.push(stackEntry);
 
@@ -329,11 +362,11 @@ public final class OutputEncodingStack {
         return null;
     }
 
-    private void checkExistingStack(final Writer topWriter) {
+    private void checkExistingStack(Writer topWriter) {
         if (topWriter != null) {
-            for (StackEntry item : stack) {
-                if (item.originalTarget == topWriter) {
-                    log.warn("Pushed a writer to stack a second time. Writer type " +
+            for (StackEntry item in stack) {
+                if (item.originalTarget.is(topWriter)) {
+                    log.warn('Pushed a writer to stack a second time. Writer type ' +
                             topWriter.getClass().getName(), new Exception());
                 }
             }
@@ -351,19 +384,21 @@ public final class OutputEncodingStack {
         Writer encodingWriter;
         if (out instanceof EncodedAppenderWriterFactory) {
             encodingWriter = ((EncodedAppenderWriterFactory) out).getWriterForEncoder(encoder, encodingStateRegistry);
-        } else if (encoder instanceof StreamingEncoder) {
+        }
+        else if (encoder instanceof StreamingEncoder) {
             encodingWriter = new StreamingEncoderWriter(out, (StreamingEncoder) encoder, encodingStateRegistry);
-        } else {
+        }
+        else {
             encodingWriter = new CodecPrintWriter(out, encoder, encodingStateRegistry);
         }
         return encodingWriter;
     }
 
-    public void pop() {
+    void pop() {
         pop(autoSync);
     }
 
-    public void pop(boolean forceSync) {
+    void pop(boolean forceSync) {
         writerGroup.reset();
         stack.pop();
         resetWriters();
@@ -375,47 +410,47 @@ public final class OutputEncodingStack {
         }
     }
 
-    public OutputProxyWriter getOutWriter() {
+    OutputProxyWriter getOutWriter() {
         return outWriter;
     }
 
-    public OutputProxyWriter getStaticWriter() {
+    OutputProxyWriter getStaticWriter() {
         return staticWriter;
     }
 
-    public OutputProxyWriter getExpressionWriter() {
+    OutputProxyWriter getExpressionWriter() {
         return expressionWriter;
     }
 
-    public OutputProxyWriter getTaglibWriter() {
+    OutputProxyWriter getTaglibWriter() {
         return taglibWriter;
     }
 
-    public Encoder getOutEncoder() {
+    Encoder getOutEncoder() {
         return stack.size() > 0 ? stack.peek().outEncoder : null;
     }
 
-    public Encoder getStaticEncoder() {
+    Encoder getStaticEncoder() {
         return stack.size() > 0 ? stack.peek().staticEncoder : null;
     }
 
-    public Encoder getExpressionEncoder() {
+    Encoder getExpressionEncoder() {
         return stack.size() > 0 ? stack.peek().expressionEncoder : null;
     }
 
-    public Encoder getTaglibEncoder() {
+    Encoder getTaglibEncoder() {
         return stack.size() > 0 ? stack.peek().taglibEncoder : null;
     }
 
-    public Encoder getDefaultTaglibEncoder() {
+    Encoder getDefaultTaglibEncoder() {
         return stack.size() > 0 ? stack.peek().defaultTaglibEncoder : null;
     }
 
-    public Writer getCurrentOriginalWriter() {
+    Writer getCurrentOriginalWriter() {
         return stack.peek().originalTarget;
     }
 
-    public void restoreThreadLocalsToOriginals() {
+    void restoreThreadLocalsToOriginals() {
         Writer originalTopWriter = stack.firstElement().originalTarget;
         applyWriterThreadLocals(originalTopWriter);
     }
@@ -426,11 +461,12 @@ public final class OutputEncodingStack {
         }
     }
 
-    public void flushActiveWriter() {
+    void flushActiveWriter() {
         writerGroup.flushActive();
     }
 
-    public OutputContext getOutputContext() {
+    OutputContext getOutputContext() {
         return outputContext;
     }
+
 }

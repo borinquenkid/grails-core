@@ -16,37 +16,36 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib.encoder;
+package org.grails.taglib.encoder
 
-import java.io.Writer;
-
-import grails.core.GrailsApplication;
-import org.grails.encoder.EncodingStateRegistry;
-import org.grails.taglib.AbstractTemplateVariableBinding;
+import grails.core.GrailsApplication
+import org.grails.encoder.EncodingStateRegistry
+import org.grails.taglib.AbstractTemplateVariableBinding
 
 /**
  * Created by lari on 02/01/15.
  */
-public interface OutputContext {
-    EncodingStateRegistry getEncodingStateRegistry();
+interface OutputContext {
 
-    OutputEncodingStack getCurrentOutputEncodingStack();
+    EncodingStateRegistry getEncodingStateRegistry()
 
-    void setCurrentOutputEncodingStack(OutputEncodingStack outputEncodingStack);
+    OutputEncodingStack getCurrentOutputEncodingStack()
 
-    Writer getCurrentWriter();
+    void setCurrentOutputEncodingStack(OutputEncodingStack outputEncodingStack)
 
-    void setCurrentWriter(Writer writer);
+    Writer getCurrentWriter()
 
-    AbstractTemplateVariableBinding createAndRegisterRootBinding();
+    void setCurrentWriter(Writer writer)
 
-    AbstractTemplateVariableBinding getBinding();
+    AbstractTemplateVariableBinding createAndRegisterRootBinding()
 
-    void setBinding(AbstractTemplateVariableBinding binding);
+    AbstractTemplateVariableBinding getBinding()
 
-    GrailsApplication getGrailsApplication();
+    void setBinding(AbstractTemplateVariableBinding binding)
 
-    void setContentType(String contentType);
+    GrailsApplication getGrailsApplication()
 
-    boolean isContentTypeAlreadySet();
+    void setContentType(String contentType)
+
+    boolean isContentTypeAlreadySet()
 }

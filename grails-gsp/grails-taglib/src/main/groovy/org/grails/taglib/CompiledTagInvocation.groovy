@@ -16,17 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.taglib;
+package org.grails.taglib
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import groovy.transform.CompileStatic
 
-import groovy.lang.Closure;
-import groovy.lang.MissingMethodException;
-
-import org.grails.taglib.encoder.OutputContext;
-import org.grails.taglib.encoder.OutputContextLookupHelper;
+import org.grails.taglib.encoder.OutputContext
+import org.grails.taglib.encoder.OutputContextLookupHelper
 
 /**
  * Invokes a tag whose namespace and name are known without going through Groovy's method dispatch.
@@ -43,9 +38,10 @@ import org.grails.taglib.encoder.OutputContextLookupHelper;
  *
  * @since 8.0.0
  */
-public final class CompiledTagInvocation {
+@CompileStatic
+final class CompiledTagInvocation {
 
-    private static final Object[] EMPTY_ARGUMENTS = new Object[0];
+    private static final Object[] EMPTY_ARGUMENTS = new Object[0]
 
     private CompiledTagInvocation() {
     }
@@ -60,10 +56,10 @@ public final class CompiledTagInvocation {
      * @param body the tag body as a closure or as text, or {@code null} when there is none
      * @return whatever the tag produces, which for a tag that writes to the output is its output
      */
-    public static Object invoke(TagLibraryLookup lookup, String namespace, String tagName,
+    static Object invoke(TagLibraryLookup lookup, String namespace, String tagName,
             Map<?, ?> attrs, Object body) {
         return invoke(lookup, namespace, tagName, attrs, body,
-                OutputContextLookupHelper.lookupOutputContext());
+                OutputContextLookupHelper.lookupOutputContext())
     }
 
     /**
@@ -77,20 +73,20 @@ public final class CompiledTagInvocation {
      * @param outputContext where the tag writes
      * @return whatever the tag produces
      */
-    public static Object invoke(TagLibraryLookup lookup, String namespace, String tagName,
+    static Object invoke(TagLibraryLookup lookup, String namespace, String tagName,
             Map<?, ?> attrs, Object body, OutputContext outputContext) {
         if (lookup == null) {
-            throw new GrailsTagException("Tag [" + tagName + "] cannot be invoked without a tag library lookup");
+            throw new GrailsTagException("Tag [$tagName] cannot be invoked without a tag library lookup")
         }
-        Map<?, ?> attributes = attrs != null ? attrs : Collections.emptyMap();
+        Map<?, ?> attributes = attrs != null ? attrs : Collections.emptyMap()
         // A body may be a closure or the text a caller wrote directly, which the dynamic path accepted
         // through overloads that wrapped the text. Narrowing this to Closure would turn a string body
         // into a cast failure.
-        Object tagBody = body instanceof CharSequence ? new TagOutput.ConstantClosure((CharSequence) body) : body;
+        Object tagBody = body instanceof CharSequence ? new TagOutput.ConstantClosure((CharSequence) body) : body
         if (lookup.lookupTagLibrary(namespace, tagName) == null) {
-            return dispatchUnregistered(lookup, namespace, tagName, attributes, tagBody);
+            return dispatchUnregistered(lookup, namespace, tagName, attributes, tagBody)
         }
-        return TagOutput.captureTagOutput(lookup, namespace, tagName, attributes, tagBody, outputContext);
+        return TagOutput.captureTagOutput(lookup, namespace, tagName, attributes, tagBody, outputContext)
     }
 
     /**
@@ -107,17 +103,17 @@ public final class CompiledTagInvocation {
      */
     private static Object dispatchUnregistered(TagLibraryLookup lookup, String namespace, String tagName,
             Map<?, ?> attrs, Object body) {
-        Object[] arguments;
+        Object[] arguments
         if (body != null) {
-            arguments = new Object[] {attrs, body};
+            arguments = [attrs, body] as Object[]
         }
         else if (!attrs.isEmpty()) {
-            arguments = new Object[] {attrs};
+            arguments = [attrs] as Object[]
         }
         else {
-            arguments = EMPTY_ARGUMENTS;
+            arguments = EMPTY_ARGUMENTS
         }
-        return dispatchDynamically(lookup, namespace, tagName, arguments);
+        return dispatchDynamically(lookup, namespace, tagName, arguments)
     }
 
     /**
@@ -125,11 +121,11 @@ public final class CompiledTagInvocation {
      */
     private static Object dispatchDynamically(TagLibraryLookup lookup, String namespace, String tagName,
             Object[] arguments) {
-        NamespacedTagDispatcher dispatcher = lookup.lookupNamespaceDispatcher(namespace);
+        NamespacedTagDispatcher dispatcher = lookup.lookupNamespaceDispatcher(namespace)
         if (dispatcher == null) {
-            throw new MissingMethodException(tagName, CompiledTagInvocation.class, arguments);
+            throw new MissingMethodException(tagName, CompiledTagInvocation, arguments)
         }
-        return dispatcher.invokeMethod(tagName, arguments);
+        return dispatcher.invokeMethod(tagName, arguments)
     }
 
     /**
@@ -137,11 +133,15 @@ public final class CompiledTagInvocation {
      *         {@code TagLibraryMetaUtils.matchesTagShape} asks of a call it is about to dispatch
      */
     private static boolean matchesTagShape(Object[] arguments) {
-        return switch (arguments.length) {
-            case 0, 1 -> true;
-            case 2 -> arguments[0] instanceof Map<?, ?>;
-            default -> false;
-        };
+        switch (arguments.length) {
+            case 0:
+            case 1:
+                return true
+            case 2:
+                return arguments[0] instanceof Map<?, ?>
+            default:
+                return false
+        }
     }
 
     /**
@@ -158,10 +158,10 @@ public final class CompiledTagInvocation {
      * @param args the evaluated arguments, in the order they were written
      * @return whatever the tag produces
      */
-    public static Object invokeArguments(TagLibraryLookup lookup, String namespace, String tagName,
+    static Object invokeArguments(TagLibraryLookup lookup, String namespace, String tagName,
             Object... args) {
         return invokeArgumentsInContext(lookup, namespace, tagName,
-                OutputContextLookupHelper.lookupOutputContext(), args);
+                OutputContextLookupHelper.lookupOutputContext(), args)
     }
 
     /**
@@ -174,42 +174,42 @@ public final class CompiledTagInvocation {
      * @param args the evaluated arguments, in the order they were written
      * @return whatever the tag produces
      */
-    public static Object invokeArgumentsInContext(TagLibraryLookup lookup, String namespace,
+    static Object invokeArgumentsInContext(TagLibraryLookup lookup, String namespace,
             String tagName, OutputContext outputContext, Object... args) {
-        Object[] arguments = args != null ? args : EMPTY_ARGUMENTS;
+        Object[] arguments = args != null ? args : EMPTY_ARGUMENTS
         if (!matchesTagShape(arguments)) {
             // Not a shape a tag call takes. The dynamic path declines these and resolves the name as
             // an ordinary method -- an overload of the same name, or a missing method -- so reaching
             // the tag with no attributes and no body would run it where that would not have.
-            return dispatchDynamically(lookup, namespace, tagName, arguments);
+            return dispatchDynamically(lookup, namespace, tagName, arguments)
         }
-        Map<?, ?> attrs = Collections.emptyMap();
-        Object body = null;
+        Map<?, ?> attrs = Collections.emptyMap()
+        Object body = null
         // The same shapes, in the same order, as the dynamic dispatch in
         // TagLibraryMetaUtils.methodMissingForTagLib reads them.
         switch (arguments.length) {
             case 0:
-                break;
+                break
             case 1:
-                if (arguments[0] instanceof Map<?, ?> map) {
-                    attrs = map;
+                if (arguments[0] instanceof Map<?, ?>) {
+                    attrs = (Map<?, ?>) arguments[0]
                 }
                 else if (arguments[0] instanceof Closure || arguments[0] instanceof CharSequence) {
-                    body = arguments[0];
+                    body = arguments[0]
                 }
                 else {
-                    Map<String, Object> named = new LinkedHashMap<>(1);
-                    named.put(tagName, arguments[0]);
-                    attrs = named;
+                    Map<String, Object> named = new LinkedHashMap<>(1)
+                    named.put(tagName, arguments[0])
+                    attrs = named
                 }
-                break;
+                break
             case 2:
-                attrs = (Map<?, ?>) arguments[0];
-                body = arguments[1];
-                break;
+                attrs = (Map<?, ?>) arguments[0]
+                body = arguments[1]
+                break
             default:
-                break;
+                break
         }
-        return invoke(lookup, namespace, tagName, attrs, body, outputContext);
+        return invoke(lookup, namespace, tagName, attrs, body, outputContext)
     }
 }
