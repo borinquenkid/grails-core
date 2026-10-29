@@ -16,9 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.servlet.view;
+package org.grails.web.servlet.view
 
-import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.ViewResolver
 
 /**
  * A ViewResolver for resolving layouts
@@ -26,6 +26,8 @@ import org.springframework.web.servlet.ViewResolver;
  * @author Lari Hotari
  * @since 2.4
  */
-public interface LayoutViewResolver extends GrailsViewResolver {
-    ViewResolver getInnerViewResolver();
+interface LayoutViewResolver extends GrailsViewResolver {
+
+    ViewResolver getInnerViewResolver()
+
 }

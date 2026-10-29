@@ -2,9 +2,7 @@
 Public Domain.
 */
 
-package org.grails.web.json;
-
-import groovy.lang.Writable;
+package org.grails.web.json
 
 /**
  * Base interface for all valid JSON Elements
@@ -12,6 +10,8 @@ import groovy.lang.Writable;
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-public interface JSONElement extends Writable {
+interface JSONElement extends Writable {
+
     // empty
+
 }

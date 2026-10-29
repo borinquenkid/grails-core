@@ -16,18 +16,16 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.util;
+package org.grails.web.util
 
-import java.util.Locale;
-import java.util.Set;
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequestWrapper
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletRequestWrapper;
+import groovy.transform.CompileStatic
+import org.springframework.core.env.PropertyResolver
+import org.springframework.http.HttpMethod
 
-import org.springframework.core.env.PropertyResolver;
-import org.springframework.http.HttpMethod;
-
-import grails.config.Settings;
+import grails.config.Settings
 
 /**
  * Resolves the hidden HTTP method override a browser form requests through a {@code _method} parameter.
@@ -40,26 +38,27 @@ import grails.config.Settings;
  *
  * @since 8.0
  */
-public final class HiddenHttpMethod {
+@CompileStatic
+final class HiddenHttpMethod {
 
     /** Default method parameter: <code>_method</code> */
-    public static final String DEFAULT_METHOD_PARAM = "_method";
+    public static final String DEFAULT_METHOD_PARAM = '_method'
 
     /** Spring Boot's equivalent of {@link Settings#WEB_HIDDEN_METHOD_FILTER_ENABLED}, also false by default. */
-    public static final String SPRING_FILTER_ENABLED = "spring.mvc.hiddenmethod.filter.enabled";
+    public static final String SPRING_FILTER_ENABLED = 'spring.mvc.hiddenmethod.filter.enabled'
 
     /**
      * Request attribute carrying the method a request asked to be treated as, published by the dispatcher
      * when it resolves an override.
      */
-    public static final String OVERRIDDEN_METHOD_ATTRIBUTE = HiddenHttpMethod.class.getName() + ".METHOD";
+    public static final String OVERRIDDEN_METHOD_ATTRIBUTE = HiddenHttpMethod.getName() + '.METHOD'
 
     /**
      * The only methods a form may ask for: the three a browser cannot submit itself. Matches the set
      * Spring's own {@code HiddenHttpMethodFilter} permits, so a POST can never be turned into a GET.
      */
     private static final Set<String> OVERRIDABLE_METHODS =
-            Set.of(HttpMethod.PUT.name(), HttpMethod.PATCH.name(), HttpMethod.DELETE.name());
+            Set.of(HttpMethod.PUT.name(), HttpMethod.PATCH.name(), HttpMethod.DELETE.name())
 
     private HiddenHttpMethod() {
     }
@@ -74,9 +73,9 @@ public final class HiddenHttpMethod {
      * @param properties the environment or configuration to read
      * @return true when a servlet filter performs the override
      */
-    public static boolean isServletFilterMode(PropertyResolver properties) {
-        return properties.getProperty(Settings.WEB_HIDDEN_METHOD_FILTER_ENABLED, Boolean.class, Boolean.FALSE) ||
-                properties.getProperty(SPRING_FILTER_ENABLED, Boolean.class, Boolean.FALSE);
+    static boolean isServletFilterMode(PropertyResolver properties) {
+        return properties.getProperty(Settings.WEB_HIDDEN_METHOD_FILTER_ENABLED, Boolean, Boolean.FALSE) ||
+                properties.getProperty(SPRING_FILTER_ENABLED, Boolean, Boolean.FALSE)
     }
 
     /**
@@ -91,9 +90,12 @@ public final class HiddenHttpMethod {
      * @param request the current request
      * @return the effective method name, never {@code null}
      */
-    public static String effectiveMethod(HttpServletRequest request) {
-        Object overridden = request.getAttribute(OVERRIDDEN_METHOD_ATTRIBUTE);
-        return overridden instanceof String method ? method : request.getMethod();
+    static String effectiveMethod(HttpServletRequest request) {
+        Object overridden = request.getAttribute(OVERRIDDEN_METHOD_ATTRIBUTE)
+        if (overridden instanceof String) {
+            return (String) overridden
+        }
+        return request.getMethod()
     }
 
     /**
@@ -103,16 +105,16 @@ public final class HiddenHttpMethod {
      * @param request the current request
      * @return the overriding method name in upper case, or {@code null}
      */
-    public static String resolveOverride(HttpServletRequest request) {
+    static String resolveOverride(HttpServletRequest request) {
         if (!HttpMethod.POST.name().equalsIgnoreCase(request.getMethod())) {
-            return null;
+            return null
         }
-        String requested = request.getParameter(DEFAULT_METHOD_PARAM);
+        String requested = request.getParameter(DEFAULT_METHOD_PARAM)
         if (requested == null || requested.isBlank()) {
-            return null;
+            return null
         }
-        String candidate = requested.toUpperCase(Locale.ROOT);
-        return OVERRIDABLE_METHODS.contains(candidate) ? candidate : null;
+        String candidate = requested.toUpperCase(Locale.ROOT)
+        return OVERRIDABLE_METHODS.contains(candidate) ? candidate : null
     }
 
     /**
@@ -123,22 +125,22 @@ public final class HiddenHttpMethod {
      * @param request the request to wrap
      * @return the wrapped request
      */
-    public static HttpServletRequest wrap(String method, HttpServletRequest request) {
-        return new HttpMethodRequestWrapper(method, request);
+    static HttpServletRequest wrap(String method, HttpServletRequest request) {
+        return new HttpMethodRequestWrapper(method, request)
     }
 
     private static final class HttpMethodRequestWrapper extends HttpServletRequestWrapper {
 
-        private final String method;
+        private final String method
 
         private HttpMethodRequestWrapper(String method, HttpServletRequest request) {
-            super(request);
-            this.method = method;
+            super(request)
+            this.method = method
         }
 
         @Override
-        public String getMethod() {
-            return this.method;
+        String getMethod() {
+            return this.method
         }
     }
 }

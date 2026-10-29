@@ -16,82 +16,80 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.pages;
+package org.grails.web.pages
 
-import java.lang.reflect.InvocationTargetException;
+import groovy.lang.GroovyClassLoader
+import groovy.lang.GroovyObject
+import groovy.lang.GroovyObjectSupport
+import org.junit.jupiter.api.Test
 
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyObject;
-import groovy.lang.GroovyObjectSupport;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.assertNull
 
 /**
  * @author Graeme Rocher
  * @since 1.0
  */
-public class GroovyPagesUriSupportTests {
+class GroovyPagesUriSupportTests {
 
     @Test
-    public void testGetLogicalControllerNameWithNonController() {
-        GroovyPagesUriSupport uriSupport = new DefaultGroovyPagesUriService();
+    void testGetLogicalControllerNameWithNonController() {
+        GroovyPagesUriSupport uriSupport = new DefaultGroovyPagesUriService()
 
-        assertNull(uriSupport.getLogicalControllerName(new FooInterceptor()));
+        assertNull(uriSupport.getLogicalControllerName(new FooInterceptor()))
     }
 
     @Test
-    public void testGetViewURI() {
-        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport();
-        assertEquals("/foo/bar.gsp", uriSupport.getViewURI("foo", "bar"));
-        assertEquals("/bar/foo.gsp", uriSupport.getViewURI("foo", "/bar/foo"));
-        assertEquals("/foo/bar/foo.gsp", uriSupport.getViewURI("foo", "bar/foo"));
+    void testGetViewURI() {
+        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport()
+        assertEquals('/foo/bar.gsp', uriSupport.getViewURI('foo', 'bar'))
+        assertEquals('/bar/foo.gsp', uriSupport.getViewURI('foo', '/bar/foo'))
+        assertEquals('/foo/bar/foo.gsp', uriSupport.getViewURI('foo', 'bar/foo'))
     }
 
     @Test
-    public void testNoSuffxGetViewURI() {
-        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport();
-        assertEquals("/foo/bar", uriSupport.getNoSuffixViewURI("foo", "bar"));
-        assertEquals("/bar/foo", uriSupport.getNoSuffixViewURI("foo", "/bar/foo"));
-        assertEquals("/foo/bar/foo", uriSupport.getNoSuffixViewURI("foo", "bar/foo"));
+    void testNoSuffxGetViewURI() {
+        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport()
+        assertEquals('/foo/bar', uriSupport.getNoSuffixViewURI('foo', 'bar'))
+        assertEquals('/bar/foo', uriSupport.getNoSuffixViewURI('foo', '/bar/foo'))
+        assertEquals('/foo/bar/foo', uriSupport.getNoSuffixViewURI('foo', 'bar/foo'))
     }
 
     @Test
-    public void testGetTemplateURI() {
-        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport();
-        assertEquals("/foo/_bar.gsp", uriSupport.getTemplateURI("foo", "bar"));
-        assertEquals("/_bar.gsp", uriSupport.getTemplateURI("foo", "../bar"));
-        assertEquals("/bar/_foo.gsp", uriSupport.getTemplateURI("foo", "/bar/foo"));
-        assertEquals("/foo/bar/_foo.gsp", uriSupport.getTemplateURI("foo", "bar/foo"));
+    void testGetTemplateURI() {
+        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport()
+        assertEquals('/foo/_bar.gsp', uriSupport.getTemplateURI('foo', 'bar'))
+        assertEquals('/_bar.gsp', uriSupport.getTemplateURI('foo', '../bar'))
+        assertEquals('/bar/_foo.gsp', uriSupport.getTemplateURI('foo', '/bar/foo'))
+        assertEquals('/foo/bar/_foo.gsp', uriSupport.getTemplateURI('foo', 'bar/foo'))
     }
 
     @Test
-    public void testGetTemplateURIForController() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        GroovyObject controller = (GroovyObject) new GroovyClassLoader().parseClass("class FooController { }").getDeclaredConstructor().newInstance();
-        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport();
-        assertEquals("/foo/_bar.gsp", uriSupport.getTemplateURI(controller, "bar"));
-        assertEquals("/bar/_foo.gsp", uriSupport.getTemplateURI(controller, "/bar/foo"));
-        assertEquals("/foo/bar/_foo.gsp", uriSupport.getTemplateURI(controller, "bar/foo"));
+    void testGetTemplateURIForController() {
+        GroovyObject controller = (GroovyObject) new GroovyClassLoader().parseClass('class FooController { }').getDeclaredConstructor().newInstance()
+        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport()
+        assertEquals('/foo/_bar.gsp', uriSupport.getTemplateURI(controller, 'bar'))
+        assertEquals('/bar/_foo.gsp', uriSupport.getTemplateURI(controller, '/bar/foo'))
+        assertEquals('/foo/bar/_foo.gsp', uriSupport.getTemplateURI(controller, 'bar/foo'))
     }
 
     @Test
-    public void testGetViewURIForController() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        GroovyObject controller = (GroovyObject) new GroovyClassLoader().parseClass("class FooController { }").getDeclaredConstructor().newInstance();
-        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport();
-        assertEquals("/foo/bar.gsp", uriSupport.getViewURI(controller, "bar"));
-        assertEquals("/bar.gsp", uriSupport.getViewURI(controller, "../bar"));
-        assertEquals("/bar/foo.gsp", uriSupport.getViewURI(controller, "/bar/foo"));
-        assertEquals("/foo/bar/foo.gsp", uriSupport.getViewURI(controller, "bar/foo"));
+    void testGetViewURIForController() {
+        GroovyObject controller = (GroovyObject) new GroovyClassLoader().parseClass('class FooController { }').getDeclaredConstructor().newInstance()
+        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport()
+        assertEquals('/foo/bar.gsp', uriSupport.getViewURI(controller, 'bar'))
+        assertEquals('/bar.gsp', uriSupport.getViewURI(controller, '../bar'))
+        assertEquals('/bar/foo.gsp', uriSupport.getViewURI(controller, '/bar/foo'))
+        assertEquals('/foo/bar/foo.gsp', uriSupport.getViewURI(controller, 'bar/foo'))
     }
 
     @Test
-    public void testNoSuffixGetViewURIForController() throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
-        GroovyObject controller = (GroovyObject) new GroovyClassLoader().parseClass("class FooController { }").getDeclaredConstructor().newInstance();
-        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport();
-        assertEquals("/foo/bar", uriSupport.getNoSuffixViewURI(controller, "bar"));
-        assertEquals("/bar/foo", uriSupport.getNoSuffixViewURI(controller, "/bar/foo"));
-        assertEquals("/foo/bar/foo", uriSupport.getNoSuffixViewURI(controller, "bar/foo"));
+    void testNoSuffixGetViewURIForController() {
+        GroovyObject controller = (GroovyObject) new GroovyClassLoader().parseClass('class FooController { }').getDeclaredConstructor().newInstance()
+        GroovyPagesUriSupport uriSupport = new GroovyPagesUriSupport()
+        assertEquals('/foo/bar', uriSupport.getNoSuffixViewURI(controller, 'bar'))
+        assertEquals('/bar/foo', uriSupport.getNoSuffixViewURI(controller, '/bar/foo'))
+        assertEquals('/foo/bar/foo', uriSupport.getNoSuffixViewURI(controller, 'bar/foo'))
     }
 
     class FooInterceptor extends GroovyObjectSupport {}

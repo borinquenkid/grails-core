@@ -16,11 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.xml;
 
-import java.io.IOException;
-import java.io.Writer;
-
+import groovy.transform.CompileStatic;
 import groovy.xml.streamingmarkupsupport.StreamingMarkupWriter;
 
 /**
@@ -29,15 +28,18 @@ import groovy.xml.streamingmarkupsupport.StreamingMarkupWriter;
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-public class PrettyPrintXMLStreamWriter extends XMLStreamWriter {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+@CompileStatic
+class PrettyPrintXMLStreamWriter extends XMLStreamWriter {
 
-    public static final String DEFAULT_INDENT_STR = "  ";
+    public static final String DEFAULT_INDENT_STR = '  ';
 
     public static final String NEWLINE;
 
     static {
-        String nl = System.getProperty("line.separator");
-        NEWLINE = nl != null ? nl : "\n";
+        String nl = System.getProperty('line.separator');
+        NEWLINE = nl != null ? nl : '\n';
     }
 
     private final String indent;
@@ -46,11 +48,11 @@ public class PrettyPrintXMLStreamWriter extends XMLStreamWriter {
 
     private boolean doIndent = false;
 
-    public PrettyPrintXMLStreamWriter(StreamingMarkupWriter writer) {
+    PrettyPrintXMLStreamWriter(StreamingMarkupWriter writer) {
         this(writer, DEFAULT_INDENT_STR);
     }
 
-    public PrettyPrintXMLStreamWriter(StreamingMarkupWriter writer, String indent) {
+    PrettyPrintXMLStreamWriter(StreamingMarkupWriter writer, String indent) {
         super(writer);
         this.indent = indent;
     }
@@ -81,7 +83,7 @@ public class PrettyPrintXMLStreamWriter extends XMLStreamWriter {
     }
 
     @Override
-    public XMLStreamWriter startNode(String tag) throws IOException {
+    XMLStreamWriter startNode(String tag) throws IOException {
         doIndent = false;
         super.startNode(tag);
         level++;
@@ -89,7 +91,7 @@ public class PrettyPrintXMLStreamWriter extends XMLStreamWriter {
     }
 
     @Override
-    public XMLStreamWriter end() throws IOException {
+    XMLStreamWriter end() throws IOException {
         level--;
         if (mode != Mode.TAG) {
             indent();
@@ -101,7 +103,7 @@ public class PrettyPrintXMLStreamWriter extends XMLStreamWriter {
     }
 
     @Override
-    public XMLStreamWriter characters(String data) throws IOException {
+    XMLStreamWriter characters(String data) throws IOException {
         doIndent = true;
         super.characters(data);
         newline();
@@ -109,9 +111,10 @@ public class PrettyPrintXMLStreamWriter extends XMLStreamWriter {
     }
 
     @Override
-    public XMLStreamWriter startDocument(String encoding, String version) throws IOException {
+    XMLStreamWriter startDocument(String encoding, String version) throws IOException {
         super.startDocument(encoding, version);
         newline();
         return this;
     }
+
 }

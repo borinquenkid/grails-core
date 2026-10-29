@@ -16,14 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.json;
-
-import java.util.Stack;
-
-import groovy.lang.Writable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import groovy.transform.CompileStatic;
 
 /**
  * TODO Proof of concept
@@ -31,6 +30,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Siegfried Puchbauer
  */
+// TODO(groovyism-cleanup): semicolons + double-quoted strings kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'UnnecessaryGString', 'UnnecessaryPublicModifier'])
+@CompileStatic
 public class PathCapturingJSONWriterWrapper extends JSONWriter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -81,16 +83,6 @@ public class PathCapturingJSONWriterWrapper extends JSONWriter {
         finally {
             pathStack = outerPath;
         }
-    }
-
-    @Override
-    public void standIn(Object nested, Object instance) {
-        delegate.standIn(nested, instance);
-    }
-
-    @Override
-    public int nestingDepth() {
-        return delegate.nestingDepth();
     }
 
     @Override

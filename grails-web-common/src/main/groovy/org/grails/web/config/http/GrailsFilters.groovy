@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.config.http;
+package org.grails.web.config.http
+
+import groovy.transform.CompileStatic
 
 /**
  * Stores the default order numbers of all Grails filters for use in configuration.
@@ -24,7 +26,8 @@ package org.grails.web.config.http;
  *
  * @since 7.0
  */
-public enum GrailsFilters {
+@CompileStatic
+enum GrailsFilters {
 
     FIRST,
     ASSET_PIPELINE_FILTER,
@@ -32,21 +35,21 @@ public enum GrailsFilters {
     HIDDEN_HTTP_METHOD_FILTER,
     SITEMESH_FILTER,
     GRAILS_WEB_REQUEST_FILTER,
-    LAST(GrailsFilterOrder.DEFAULT_FILTER_ORDER - 10);
+    LAST(GrailsFilterOrder.DEFAULT_FILTER_ORDER - 10)
 
-    private static final int INTERVAL = 10;
-    private final int order;
+    private static final int INTERVAL = 10
+    private final int order
 
     GrailsFilters() {
-        this.order = GrailsFilterOrder.DEFAULT_FILTER_ORDER - 100 + ordinal() * INTERVAL;
+        this.order = GrailsFilterOrder.DEFAULT_FILTER_ORDER - 100 + ordinal() * INTERVAL
     }
 
     GrailsFilters(int order) {
-        this.order = order;
+        this.order = order
     }
 
-    public int getOrder() {
-        return this.order;
+    int getOrder() {
+        return this.order
     }
 
 }

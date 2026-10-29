@@ -16,11 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.servlet;
 
-import java.io.Writer;
-
-import groovy.lang.GroovyObject;
+import groovy.transform.CompileStatic;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletRequest;
@@ -57,10 +56,14 @@ import org.grails.web.util.GrailsApplicationAttributes;
  * @author Graeme Rocher
  * @since 0.3
  */
-public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttributes {
-    protected static final String DEFAULT_NAMESPACE = "g";
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+@CompileStatic
+class DefaultGrailsApplicationAttributes implements GrailsApplicationAttributes {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultGrailsApplicationAttributes.class);
+    protected static final String DEFAULT_NAMESPACE = 'g';
+
+    private static final Logger LOG = LoggerFactory.getLogger(DefaultGrailsApplicationAttributes);
 
     private final UrlPathHelper urlHelper = UrlPathHelper.defaultInstance;
 
@@ -75,7 +78,7 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
     private volatile GrailsPluginManager pluginManager;
     private volatile CompositeViewResolver compositeViewResolver;
 
-    public DefaultGrailsApplicationAttributes(ServletContext context) {
+    DefaultGrailsApplicationAttributes(ServletContext context) {
         this.context = context;
         ApplicationContext resolved = null;
         if (context != null) {
@@ -87,7 +90,7 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
         this.appContext = resolved;
     }
 
-    public ApplicationContext getApplicationContext() {
+    ApplicationContext getApplicationContext() {
         return appContext;
     }
 
@@ -98,7 +101,7 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
         return pluginManager;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     private <T> T fetchBeanFromAppCtx(String name) {
         if (appContext == null) {
             return null;
@@ -116,22 +119,22 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
         }
     }
 
-    public String getPluginContextPath(HttpServletRequest request) {
+    String getPluginContextPath(HttpServletRequest request) {
         GroovyObject controller = getController(request);
         if (controller != null && getPluginManager() != null) {
             String path = getPluginManager().getPluginPathForInstance(controller);
-            return path == null ? "" : path;
+            return path == null ? '' : path;
         }
 
-        return "";
+        return '';
     }
 
-    public GroovyObject getController(ServletRequest request) {
+    GroovyObject getController(ServletRequest request) {
         return (GroovyObject) request.getAttribute(CONTROLLER);
     }
 
-    public String getControllerUri(ServletRequest request) {
-        return "/" + getControllerName(request);
+    String getControllerUri(ServletRequest request) {
+        return '/' + getControllerName(request);
     }
 
     private String getControllerName(ServletRequest request) {
@@ -139,7 +142,7 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
         if (controllerName == null || controllerName.length() == 0) {
             GroovyObject controller = getController(request);
             if (controller != null) {
-                controllerName = (String) controller.getProperty("controllerName");
+                controllerName = (String) controller.getProperty('controllerName');
                 request.setAttribute(GrailsApplicationAttributes.CONTROLLER_NAME_ATTRIBUTE, controllerName);
                 if (controller instanceof GrailsControllerClass) {
                     String namespace = ((GrailsControllerClass) controller).getNamespace();
@@ -150,7 +153,7 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
 
             }
         }
-        return controllerName != null ? controllerName : "";
+        return controllerName != null ? controllerName : '';
     }
 
     /**
@@ -159,7 +162,7 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
      * @return The Application URI
      */
     @Deprecated
-    public String getApplicationUri(ServletRequest request) {
+    String getApplicationUri(ServletRequest request) {
         String appUri = (String) request.getAttribute(GrailsApplicationAttributes.APP_URI_ATTRIBUTE);
         if (appUri == null) {
             appUri = urlHelper.getContextPath((HttpServletRequest) request);
@@ -167,11 +170,11 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
         return appUri;
     }
 
-    public ServletContext getServletContext() {
+    ServletContext getServletContext() {
         return context;
     }
 
-    public FlashScope getFlashScope(ServletRequest request) {
+    FlashScope getFlashScope(ServletRequest request) {
         if (!(request instanceof HttpServletRequest)) {
             return null;
         }
@@ -197,36 +200,36 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
         return fs;
     }
 
-    public String getTemplateUri(CharSequence templateName, ServletRequest request) {
-        Assert.notNull(templateName, "Argument [template] cannot be null");
+    String getTemplateUri(CharSequence templateName, ServletRequest request) {
+        Assert.notNull(templateName, 'Argument [template] cannot be null');
         return getGroovyPagesUriService().getTemplateURI(getControllerName(request), templateName.toString());
     }
 
-    public String getViewUri(String viewName, HttpServletRequest request) {
-        Assert.notNull(viewName, "Argument [view] cannot be null");
+    String getViewUri(String viewName, HttpServletRequest request) {
+        Assert.notNull(viewName, 'Argument [view] cannot be null');
         return getGroovyPagesUriService().getDeployedViewURI(getControllerName(request), viewName);
     }
 
-    public String getControllerActionUri(ServletRequest request) {
+    String getControllerActionUri(ServletRequest request) {
         GroovyObject controller = getController(request);
-        return (String) controller.getProperty("actionUri");
+        return (String) controller.getProperty('actionUri');
     }
 
-    public Errors getErrors(ServletRequest request) {
+    Errors getErrors(ServletRequest request) {
         return (Errors) request.getAttribute(ERRORS);
     }
 
-    public ResourceAwareTemplateEngine getPagesTemplateEngine() {
+    ResourceAwareTemplateEngine getPagesTemplateEngine() {
         if (pagesTemplateEngine == null) {
             pagesTemplateEngine = fetchBeanFromAppCtx(ResourceAwareTemplateEngine.BEAN_ID);
         }
         if (pagesTemplateEngine == null) {
-            LOG.warn("No bean named [{}] defined in Spring application context!", ResourceAwareTemplateEngine.BEAN_ID);
+            LOG.warn('No bean named [{}] defined in Spring application context!', ResourceAwareTemplateEngine.BEAN_ID);
         }
         return pagesTemplateEngine;
     }
 
-    public GrailsApplication getGrailsApplication() {
+    GrailsApplication getGrailsApplication() {
         if (grailsApplication == null) {
             grailsApplication = fetchBeanFromAppCtx(GrailsApplication.APPLICATION_ID);
             if (grailsApplication == null) {
@@ -236,28 +239,28 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
         return grailsApplication;
     }
 
-    public Writer getOut(HttpServletRequest request) {
+    Writer getOut(HttpServletRequest request) {
         return (Writer) request.getAttribute(OUT);
     }
 
-    public void setOut(HttpServletRequest request, Writer out2) {
+    void setOut(HttpServletRequest request, Writer out2) {
         request.setAttribute(OUT, out2);
     }
 
-    public String getNoSuffixViewURI(GroovyObject controller, String viewName) {
+    String getNoSuffixViewURI(GroovyObject controller, String viewName) {
         return getGroovyPagesUriService().getNoSuffixViewURI(controller, viewName);
     }
 
-    public String getTemplateURI(GroovyObject controller, String templateName) {
+    String getTemplateURI(GroovyObject controller, String templateName) {
         return getGroovyPagesUriService().getTemplateURI(controller, templateName);
     }
 
     @Override
-    public String getTemplateURI(GroovyObject controller, String templateName, boolean includeExtension) {
+    String getTemplateURI(GroovyObject controller, String templateName, boolean includeExtension) {
         return getGroovyPagesUriService().getTemplateURI(controller, templateName, includeExtension);
     }
 
-    public GroovyPagesUriService getGroovyPagesUriService() {
+    GroovyPagesUriService getGroovyPagesUriService() {
         if (groovyPagesUriService == null) {
             groovyPagesUriService = fetchBeanFromAppCtx(GroovyPagesUriService.BEAN_ID);
             if (groovyPagesUriService == null) {
@@ -267,9 +270,9 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
         return groovyPagesUriService;
     }
 
-    public MessageSource getMessageSource() {
+    MessageSource getMessageSource() {
         if (messageSource == null) {
-            messageSource = fetchBeanFromAppCtx("messageSource");
+            messageSource = fetchBeanFromAppCtx('messageSource');
         }
         return messageSource;
     }
@@ -282,12 +285,13 @@ public class DefaultGrailsApplicationAttributes implements GrailsApplicationAttr
      * the same {@code NoSuchBeanDefinitionException} it always has rather than being turned into a null.</p>
      */
     @Override
-    public CompositeViewResolver getCompositeViewResolver() {
+    CompositeViewResolver getCompositeViewResolver() {
         CompositeViewResolver resolver = compositeViewResolver;
         if (resolver == null) {
-            resolver = getApplicationContext().getBean(CompositeViewResolver.BEAN_NAME, CompositeViewResolver.class);
+            resolver = getApplicationContext().getBean(CompositeViewResolver.BEAN_NAME, CompositeViewResolver);
             compositeViewResolver = resolver;
         }
         return resolver;
     }
+
 }

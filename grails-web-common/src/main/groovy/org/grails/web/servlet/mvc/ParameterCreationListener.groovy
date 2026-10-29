@@ -16,9 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.servlet.mvc;
+package org.grails.web.servlet.mvc
 
-import grails.web.servlet.mvc.GrailsParameterMap;
+import grails.web.servlet.mvc.GrailsParameterMap
 
 /**
  * A callback interface that is fired when the params object is created
@@ -28,12 +28,13 @@ import grails.web.servlet.mvc.GrailsParameterMap;
  *        <p>
  *        Created: Nov 27, 2007
  */
-public interface ParameterCreationListener {
+interface ParameterCreationListener {
 
     /**
      * Fired when the params object is created
      *
      * @param params The params object
      */
-    void paramsCreated(GrailsParameterMap params);
+    void paramsCreated(GrailsParameterMap params)
+
 }

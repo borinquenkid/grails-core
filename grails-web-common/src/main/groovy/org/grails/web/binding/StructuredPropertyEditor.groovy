@@ -16,10 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.binding;
-
-import java.util.List;
-import java.util.Map;
+package org.grails.web.binding
 
 /**
  * A PropertyEditor that is able to edit structured properties (properties made up of multiple field values).
@@ -28,18 +25,18 @@ import java.util.Map;
  * @since 1.0.4
  * @author Graeme Rocher
  */
-@SuppressWarnings("rawtypes")
-public interface StructuredPropertyEditor {
+@SuppressWarnings('rawtypes')
+interface StructuredPropertyEditor {
 
     /**
      * @return The required fields
      */
-    List getRequiredFields();
+    List getRequiredFields()
 
     /**
      * @return The optional fields
      */
-    List getOptionalFields();
+    List getOptionalFields()
 
     /**
      * Assemble and bind a property value from the specified fieldValues and the given type
@@ -48,5 +45,6 @@ public interface StructuredPropertyEditor {
      * @return A bound property
      * @throws IllegalArgumentException Thrown in one of the field values is illegal
      */
-    Object assemble(Class type, Map fieldValues) throws IllegalArgumentException;
+    Object assemble(Class type, Map fieldValues) throws IllegalArgumentException
+
 }

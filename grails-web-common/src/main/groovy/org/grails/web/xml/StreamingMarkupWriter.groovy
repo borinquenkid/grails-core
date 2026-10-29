@@ -16,10 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.xml;
+package org.grails.web.xml
 
-import java.io.IOException;
-import java.io.Writer;
+import groovy.transform.CompileStatic
 
 /**
  * Specialized StreamingMarkupWriter that handles the escaping of double quotes in XML attributes
@@ -27,23 +26,25 @@ import java.io.Writer;
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-public class StreamingMarkupWriter extends groovy.xml.streamingmarkupsupport.StreamingMarkupWriter {
+@CompileStatic
+class StreamingMarkupWriter extends groovy.xml.streamingmarkupsupport.StreamingMarkupWriter {
 
-    public StreamingMarkupWriter(Writer writer, String s) {
-        super(writer, s);
+    StreamingMarkupWriter(Writer writer, String s) {
+        super(writer, s)
     }
 
-    public StreamingMarkupWriter(Writer writer) {
-        super(writer);
+    StreamingMarkupWriter(Writer writer) {
+        super(writer)
     }
 
     @Override
-    public void write(int i) throws IOException {
+    void write(int i) throws IOException {
         if (writingAttribute && i == '"') {
-            writer.write("&quot;");
+            writer.write('&quot;')
         }
         else {
-            super.write(i);
+            super.write(i)
         }
     }
+
 }

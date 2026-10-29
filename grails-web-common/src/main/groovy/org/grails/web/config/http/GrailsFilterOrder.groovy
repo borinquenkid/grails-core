@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.config.http;
+package org.grails.web.config.http
+
+import groovy.transform.CompileStatic
 
 /**
  * Constants for filter ordering in Grails applications.
@@ -27,7 +29,8 @@ package org.grails.web.config.http;
  *
  * @since 8.0
  */
-public final class GrailsFilterOrder {
+@CompileStatic
+final class GrailsFilterOrder {
 
     private GrailsFilterOrder() {
         // Utility class
@@ -43,6 +46,6 @@ public final class GrailsFilterOrder {
      * {@code OrderedFilter.REQUEST_WRAPPER_FILTER_MAX_ORDER - 100}) before it was
      * removed in Spring Boot 4.0.
      */
-    public static final int DEFAULT_FILTER_ORDER = -100;
+    public static final int DEFAULT_FILTER_ORDER = -100
 
 }

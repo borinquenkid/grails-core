@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.databinding.bindingsource;
+package org.grails.databinding.bindingsource
+
+import groovy.transform.CompileStatic
 
 /**
  * Thrown if an unrecoverable problem occurs creating a DataBindingSource.
@@ -25,9 +27,11 @@ package org.grails.databinding.bindingsource;
  * @see grails.databinding.DataBindingSource
  * @see DataBindingSourceCreator
  */
-public class DataBindingSourceCreationException extends RuntimeException {
+@CompileStatic
+class DataBindingSourceCreationException extends RuntimeException {
 
-    public DataBindingSourceCreationException(Throwable cause) {
-        super(cause);
+    DataBindingSourceCreationException(Throwable cause) {
+        super(cause)
     }
+
 }

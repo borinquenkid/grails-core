@@ -16,7 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package grails.web.http;
+
+import groovy.transform.CompileStatic;
 
 /**
  * Constants for HTTP headers.
@@ -24,7 +27,10 @@ package grails.web.http;
  * @author Graeme Rocher
  * @since 1.0
  */
-public class HttpHeaders {
+// TODO(groovyism-cleanup): semicolons and double-quoted strings kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'UnnecessaryGString'])
+@CompileStatic
+class HttpHeaders {
 
     public static final String CONNECTION = "Connection";
     public static final String CONTENT_DISPOSITION = "Content-Disposition";

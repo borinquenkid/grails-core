@@ -16,9 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.servlet.mvc.exceptions;
+package org.grails.web.servlet.mvc.exceptions
 
-import org.grails.core.exceptions.GrailsException;
+import groovy.transform.CompileStatic
+
+import org.grails.core.exceptions.GrailsException
 
 /**
  * Thrown when an unrecoverable error occurred in the Grails MVC framework.
@@ -26,23 +28,25 @@ import org.grails.core.exceptions.GrailsException;
  * @author Graeme Rocher
  * @since 3.0
  */
-public abstract class GrailsMVCException extends GrailsException {
+@CompileStatic
+abstract class GrailsMVCException extends GrailsException {
 
-    private static final long serialVersionUID = 8489513412930525030L;
+    private static final long serialVersionUID = 8489513412930525030L
 
-    public GrailsMVCException() {
-        super();
+    GrailsMVCException() {
+        super()
     }
 
-    public GrailsMVCException(String message) {
-        super(message);
+    GrailsMVCException(String message) {
+        super(message)
     }
 
-    public GrailsMVCException(String message, Throwable cause) {
-        super(message, cause);
+    GrailsMVCException(String message, Throwable cause) {
+        super(message, cause)
     }
 
-    public GrailsMVCException(Throwable cause) {
-        super(cause);
+    GrailsMVCException(Throwable cause) {
+        super(cause)
     }
+
 }

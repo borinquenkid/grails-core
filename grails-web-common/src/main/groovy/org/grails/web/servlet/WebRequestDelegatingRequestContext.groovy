@@ -16,16 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.servlet;
-
-import java.io.Writer;
-import java.util.Map;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import groovy.transform.CompileStatic;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -39,11 +38,14 @@ import org.grails.web.util.WebUtils;
  * @author Graeme Rocher
  * @since 0.6
  */
-public class WebRequestDelegatingRequestContext implements GrailsRequestContext {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+@CompileStatic
+class WebRequestDelegatingRequestContext implements GrailsRequestContext {
 
     private GrailsWebRequest webRequest;
 
-    public WebRequestDelegatingRequestContext() {
+    WebRequestDelegatingRequestContext() {
         webRequest = (GrailsWebRequest) RequestContextHolder.currentRequestAttributes();
     }
 
@@ -51,49 +53,49 @@ public class WebRequestDelegatingRequestContext implements GrailsRequestContext 
      * Retrieves the webRequest object.
      * @return The webrequest object
      */
-    public GrailsWebRequest getWebRequest() {
+    GrailsWebRequest getWebRequest() {
         return webRequest;
     }
 
-    public HttpServletRequest getRequest() {
+    HttpServletRequest getRequest() {
         return webRequest.getRequest();
     }
 
-    public HttpServletResponse getResponse() {
+    HttpServletResponse getResponse() {
         return webRequest.getCurrentResponse();
     }
 
-    public HttpSession getSession() {
+    HttpSession getSession() {
         return webRequest.getSession();
     }
 
-    public ServletContext getServletContext() {
+    ServletContext getServletContext() {
         return webRequest.getServletContext();
     }
 
-    @SuppressWarnings("rawtypes")
-    public Map getParams() {
+    @SuppressWarnings('rawtypes')
+    Map getParams() {
         return webRequest.getParams();
     }
 
-    public ApplicationContext getApplicationContext() {
+    ApplicationContext getApplicationContext() {
         ServletContext servletContext = getServletContext();
         return WebApplicationContextUtils.getWebApplicationContext(servletContext);
     }
 
-    public Writer getOut() {
+    Writer getOut() {
         return webRequest.getOut();
     }
 
-    public String getActionName() {
+    String getActionName() {
         return webRequest.getActionName();
     }
 
-    public String getControllerName() {
+    String getControllerName() {
         return webRequest.getControllerName();
     }
 
-    public String getRequestURI() {
+    String getRequestURI() {
         HttpServletRequest request = getRequest();
         String uri = (String) request.getAttribute(WebUtils.FORWARD_REQUEST_URI_ATTRIBUTE);
         if (uri == null) {
@@ -102,4 +104,5 @@ public class WebRequestDelegatingRequestContext implements GrailsRequestContext 
 
         return uri;
     }
+
 }

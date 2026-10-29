@@ -16,11 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.servlet;
+package org.grails.web.servlet
 
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse
 
-import org.grails.core.lifecycle.ShutdownOperations;
+import groovy.transform.CompileStatic
+
+import org.grails.core.lifecycle.ShutdownOperations
 
 /**
  * A holder for the original Wrapped response for use when using includes.
@@ -28,32 +30,34 @@ import org.grails.core.lifecycle.ShutdownOperations;
  * @author Graeme Rocher
  * @since 0.5
  */
-public class WrappedResponseHolder {
+@CompileStatic
+class WrappedResponseHolder {
 
     static {
         ShutdownOperations.addOperation(new Runnable() {
-            public void run() {
-                wrappedResponseHolder = new ThreadLocal<>();
+            void run() {
+                wrappedResponseHolder = new ThreadLocal<>()
             }
-        }, true);
+        }, true)
     }
 
     private static ThreadLocal<HttpServletResponse> wrappedResponseHolder =
-            new ThreadLocal<>();
+            new ThreadLocal<>()
 
     /**
      * Bind the given HttpServletResponse to the current thread.
      * @param response the HttpServletResponse to expose
      */
-    public static void setWrappedResponse(HttpServletResponse response) {
-        WrappedResponseHolder.wrappedResponseHolder.set(response);
+    static void setWrappedResponse(HttpServletResponse response) {
+        WrappedResponseHolder.wrappedResponseHolder.set(response)
     }
 
     /**
      * Return the HttpServletResponse currently bound to the thread.
      * @return the HttpServletResponse currently bound to the thread, or <code>null</code>
      */
-    public static HttpServletResponse getWrappedResponse() {
-        return wrappedResponseHolder.get();
+    static HttpServletResponse getWrappedResponse() {
+        return wrappedResponseHolder.get()
     }
+
 }

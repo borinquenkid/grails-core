@@ -16,17 +16,19 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.web.pages;
+package grails.web.pages
 
 /**
  * Interface to override the selected layout during the rendering process.
  */
-public interface GrailsLayoutSelector {
+interface GrailsLayoutSelector {
+
     /**
      *
      * @param explicitLayoutArg the layout argument set by the caller (layout: 'myLayout'), may be null
      * @param renderView whether the view is being rendered
      * @return the view to render
      */
-    String selectLayout(String explicitLayoutArg, boolean renderView);
+    String selectLayout(String explicitLayoutArg, boolean renderView)
+
 }

@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.servlet.mvc.exceptions;
+package org.grails.web.servlet.mvc.exceptions
+
+import groovy.transform.CompileStatic
 
 /**
  * Throw when an exception occurs during controller execution
@@ -24,23 +26,25 @@ package org.grails.web.servlet.mvc.exceptions;
  * @author Graeme Rocher
  * @since 0.2
  */
-public class ControllerExecutionException extends GrailsMVCException {
+@CompileStatic
+class ControllerExecutionException extends GrailsMVCException {
 
-    private static final long serialVersionUID = 4625710641559921836L;
+    private static final long serialVersionUID = 4625710641559921836L
 
-    public ControllerExecutionException() {
-        super();
+    ControllerExecutionException() {
+        super()
     }
 
-    public ControllerExecutionException(String message, Throwable cause) {
-        super(message, cause);
+    ControllerExecutionException(String message, Throwable cause) {
+        super(message, cause)
     }
 
-    public ControllerExecutionException(String message) {
-        super(message);
+    ControllerExecutionException(String message) {
+        super(message)
     }
 
-    public ControllerExecutionException(Throwable cause) {
-        super(cause);
+    ControllerExecutionException(Throwable cause) {
+        super(cause)
     }
+
 }

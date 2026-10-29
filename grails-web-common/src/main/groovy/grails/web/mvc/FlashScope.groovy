@@ -16,10 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.web.mvc;
-
-import java.io.Serializable;
-import java.util.Map;
+package grails.web.mvc
 
 /**
  * Represents flash scope and allows a flash scope map to be set to the next
@@ -30,18 +27,18 @@ import java.util.Map;
  *
  * @author Graeme Rocher
  */
-@SuppressWarnings("rawtypes")
-public interface FlashScope extends Map<String, Object>, Serializable {
+@SuppressWarnings('rawtypes')
+interface FlashScope extends Map<String, Object>, Serializable {
 
     /**
      * The attribute containing the chain model
      */
-    String CHAIN_MODEL = "chainModel";
+    String CHAIN_MODEL = 'chainModel'
 
     /**
      * Sets the flash scope to the next state upon a new request
      */
-    void next();
+    void next()
 
     /**
      * Returns the current state of flash scope, to be used if you don't
@@ -49,5 +46,6 @@ public interface FlashScope extends Map<String, Object>, Serializable {
      *
      * @return A map
      */
-    Map getNow();
+    Map getNow()
+
 }

@@ -16,19 +16,23 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.json;
 
-import java.io.Writer;
+import groovy.transform.CompileStatic;
 
 /**
  * A JSONWriter dedicated to create indented/pretty printed output, indented as Grails 8 indented it.
  *
  * @author Siegfried Puchbauer
  * @since 1.1
- * @deprecated use {@link JSONWriter#JSONWriter(Writer, boolean)}, which indents with Jackson's default pretty printer;
- *     {@code grails.converters.json.legacy} uses this class to indent JSON as Grails 8 did
+ * @deprecated use {@link JSONWriter#JSONWriter(Writer, JsonMapperSupport, boolean)}, which indents with the mapper's
+ *     default pretty printer; {@code grails.converters.json.legacy} uses it to indent JSON as Grails 8 did
  */
+// TODO(groovyism-cleanup): semicolons + double-quoted strings kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'UnnecessaryGString', 'UnnecessaryPublicModifier'])
 @Deprecated(since = "9.0")
+@CompileStatic
 public class PrettyPrintJSONWriter extends JSONWriter {
 
     public static final String DEFAULT_INDENT_STR = "  ";

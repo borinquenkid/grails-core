@@ -16,46 +16,47 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.binding;
+package org.grails.web.binding
 
-import java.beans.PropertyEditor;
-import java.beans.PropertyEditorSupport;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.beans.PropertyEditor
+import java.beans.PropertyEditorSupport
+
+import groovy.transform.CompileStatic
 
 /**
  * @author Graeme Rocher
  * @since 2.0
  */
-public class CompositeEditor extends PropertyEditorSupport {
+@CompileStatic
+class CompositeEditor extends PropertyEditorSupport {
 
-    List<PropertyEditor> propertyEditors = new ArrayList<>();
+    List<PropertyEditor> propertyEditors = new ArrayList<>()
 
-    public CompositeEditor(PropertyEditor... editors) {
-        propertyEditors.addAll(Arrays.asList(editors));
+    CompositeEditor(PropertyEditor... editors) {
+        propertyEditors.addAll(Arrays.asList(editors))
     }
 
     @Override
-    public void setAsText(String s) throws IllegalArgumentException {
-        IllegalArgumentException first = null;
-        boolean converted = false;
-        for (PropertyEditor propertyEditor : propertyEditors) {
+    void setAsText(String s) throws IllegalArgumentException {
+        IllegalArgumentException first = null
+        boolean converted = false
+        for (PropertyEditor propertyEditor in propertyEditors) {
             try {
-                propertyEditor.setAsText(s);
-                converted = true;
-                break;
+                propertyEditor.setAsText(s)
+                converted = true
+                break
             } catch (IllegalArgumentException e) {
-                if (first == null) first = e;
+                if (first == null) first = e
             }
         }
 
         if (!converted && first != null) {
-            throw first;
+            throw first
         }
     }
 
-    public List<PropertyEditor> getPropertyEditors() {
-        return propertyEditors;
+    List<PropertyEditor> getPropertyEditors() {
+        return propertyEditors
     }
+
 }

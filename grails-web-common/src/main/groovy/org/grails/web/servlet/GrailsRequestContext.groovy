@@ -16,17 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.servlet;
+package org.grails.web.servlet
 
-import java.io.Writer;
-import java.util.Map;
+import jakarta.servlet.ServletContext
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpSession
 
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContext
 
 /**
  * Defines the methods and objects available during a Grails request context.
@@ -34,64 +31,65 @@ import org.springframework.context.ApplicationContext;
  * @author Graeme Rocher
  * @since 0.6
  */
-public interface GrailsRequestContext {
+interface GrailsRequestContext {
 
     /**
      * The request object.
      * @return The request object
      */
-    HttpServletRequest getRequest();
+    HttpServletRequest getRequest()
 
     /**
      * The response object.
      * @return The response object
      */
-    HttpServletResponse getResponse();
+    HttpServletResponse getResponse()
 
     /**
      * The session object.
      * @return The session object
      */
-    HttpSession getSession();
+    HttpSession getSession()
 
     /**
      * The servletContext object.
      * @return The servletContext Object
      */
-    ServletContext getServletContext();
+    ServletContext getServletContext()
 
     /**
      * The params object.
      * @return The params object
      */
-    @SuppressWarnings("rawtypes")
-    Map getParams();
+    @SuppressWarnings('rawtypes')
+    Map getParams()
 
     /**
      * The ApplicationContext instance.
      *
      * @return The ApplicationCOntext
      */
-    ApplicationContext getApplicationContext();
+    ApplicationContext getApplicationContext()
 
     /**
      * The response writer.
      * @return The response writer
      */
-    Writer getOut();
+    Writer getOut()
 
     /**
      * @return The Action name
      */
-    String getActionName();
+    String getActionName()
 
     /**
      * @return The Controller Name
      */
-    String getControllerName();
+    String getControllerName()
 
     /**
      * @return The Request URI
      */
-    String getRequestURI();
+    String getRequestURI()
+
 }

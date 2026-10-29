@@ -16,26 +16,30 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.web.context;
+package grails.web.context
 
-import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletContext
 
-import grails.util.Holder;
-import org.grails.web.servlet.mvc.GrailsWebRequest;
+import groovy.transform.CompileStatic
+
+import grails.util.Holder
+import org.grails.web.servlet.mvc.GrailsWebRequest
 
 /**
  * @author Burt Beckwith
  * @since 2.0
  */
-public class WebRequestServletHolder extends Holder<ServletContext> {
+@CompileStatic
+class WebRequestServletHolder extends Holder<ServletContext> {
 
-    public WebRequestServletHolder() {
-        super("ServletContext");
+    WebRequestServletHolder() {
+        super('ServletContext')
     }
 
     @Override
     protected ServletContext lookupSecondary() {
-        GrailsWebRequest webRequest = GrailsWebRequest.lookup();
-        return webRequest == null ? null : webRequest.getServletContext();
+        GrailsWebRequest webRequest = GrailsWebRequest.lookup()
+        return webRequest == null ? null : webRequest.getServletContext()
     }
+
 }

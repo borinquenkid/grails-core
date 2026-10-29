@@ -16,16 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.json;
+package org.grails.web.json
 
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+import groovy.transform.CompileStatic
 
 /**
  * Formats {@link Date} and {@link Calendar} values for JSON the way Jackson's default
@@ -41,9 +38,10 @@ import java.util.TimeZone;
  *
  * @since 8.0
  */
-public final class JsonDateFormat {
+@CompileStatic
+final class JsonDateFormat {
 
-    private static final TimeZone UTC = TimeZone.getTimeZone(ZoneOffset.UTC);
+    private static final TimeZone UTC = TimeZone.getTimeZone(ZoneOffset.UTC)
 
     private JsonDateFormat() {
     }
@@ -52,8 +50,8 @@ public final class JsonDateFormat {
      * @param epochMillis milliseconds since 1970-01-01T00:00:00Z
      * @return the UTC timestamp, e.g. {@code 2024-06-15T14:30:45.123Z}
      */
-    public static String format(long epochMillis) {
-        return format(epochMillis, UTC);
+    static String format(long epochMillis) {
+        return format(epochMillis, UTC)
     }
 
     /**
@@ -65,43 +63,43 @@ public final class JsonDateFormat {
      * @param zone the time zone to write the date and time in
      * @return the timestamp
      */
-    public static String format(long epochMillis, TimeZone zone) {
-        Calendar calendar = new GregorianCalendar(zone, Locale.ROOT);
-        calendar.setTimeInMillis(epochMillis);
-        StringBuilder sb = new StringBuilder(26);
-        int year = calendar.get(Calendar.YEAR);
+    static String format(long epochMillis, TimeZone zone) {
+        Calendar calendar = new GregorianCalendar(zone, Locale.ROOT)
+        calendar.setTimeInMillis(epochMillis)
+        StringBuilder sb = new StringBuilder(26)
+        int year = calendar.get(Calendar.YEAR)
         if (calendar.get(Calendar.ERA) == GregorianCalendar.BC) {
-            int isoYear = 1 - year;
-            sb.append(isoYear == 0 ? '+' : '-');
-            pad(sb, -isoYear, 4);
+            int isoYear = 1 - year
+            sb.append(isoYear == 0 ? '+' : '-')
+            pad(sb, -isoYear, 4)
         }
         else {
             if (year > 9999) {
-                sb.append('+');
+                sb.append('+')
             }
-            pad(sb, year, 4);
+            pad(sb, year, 4)
         }
-        sb.append('-');
-        pad(sb, calendar.get(Calendar.MONTH) + 1, 2);
-        sb.append('-');
-        pad(sb, calendar.get(Calendar.DAY_OF_MONTH), 2);
-        sb.append('T');
-        pad(sb, calendar.get(Calendar.HOUR_OF_DAY), 2);
-        sb.append(':');
-        pad(sb, calendar.get(Calendar.MINUTE), 2);
-        sb.append(':');
-        pad(sb, calendar.get(Calendar.SECOND), 2);
-        sb.append('.');
-        pad(sb, calendar.get(Calendar.MILLISECOND), 3);
-        int offsetMinutes = zone.getOffset(epochMillis) / 60_000;
+        sb.append('-')
+        pad(sb, calendar.get(Calendar.MONTH) + 1, 2)
+        sb.append('-')
+        pad(sb, calendar.get(Calendar.DAY_OF_MONTH), 2)
+        sb.append('T')
+        pad(sb, calendar.get(Calendar.HOUR_OF_DAY), 2)
+        sb.append(':')
+        pad(sb, calendar.get(Calendar.MINUTE), 2)
+        sb.append(':')
+        pad(sb, calendar.get(Calendar.SECOND), 2)
+        sb.append('.')
+        pad(sb, calendar.get(Calendar.MILLISECOND), 3)
+        int offsetMinutes = zone.getOffset(epochMillis).intdiv(60_000)
         if (offsetMinutes == 0) {
-            return sb.append('Z').toString();
+            return sb.append('Z').toString()
         }
-        sb.append(offsetMinutes < 0 ? '-' : '+');
-        pad(sb, Math.abs(offsetMinutes) / 60, 2);
-        sb.append(':');
-        pad(sb, Math.abs(offsetMinutes) % 60, 2);
-        return sb.toString();
+        sb.append(offsetMinutes < 0 ? '-' : '+')
+        pad(sb, Math.abs(offsetMinutes).intdiv(60), 2)
+        sb.append(':')
+        pad(sb, Math.abs(offsetMinutes) % 60, 2)
+        return sb.toString()
     }
 
     /**
@@ -110,8 +108,8 @@ public final class JsonDateFormat {
      * @param key a map key
      * @return true for {@link Date}, {@link Calendar} and {@link ZonedDateTime} keys
      */
-    public static boolean isDateKey(Object key) {
-        return key instanceof Date || key instanceof Calendar || key instanceof ZonedDateTime;
+    static boolean isDateKey(Object key) {
+        return key instanceof Date || key instanceof Calendar || key instanceof ZonedDateTime
     }
 
     /**
@@ -123,24 +121,24 @@ public final class JsonDateFormat {
      * @param key a non-null map key
      * @return the JSON object key
      */
-    public static String formatKey(Object key) {
+    static String formatKey(Object key) {
         if (key instanceof Date date) {
-            return format(date.getTime());
+            return format(date.getTime())
         }
         if (key instanceof Calendar calendar) {
-            return format(calendar.getTimeInMillis());
+            return format(calendar.getTimeInMillis())
         }
         if (key instanceof ZonedDateTime zonedDateTime) {
-            return DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(zonedDateTime);
+            return DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(zonedDateTime)
         }
-        return key.toString();
+        return key.toString()
     }
 
     private static void pad(StringBuilder sb, int value, int width) {
-        String digits = Integer.toString(value);
+        String digits = Integer.toString(value)
         for (int i = digits.length(); i < width; i++) {
-            sb.append('0');
+            sb.append('0')
         }
-        sb.append(digits);
+        sb.append(digits)
     }
 }

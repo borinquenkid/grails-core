@@ -16,18 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.servlet;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaClass;
+import groovy.transform.CompileStatic;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -42,33 +36,35 @@ import org.grails.web.util.GrailsApplicationAttributes;
  *
  * @author Graeme Rocher
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
-public class GrailsFlashScope implements FlashScope {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['unchecked', 'rawtypes', 'UnnecessarySemicolon'])
+@CompileStatic
+class GrailsFlashScope implements FlashScope {
 
     private static final long serialVersionUID = 1457772347769500476L;
     private Map current = new ConcurrentHashMap();
     private Map next = new ConcurrentHashMap();
-    public static final String ERRORS_PREFIX = "org.codehaus.groovy.grails.ERRORS_";
-    private static final String ERRORS_PROPERTY = "errors";
+    public static final String ERRORS_PREFIX = 'org.codehaus.groovy.grails.ERRORS_';
+    private static final String ERRORS_PROPERTY = 'errors';
 
     private final boolean registerWithSession;
 
-    public GrailsFlashScope() {
+    GrailsFlashScope() {
         this(true);
     }
 
-    public GrailsFlashScope(boolean registerWithSession) {
+    GrailsFlashScope(boolean registerWithSession) {
         this.registerWithSession = registerWithSession;
     }
 
-    public void next() {
+    void next() {
         current.clear();
         current = new ConcurrentHashMap(next);
         next.clear();
         reassociateObjectsWithErrors(current);
     }
 
-    public Map getNow() {
+    Map getNow() {
         return current;
     }
 
@@ -101,65 +97,65 @@ public class GrailsFlashScope implements FlashScope {
         }
     }
 
-    public int size() {
+    int size() {
         return current.size() + next.size();
     }
 
-    public void clear() {
+    void clear() {
         current.clear();
         next.clear();
     }
 
-    public boolean isEmpty() {
+    boolean isEmpty() {
         return size() == 0;
     }
 
-    public boolean containsKey(Object key) {
+    boolean containsKey(Object key) {
         return (current.containsKey(key) || next.containsKey(key));
     }
 
-    public boolean containsValue(Object value) {
+    boolean containsValue(Object value) {
         return (current.containsValue(value) || next.containsValue(value));
     }
 
-    public Collection<Object> values() {
+    Collection<Object> values() {
         Collection c = new ArrayList();
         c.addAll(current.values());
         c.addAll(next.values());
         return c;
     }
 
-    public void putAll(Map<? extends String, ? extends Object> t) {
-        for (Entry<? extends String, ? extends Object> entry : t.entrySet()) {
+    void putAll(Map<? extends String, ? extends Object> t) {
+        for (Map.Entry<? extends String, ? extends Object> entry : t.entrySet()) {
             put(entry.getKey(), entry.getValue());
         }
     }
 
-    public Set<Map.Entry<String, Object>> entrySet() {
+    Set<Map.Entry<String, Object>> entrySet() {
         Set entrySet = new HashSet();
         entrySet.addAll(current.entrySet());
         entrySet.addAll(next.entrySet());
         return entrySet;
     }
 
-    public Set<String> keySet() {
+    Set<String> keySet() {
         Set keySet = new HashSet();
         keySet.addAll(current.keySet());
         keySet.addAll(next.keySet());
         return keySet;
     }
 
-    public Object get(Object key) {
+    Object get(Object key) {
         if (next.containsKey(key)) {
             return next.get(key);
         }
-        if ("now".equals(key)) {
+        if ('now'.equals(key)) {
             return getNow();
         }
         return current.get(key);
     }
 
-    public Object remove(Object key) {
+    Object remove(Object key) {
         if (current.containsKey(key)) {
             return current.remove(key);
         }
@@ -167,7 +163,7 @@ public class GrailsFlashScope implements FlashScope {
         return next.remove(key);
     }
 
-    public Object put(String key, Object value) {
+    Object put(String key, Object value) {
         // create the session if it doesn't exist
         registerWithSessionIfNecessary();
 
@@ -222,4 +218,5 @@ public class GrailsFlashScope implements FlashScope {
             }
         }
     }
+
 }

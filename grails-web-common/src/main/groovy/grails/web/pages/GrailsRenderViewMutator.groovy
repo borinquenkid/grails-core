@@ -16,15 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.web.pages;
+package grails.web.pages
 
-import java.util.Locale;
-
-import org.springframework.web.servlet.View;
+import org.springframework.web.servlet.View
 
 /**
  * Interface to customize the view when rendering
  */
-public interface GrailsRenderViewMutator {
-    View mutateView(boolean renderWithLayout, String templateUri, Locale locale, View exisitngView);
+interface GrailsRenderViewMutator {
+
+    View mutateView(boolean renderWithLayout, String templateUri, Locale locale, View exisitngView)
+
 }

@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.servlet.mvc;
+package org.grails.web.servlet.mvc
 
 /**
  * Strategy interface for obtaining details about the currently executing request
@@ -24,35 +24,35 @@ package org.grails.web.servlet.mvc;
  * @author Graeme Rocher
  * @since 2.0
  */
-public interface GrailsRequestStateLookupStrategy {
+interface GrailsRequestStateLookupStrategy {
 
     /**
      * Obtains the context path to use from the request
      *
      * @return The context path
      */
-    public String getContextPath();
+    String getContextPath()
 
     /**
      * The character encoding of the request
      *
      * @return The character encoding
      */
-    public String getCharacterEncoding();
+    String getCharacterEncoding()
 
     /**
      * The controller name
      *
      * @return The controller name or null if not known
      */
-    public String getControllerName();
+    String getControllerName()
 
     /**
      * The controller namespace
      *
      * @return The controller namespace or null if not known
      */
-    public String getControllerNamespace();
+    String getControllerNamespace()
 
     /**
      * The action name for the given controller name
@@ -60,22 +60,23 @@ public interface GrailsRequestStateLookupStrategy {
      * @param controllerName The controller name
      * @return The action name or null if not known
      */
-    public String getActionName(String controllerName);
+    String getActionName(String controllerName)
 
     /**
      * The action name
      *
      * @return The action name or null if not known
      */
-    public String getActionName();
+    String getActionName()
 
     /**
      * @return The HTTP method
      */
-    public String getHttpMethod();
+    String getHttpMethod()
 
     /**
      * @return the current request
      */
-    GrailsWebRequest getWebRequest();
+    GrailsWebRequest getWebRequest()
+
 }

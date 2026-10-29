@@ -16,10 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.util;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -27,6 +26,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
+
+import groovy.transform.CompileStatic;
 
 import org.grails.buffer.StringCharArrayAccessor;
 
@@ -41,7 +42,11 @@ import org.grails.buffer.StringCharArrayAccessor;
  *
  * @author Lari Hotari, Sagire Software Oy
  */
-public class BoundedCharsAsEncodedBytesCounter {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+@CompileStatic
+class BoundedCharsAsEncodedBytesCounter {
+
     private String encoding;
     private int capacity;
     private ByteBuffer bb;
@@ -49,15 +54,15 @@ public class BoundedCharsAsEncodedBytesCounter {
     private boolean calculationActive = true;
     private BoundedCharsAsEncodedBytesCounterWriter writer;
 
-    public BoundedCharsAsEncodedBytesCounter() {
+    BoundedCharsAsEncodedBytesCounter() {
     }
 
-    public BoundedCharsAsEncodedBytesCounter(int capacity, String encoding) {
+    BoundedCharsAsEncodedBytesCounter(int capacity, String encoding) {
         this.capacity = capacity;
         this.encoding = encoding;
     }
 
-    public void update(String str) {
+    void update(String str) {
         if (str.length() == 0) {
             return;
         }
@@ -66,11 +71,11 @@ public class BoundedCharsAsEncodedBytesCounter {
         }
     }
 
-    public void update(char[] buf) {
+    void update(char[] buf) {
         update(buf, 0, buf.length);
     }
 
-    public void update(char[] buf, int off, int len) {
+    void update(char[] buf, int off, int len) {
         if (calculationActive && len > 0) {
             try {
                 CharBuffer cb = CharBuffer.wrap(buf, off, len);
@@ -103,7 +108,7 @@ public class BoundedCharsAsEncodedBytesCounter {
         }
     }
 
-    public int size() {
+    int size() {
         if (calculationActive) {
             return bb.position();
         }
@@ -111,11 +116,11 @@ public class BoundedCharsAsEncodedBytesCounter {
         return -1;
     }
 
-    public boolean isWriterReferenced() {
+    boolean isWriterReferenced() {
         return writer != null;
     }
 
-    public Writer getCountingWriter() {
+    Writer getCountingWriter() {
         if (writer == null) {
             ce = Charset.forName(encoding).newEncoder().onMalformedInput(CodingErrorAction.REPLACE)
                     .onUnmappableCharacter(CodingErrorAction.REPLACE);
@@ -129,29 +134,29 @@ public class BoundedCharsAsEncodedBytesCounter {
         char[] writeBuffer = new char[8192];
 
         @Override
-        public void write(char[] b, int off, int len) throws IOException {
+        void write(char[] b, int off, int len) throws IOException {
             update(b, off, len);
         }
 
         @Override
-        public void close() throws IOException {
+        void close() throws IOException {
             // do nothing
         }
 
         @Override
-        public void write(int b) throws IOException {
-            if (!calculationActive) return;
+        void write(int b) throws IOException {
+            if (!BoundedCharsAsEncodedBytesCounter.this.calculationActive) return;
             writeBuffer[0] = (char) b;
             update(writeBuffer, 0, 1);
         }
 
         @Override
-        public Writer append(CharSequence csq, int start, int end) throws IOException {
-            if (!calculationActive) return this;
+        Writer append(CharSequence csq, int start, int end) throws IOException {
+            if (!BoundedCharsAsEncodedBytesCounter.this.calculationActive) return this;
 
             if (csq instanceof StringBuilder || csq instanceof StringBuffer) {
                 int len = end - start;
-                char cbuf[];
+                char[] cbuf;
                 if (len <= writeBuffer.length) {
                     cbuf = writeBuffer;
                 }
@@ -173,11 +178,11 @@ public class BoundedCharsAsEncodedBytesCounter {
         }
 
         @Override
-        public Writer append(CharSequence csq) throws IOException {
-            if (!calculationActive) return this;
+        Writer append(CharSequence csq) throws IOException {
+            if (!BoundedCharsAsEncodedBytesCounter.this.calculationActive) return this;
 
             if (csq == null) {
-                write("null");
+                write('null');
             }
             else {
                 append(csq, 0, csq.length());
@@ -186,36 +191,37 @@ public class BoundedCharsAsEncodedBytesCounter {
         }
 
         @Override
-        public void write(String str, int off, int len) throws IOException {
-            if (!calculationActive) return;
+        void write(String str, int off, int len) throws IOException {
+            if (!BoundedCharsAsEncodedBytesCounter.this.calculationActive) return;
             StringCharArrayAccessor.writeStringAsCharArray(this, str, off, len);
         }
 
         @Override
-        public void write(String str) throws IOException {
-            if (!calculationActive) return;
+        void write(String str) throws IOException {
+            if (!BoundedCharsAsEncodedBytesCounter.this.calculationActive) return;
             StringCharArrayAccessor.writeStringAsCharArray(this, str);
         }
 
         @Override
-        public void flush() throws IOException {
+        void flush() throws IOException {
             // do nothing
         }
     }
 
-    public String getEncoding() {
+    String getEncoding() {
         return encoding;
     }
 
-    public void setEncoding(String encoding) {
+    void setEncoding(String encoding) {
         this.encoding = encoding;
     }
 
-    public int getCapacity() {
+    int getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(int capacity) {
+    void setCapacity(int capacity) {
         this.capacity = capacity;
     }
+
 }

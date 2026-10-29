@@ -16,15 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.util;
+package org.grails.web.util
 
-import java.io.IOException;
-import java.io.Writer;
+import groovy.transform.CompileStatic
 
-import groovy.lang.Writable;
-
-import grails.util.GrailsWebUtil;
-import org.grails.buffer.StreamCharBuffer;
+import grails.util.GrailsWebUtil
+import org.grails.buffer.StreamCharBuffer
 
 /**
  * Represents some content that has been used in an include request.
@@ -32,21 +29,22 @@ import org.grails.buffer.StreamCharBuffer;
  * @author Graeme Rocher
  * @since 1.1.1
  */
-public class IncludedContent implements Writable {
+@CompileStatic
+class IncludedContent implements Writable {
 
-    private String contentType = GrailsWebUtil.getContentType("text/html", "UTF-8");
-    private Object content;
-    private String redirectURL;
+    private String contentType = GrailsWebUtil.getContentType('text/html', 'UTF-8')
+    private Object content
+    private String redirectURL
 
-    public IncludedContent(String contentType, Object content) {
+    IncludedContent(String contentType, Object content) {
         if (contentType != null) {
-            this.contentType = contentType;
+            this.contentType = contentType
         }
-        this.content = content;
+        this.content = content
     }
 
-    public IncludedContent(String redirectURL) {
-        this.redirectURL = redirectURL;
+    IncludedContent(String redirectURL) {
+        this.redirectURL = redirectURL
     }
 
     /**
@@ -55,56 +53,57 @@ public class IncludedContent implements Writable {
      *
      * @return The redirect URL
      */
-    public String getRedirectURL() {
-        return redirectURL;
+    String getRedirectURL() {
+        return redirectURL
     }
 
     /**
      * Returns the included content type (default is text/html;charset=UTF=8)
      * @return The content type
      */
-    public String getContentType() {
-        return contentType;
+    String getContentType() {
+        return contentType
     }
 
     /**
      * Returns the included content
      * @return The content
      */
-    public Object getContent() {
-        return content;
+    Object getContent() {
+        return content
     }
 
-    public Writer writeTo(Writer target) throws IOException {
+    Writer writeTo(Writer target) throws IOException {
         if (content == null) {
-            return target;
+            return target
         }
 
         if (content instanceof StreamCharBuffer) {
-            ((StreamCharBuffer) content).writeTo(target);
+            ((StreamCharBuffer) content).writeTo(target)
         }
         else if (content instanceof String) {
-            target.write((String) content);
+            target.write((String) content)
         }
         else {
-            target.write(String.valueOf(content));
+            target.write(String.valueOf(content))
         }
-        return target;
+        return target
     }
 
-    public char[] getContentAsCharArray() {
+    char[] getContentAsCharArray() {
         if (content == null) {
-            return new char[0];
+            return new char[0]
         }
 
         if (content instanceof StreamCharBuffer) {
-            return ((StreamCharBuffer) content).toCharArray();
+            return ((StreamCharBuffer) content).toCharArray()
         }
 
         if (content instanceof String) {
-            return ((String) content).toCharArray();
+            return ((String) content).toCharArray()
         }
 
-        return String.valueOf(content).toCharArray();
+        return String.valueOf(content).toCharArray()
     }
+
 }

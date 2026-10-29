@@ -16,14 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.servlet.mvc;
+package org.grails.web.servlet.mvc
 
-import org.springframework.beans.factory.annotation.Autowired;
+import groovy.transform.CompileStatic
+import org.springframework.beans.factory.annotation.Autowired
 
-import grails.core.GrailsApplication;
-import grails.core.GrailsControllerClass;
-import org.grails.core.artefact.ControllerArtefactHandler;
-import org.grails.web.util.HiddenHttpMethod;
+import grails.core.GrailsApplication
+import grails.core.GrailsControllerClass
+import org.grails.core.artefact.ControllerArtefactHandler
+import org.grails.web.util.HiddenHttpMethod
 
 /**
  * Default implementation that uses the web request to obtain information about the currently
@@ -32,111 +33,113 @@ import org.grails.web.util.HiddenHttpMethod;
  * @author Graeme Rocher
  * @since 2.0
  */
-public class DefaultRequestStateLookupStrategy implements GrailsRequestStateLookupStrategy {
+@CompileStatic
+class DefaultRequestStateLookupStrategy implements GrailsRequestStateLookupStrategy {
 
-    public static final String DEFAULT_REQUEST_ENCODING = "UTF-8";
-    private GrailsApplication grailsApplication;
-    private GrailsWebRequest webRequest;
+    public static final String DEFAULT_REQUEST_ENCODING = 'UTF-8'
+    private GrailsApplication grailsApplication
+    private GrailsWebRequest webRequest
 
-    public DefaultRequestStateLookupStrategy() {
+    DefaultRequestStateLookupStrategy() {
         // default
     }
 
-    public DefaultRequestStateLookupStrategy(GrailsWebRequest webRequest) {
-        this.webRequest = webRequest;
+    DefaultRequestStateLookupStrategy(GrailsWebRequest webRequest) {
+        this.webRequest = webRequest
     }
 
     @Autowired
-    public void setGrailsApplication(GrailsApplication grailsApplication) {
-        this.grailsApplication = grailsApplication;
+    void setGrailsApplication(GrailsApplication grailsApplication) {
+        this.grailsApplication = grailsApplication
     }
 
-    public String getContextPath() {
-        final GrailsWebRequest req = getWebRequest();
+    String getContextPath() {
+        final GrailsWebRequest req = getWebRequest()
         if (req != null) {
-            return req.getContextPath();
+            return req.getContextPath()
         }
-        return null;
+        return null
     }
 
-    public String getCharacterEncoding() {
-        final GrailsWebRequest req = getWebRequest();
+    String getCharacterEncoding() {
+        final GrailsWebRequest req = getWebRequest()
         if (req != null) {
-            return req.getRequest().getCharacterEncoding();
+            return req.getRequest().getCharacterEncoding()
         }
-        return DEFAULT_REQUEST_ENCODING;
+        return DEFAULT_REQUEST_ENCODING
     }
 
     @Override
-    public String getHttpMethod() {
-        final GrailsWebRequest req = getWebRequest();
+    String getHttpMethod() {
+        final GrailsWebRequest req = getWebRequest()
         if (req != null) {
-            return HiddenHttpMethod.effectiveMethod(req.getRequest());
+            return HiddenHttpMethod.effectiveMethod(req.getRequest())
         }
-        return null;
+        return null
     }
 
-    public String getControllerName() {
-        final GrailsWebRequest req = getWebRequest();
-        return getControllerNameInternal(req);
+    String getControllerName() {
+        final GrailsWebRequest req = getWebRequest()
+        return getControllerNameInternal(req)
     }
 
     private String getControllerNameInternal(GrailsWebRequest req) {
         if (req != null) {
-            return req.getControllerName();
+            return req.getControllerName()
         }
-        return null;
+        return null
     }
 
-    public String getControllerNamespace() {
-        final GrailsWebRequest req = getWebRequest();
+    String getControllerNamespace() {
+        final GrailsWebRequest req = getWebRequest()
         if (req != null) {
-            return req.getControllerNamespace();
+            return req.getControllerNamespace()
         }
-        return null;
+        return null
     }
 
-    public String getActionName() {
-        final GrailsWebRequest req = getWebRequest();
+    String getActionName() {
+        final GrailsWebRequest req = getWebRequest()
         if (req != null) {
-            String actionName = req.getActionName();
+            String actionName = req.getActionName()
             if (actionName == null) {
                 if (grailsApplication == null) {
-                    grailsApplication = req.getAttributes().getGrailsApplication();
+                    grailsApplication = req.getAttributes().getGrailsApplication()
                 }
                 if (grailsApplication != null) {
-                    final String controllerName = getControllerNameInternal(req);
-                    return getActionName(grailsApplication, controllerName);
+                    final String controllerName = getControllerNameInternal(req)
+                    return getActionName(grailsApplication, controllerName)
                 }
             }
         }
-        return null;
+        return null
     }
 
     private String getActionName(GrailsApplication application, String controllerName) {
         if (application != null) {
-            final GrailsControllerClass controllerClass = (GrailsControllerClass) application.getArtefactByLogicalPropertyName(ControllerArtefactHandler.TYPE, controllerName);
+            final GrailsControllerClass controllerClass = (GrailsControllerClass) application.getArtefactByLogicalPropertyName(ControllerArtefactHandler.TYPE, controllerName)
             if (controllerClass != null) {
-                return controllerClass.getDefaultAction();
+                return controllerClass.getDefaultAction()
             }
         }
-        return null;
+        return null
     }
 
-    public String getActionName(String controllerName) {
+    String getActionName(String controllerName) {
         if (controllerName != null) {
             if (grailsApplication == null) {
-                final GrailsWebRequest grailsWebRequest = getWebRequest();
+                final GrailsWebRequest grailsWebRequest = getWebRequest()
                 if (grailsWebRequest != null)
-                    grailsApplication = grailsWebRequest.getAttributes().getGrailsApplication();
+                    grailsApplication = grailsWebRequest.getAttributes().getGrailsApplication()
 
             }
-            return getActionName(grailsApplication, controllerName);
+            return getActionName(grailsApplication, controllerName)
         }
-        return null;
+        return null
     }
 
-    public GrailsWebRequest getWebRequest() {
-        return webRequest != null ? webRequest : GrailsWebRequest.lookup();
+    GrailsWebRequest getWebRequest() {
+        return webRequest != null ? webRequest : GrailsWebRequest.lookup()
     }
+
 }

@@ -16,10 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.servlet.view;
+package org.grails.web.servlet.view
 
-import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.ViewResolver
 
-public interface GrailsViewResolver extends ViewResolver {
+interface GrailsViewResolver extends ViewResolver {
 
 }

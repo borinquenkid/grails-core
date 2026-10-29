@@ -16,15 +16,16 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.web.servlet.mvc;
+package grails.web.servlet.mvc
 
-import java.util.Enumeration;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.ServletContext
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpSession
+
+import groovy.transform.CompileStatic
 
 /**
  * An adapter class that takes a regular HttpSession and allows you to access it like a Groovy map.
@@ -32,110 +33,111 @@ import jakarta.servlet.http.HttpSession;
  * @author Graeme Rocher
  * @since 3.0
  */
-public class GrailsHttpSession implements HttpSession {
+@CompileStatic
+class GrailsHttpSession implements HttpSession {
 
-    private final Lock sessionLock = new ReentrantLock();
-    private HttpSession adaptee;
-    private final HttpServletRequest request;
+    private final Lock sessionLock = new ReentrantLock()
+    private HttpSession adaptee
+    private final HttpServletRequest request
 
-    public GrailsHttpSession(HttpServletRequest request) {
-        this.request = request;
+    GrailsHttpSession(HttpServletRequest request) {
+        this.request = request
     }
 
     /* (non-Javadoc)
      * @see jakarta.servlet.http.HttpSession#getAttribute(java.lang.String)
      */
-    public Object getAttribute(String name) {
-        sessionLock.lock();
+    Object getAttribute(String name) {
+        sessionLock.lock()
         try {
-            return createSessionIfNecessary().getAttribute(name);
+            return createSessionIfNecessary().getAttribute(name)
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
     private HttpSession createSessionIfNecessary() {
-        if (adaptee == null) adaptee = request.getSession(true);
-        return adaptee;
+        if (adaptee == null) adaptee = request.getSession(true)
+        return adaptee
     }
 
     /* (non-Javadoc)
      * @see jakarta.servlet.http.HttpSession#getAttributeNames()
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public Enumeration getAttributeNames() {
-        sessionLock.lock();
+    @SuppressWarnings([ 'rawtypes', 'unchecked' ])
+    Enumeration getAttributeNames() {
+        sessionLock.lock()
         try {
-            return createSessionIfNecessary().getAttributeNames();
+            return createSessionIfNecessary().getAttributeNames()
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
     /* (non-Javadoc)
      * @see jakarta.servlet.http.HttpSession#getCreationTime()
      */
-    public long getCreationTime() {
-        sessionLock.lock();
+    long getCreationTime() {
+        sessionLock.lock()
         try {
-            return createSessionIfNecessary().getCreationTime();
+            return createSessionIfNecessary().getCreationTime()
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
     /* (non-Javadoc)
      * @see jakarta.servlet.http.HttpSession#getId()
      */
-    public String getId() {
-        sessionLock.lock();
+    String getId() {
+        sessionLock.lock()
         try {
-            return createSessionIfNecessary().getId();
+            return createSessionIfNecessary().getId()
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
     /* (non-Javadoc)
      * @see jakarta.servlet.http.HttpSession#getLastAccessedTime()
      */
-    public long getLastAccessedTime() {
-        sessionLock.lock();
+    long getLastAccessedTime() {
+        sessionLock.lock()
         try {
-            return createSessionIfNecessary().getLastAccessedTime();
+            return createSessionIfNecessary().getLastAccessedTime()
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
     /* (non-Javadoc)
      * @see jakarta.servlet.http.HttpSession#getMaxInactiveInterval()
      */
-    public int getMaxInactiveInterval() {
-        sessionLock.lock();
+    int getMaxInactiveInterval() {
+        sessionLock.lock()
         try {
-            return createSessionIfNecessary().getMaxInactiveInterval();
+            return createSessionIfNecessary().getMaxInactiveInterval()
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
     /* (non-Javadoc)
      * @see jakarta.servlet.http.HttpSession#getServletContext()
      */
-    public ServletContext getServletContext() {
-        sessionLock.lock();
+    ServletContext getServletContext() {
+        sessionLock.lock()
         try {
-            return createSessionIfNecessary().getServletContext();
+            return createSessionIfNecessary().getServletContext()
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
@@ -213,93 +215,94 @@ public class GrailsHttpSession implements HttpSession {
      * @see jakarta.servlet.http.HttpSession#invalidate()
      */
     @Deprecated
-    public void invalidate() {
-        sessionLock.lock();
+    void invalidate() {
+        sessionLock.lock()
         try {
-            HttpSession session = adaptee;
-            if (session == null) session = request.getSession(false);
+            HttpSession session = adaptee
+            if (session == null) session = request.getSession(false)
             if (session != null) {
-                adaptee = session;
-                session.invalidate();
+                adaptee = session
+                session.invalidate()
             }
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
     /* (non-Javadoc)
      * @see jakarta.servlet.http.HttpSession#isNew()
      */
-    public boolean isNew() {
-        sessionLock.lock();
+    boolean isNew() {
+        sessionLock.lock()
         try {
-            return createSessionIfNecessary().isNew();
+            return createSessionIfNecessary().isNew()
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
     /* (non-Javadoc)
      * @see jakarta.servlet.http.HttpSession#removeAttribute(java.lang.String)
      */
-    public void removeAttribute(String name) {
-        sessionLock.lock();
+    void removeAttribute(String name) {
+        sessionLock.lock()
         try {
-            createSessionIfNecessary().removeAttribute(name);
+            createSessionIfNecessary().removeAttribute(name)
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
     /* (non-Javadoc)
      * @see jakarta.servlet.http.HttpSession#setAttribute(java.lang.String, java.lang.Object)
      */
-    public void setAttribute(String name, Object value) {
-        sessionLock.lock();
+    void setAttribute(String name, Object value) {
+        sessionLock.lock()
         try {
-            createSessionIfNecessary().setAttribute(name, value);
+            createSessionIfNecessary().setAttribute(name, value)
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
     /* (non-Javadoc)
      * @see jakarta.servlet.http.HttpSession#setMaxInactiveInterval(int)
      */
-    public void setMaxInactiveInterval(int arg0) {
-        sessionLock.lock();
+    void setMaxInactiveInterval(int arg0) {
+        sessionLock.lock()
         try {
-            createSessionIfNecessary().setMaxInactiveInterval(arg0);
+            createSessionIfNecessary().setMaxInactiveInterval(arg0)
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings('rawtypes')
     @Override
-    public String toString() {
-        sessionLock.lock();
+    String toString() {
+        sessionLock.lock()
         try {
-            HttpSession session = createSessionIfNecessary();
-            StringBuilder sb = new StringBuilder("Session Content:\n");
-            Enumeration e = session.getAttributeNames();
+            HttpSession session = createSessionIfNecessary()
+            StringBuilder sb = new StringBuilder('Session Content:\n')
+            Enumeration e = session.getAttributeNames()
             while (e.hasMoreElements()) {
-                String name = (String) e.nextElement();
-                sb.append("  ");
-                sb.append(name);
-                sb.append(" = ");
-                sb.append(session.getAttribute(name));
-                sb.append('\n');
+                String name = (String) e.nextElement()
+                sb.append('  ')
+                sb.append(name)
+                sb.append(' = ')
+                sb.append(session.getAttribute(name))
+                sb.append('\n')
             }
-            return sb.toString();
+            return sb.toString()
         }
         finally {
-            sessionLock.unlock();
+            sessionLock.unlock()
         }
     }
+
 }

@@ -16,12 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.xml;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Stack;
-
+import groovy.transform.CompileStatic;
 import groovy.xml.streamingmarkupsupport.StreamingMarkupWriter;
 
 import static org.grails.web.xml.XMLStreamWriter.Mode.CONTENT;
@@ -34,7 +32,10 @@ import static org.grails.web.xml.XMLStreamWriter.Mode.TAG;
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-public class XMLStreamWriter {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+@CompileStatic
+class XMLStreamWriter {
 
     protected StreamingMarkupWriter writer;
 
@@ -44,15 +45,15 @@ public class XMLStreamWriter {
 
     private char quoteChar = '"';
 
-    public XMLStreamWriter(StreamingMarkupWriter writer) {
+    XMLStreamWriter(StreamingMarkupWriter writer) {
         this.writer = writer;
     }
 
-    public XMLStreamWriter startDocument(String encoding, String version) throws IOException {
+    XMLStreamWriter startDocument(String encoding, String version) throws IOException {
         if (mode != INIT) {
             throw new IllegalStateException();
         }
-        writer.unescaped().write(String.format("<?xml version=\"%s\" encoding=\"%s\"?>", version, encoding));
+        writer.unescaped().write(String.format('<?xml version="%s" encoding="%s"?>', version, encoding));
         return this;
     }
 
@@ -60,7 +61,7 @@ public class XMLStreamWriter {
         writer.unescaped().write('<');
     }
 
-    public XMLStreamWriter startNode(String tag) throws IOException {
+    XMLStreamWriter startNode(String tag) throws IOException {
         if (mode == TAG)
             endStartTag();
 
@@ -72,10 +73,10 @@ public class XMLStreamWriter {
         return this;
     }
 
-    public XMLStreamWriter end() throws IOException {
+    XMLStreamWriter end() throws IOException {
         Writer ue = writer.unescaped();
         if (mode == TAG) {
-            ue.write(" />");
+            ue.write(' />');
             if (tagStack.pop() == null) {
                 throw new IllegalStateException();
             }
@@ -93,12 +94,12 @@ public class XMLStreamWriter {
         return this;
     }
 
-    public XMLStreamWriter attribute(String name, String value) throws IOException {
+    XMLStreamWriter attribute(String name, String value) throws IOException {
         if (mode != TAG) {
             throw new IllegalStateException();
         }
         Writer ue = writer.unescaped();
-        ue.write(" ");
+        ue.write(' ');
         ue.write(name);
         ue.write('=');
         ue.write(quoteChar);
@@ -114,7 +115,7 @@ public class XMLStreamWriter {
         writer.unescaped().write('>');
     }
 
-    public XMLStreamWriter characters(String data) throws IOException {
+    XMLStreamWriter characters(String data) throws IOException {
         if (mode == TAG) {
             endStartTag();
         }
@@ -129,4 +130,5 @@ public class XMLStreamWriter {
         TAG,
         CONTENT
     }
+
 }

@@ -16,6 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.json;
 
 import tools.jackson.core.JsonGenerator;
@@ -23,10 +24,15 @@ import tools.jackson.core.PrettyPrinter;
 import tools.jackson.core.TokenStreamContext;
 import tools.jackson.core.util.Instantiatable;
 
+import groovy.transform.CompileStatic;
+
 /**
  * Indents JSON as Grails 8 did: every key and array element on its own line, a key followed by {@code ": "}, and an
  * array that is not an array element on a line of its own.
  */
+// TODO(groovyism-cleanup): semicolons + double-quoted strings kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'UnnecessaryGString', 'UnnecessaryPublicModifier'])
+@CompileStatic
 final class GrailsPrettyPrinter implements PrettyPrinter, Instantiatable<GrailsPrettyPrinter> {
 
     private final String indent;

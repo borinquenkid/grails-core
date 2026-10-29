@@ -16,73 +16,75 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.pages;
+package org.grails.web.pages
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
+import java.util.regex.Pattern
 
-import grails.config.Config;
-import grails.config.Settings;
-import grails.core.GrailsApplication;
-import org.grails.encoder.CodecLookupHelper;
-import org.grails.encoder.Encoder;
+import groovy.transform.CompileStatic
 
-public class FilteringCodecsByContentTypeSettings {
-    private static final String WILDCARD_CONTENT_TYPE = "*/*";
+import grails.config.Config
+import grails.config.Settings
+import grails.core.GrailsApplication
+import org.grails.encoder.CodecLookupHelper
+import org.grails.encoder.Encoder
 
-    public static final String CONFIG_PROPERTY_CODEC_FOR_CONTENT_TYPE = "grails.views.filteringCodecForContentType";
-    public static final String BEAN_NAME = "filteringCodecsByContentTypeSettings";
+@CompileStatic
+class FilteringCodecsByContentTypeSettings {
 
-    Map<String, Encoder> contentTypeToEncoderMapping;
-    Map<Pattern, Encoder> contentTypePatternToEncoderMapping;
+    private static final String WILDCARD_CONTENT_TYPE = '*/*'
 
-    public FilteringCodecsByContentTypeSettings(GrailsApplication grailsApplication) {
-        initialize(grailsApplication);
+    public static final String CONFIG_PROPERTY_CODEC_FOR_CONTENT_TYPE = 'grails.views.filteringCodecForContentType'
+    public static final String BEAN_NAME = 'filteringCodecsByContentTypeSettings'
+
+    Map<String, Encoder> contentTypeToEncoderMapping
+    Map<Pattern, Encoder> contentTypePatternToEncoderMapping
+
+    FilteringCodecsByContentTypeSettings(GrailsApplication grailsApplication) {
+        initialize(grailsApplication)
     }
 
-    @SuppressWarnings("rawtypes")
-    public void initialize(GrailsApplication grailsApplication) {
-        contentTypeToEncoderMapping = null;
-        contentTypePatternToEncoderMapping = null;
-        Map codecForContentTypeConfig = getConfigSettings(grailsApplication.getConfig());
+    @SuppressWarnings('rawtypes')
+    void initialize(GrailsApplication grailsApplication) {
+        contentTypeToEncoderMapping = null
+        contentTypePatternToEncoderMapping = null
+        Map codecForContentTypeConfig = getConfigSettings(grailsApplication.getConfig())
         if (codecForContentTypeConfig != null) {
-            contentTypeToEncoderMapping = new LinkedHashMap<>();
-            contentTypePatternToEncoderMapping = new LinkedHashMap<>();
-            Map codecForContentTypeMapping = (Map) codecForContentTypeConfig;
+            contentTypeToEncoderMapping = new LinkedHashMap<>()
+            contentTypePatternToEncoderMapping = new LinkedHashMap<>()
+            Map codecForContentTypeMapping = (Map) codecForContentTypeConfig
             for (Iterator i = codecForContentTypeMapping.entrySet().iterator(); i.hasNext();) {
-                Map.Entry entry = (Map.Entry) i.next();
-                Encoder encoder = CodecLookupHelper.lookupEncoder(grailsApplication, String.valueOf(entry.getValue()));
+                Map.Entry entry = (Map.Entry) i.next()
+                Encoder encoder = CodecLookupHelper.lookupEncoder(grailsApplication, String.valueOf(entry.getValue()))
                 if (entry.getKey() instanceof Pattern) {
-                    contentTypePatternToEncoderMapping.put((Pattern) entry.getKey(), encoder);
+                    contentTypePatternToEncoderMapping.put((Pattern) entry.getKey(), encoder)
                 } else {
-                    contentTypeToEncoderMapping.put(String.valueOf(entry.getKey()), encoder);
+                    contentTypeToEncoderMapping.put(String.valueOf(entry.getKey()), encoder)
                 }
             }
         }
     }
 
-    public Encoder getEncoderForContentType(String contentType) {
+    Encoder getEncoderForContentType(String contentType) {
         if (contentTypeToEncoderMapping == null) {
-            return null;
+            return null
         }
         if (contentType == null) {
-            contentType = WILDCARD_CONTENT_TYPE;
+            contentType = WILDCARD_CONTENT_TYPE
         }
-        Encoder encoder = contentTypeToEncoderMapping.get(contentType);
+        Encoder encoder = contentTypeToEncoderMapping.get(contentType)
         if (encoder != null) {
-            return encoder;
+            return encoder
         }
         for (Map.Entry<Pattern, Encoder> entry : contentTypePatternToEncoderMapping.entrySet()) {
             if (entry.getKey().matcher(contentType).matches()) {
-                return encoder;
+                return encoder
             }
         }
-        return contentTypeToEncoderMapping.get(WILDCARD_CONTENT_TYPE);
+        return contentTypeToEncoderMapping.get(WILDCARD_CONTENT_TYPE)
     }
 
     protected Map getConfigSettings(Config config) {
-        return config.getProperty(Settings.VIEWS_FILTERING_CODEC_FOR_CONTENT_TYPE, Map.class);
+        return config.getProperty(Settings.VIEWS_FILTERING_CODEC_FOR_CONTENT_TYPE, Map)
     }
+
 }

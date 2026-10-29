@@ -16,12 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.web.context;
+package grails.web.context
 
-import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletContext
 
-import grails.util.Holders;
-import org.grails.web.context.ServletEnvironmentGrailsApplicationDiscoveryStrategy;
+import groovy.transform.CompileStatic
+
+import grails.util.Holders
+import org.grails.web.context.ServletEnvironmentGrailsApplicationDiscoveryStrategy
 
 /**
  * Holds a reference to the ServletContext.
@@ -29,14 +31,16 @@ import org.grails.web.context.ServletEnvironmentGrailsApplicationDiscoveryStrate
  * @author Graeme Rocher
  * @since 1.0
  */
-public class ServletContextHolder {
+@CompileStatic
+class ServletContextHolder {
 
-    public static void setServletContext(final ServletContext servletContext) {
-        Holders.setServletContext(servletContext);
-        Holders.addApplicationDiscoveryStrategy(new ServletEnvironmentGrailsApplicationDiscoveryStrategy(servletContext));
+    static void setServletContext(final ServletContext servletContext) {
+        Holders.setServletContext(servletContext)
+        Holders.addApplicationDiscoveryStrategy(new ServletEnvironmentGrailsApplicationDiscoveryStrategy(servletContext))
     }
 
-    public static ServletContext getServletContext() {
-        return (ServletContext) Holders.getServletContext();
+    static ServletContext getServletContext() {
+        return (ServletContext) Holders.getServletContext()
     }
+
 }

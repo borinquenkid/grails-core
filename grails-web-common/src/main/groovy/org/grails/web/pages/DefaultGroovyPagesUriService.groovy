@@ -16,14 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.pages;
+package org.grails.web.pages
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 
-import groovy.lang.GroovyObject;
-
-import org.springframework.util.Assert;
+import groovy.transform.CompileStatic
+import org.springframework.util.Assert
 
 /**
  * Provides services for resolving URIs.
@@ -32,78 +31,79 @@ import org.springframework.util.Assert;
  *
  * @author Lari Hotari , Sagire Software Oy
  */
-public class DefaultGroovyPagesUriService extends GroovyPagesUriSupport {
+@CompileStatic
+class DefaultGroovyPagesUriService extends GroovyPagesUriSupport {
 
-    ConcurrentMap<TupleStringKey, String> templateURICache = new ConcurrentHashMap<>();
-    ConcurrentMap<TupleStringKey, String> deployedViewURICache = new ConcurrentHashMap<>();
-    ConcurrentMap<ControllerObjectKey, String> controllerNameCache = new ConcurrentHashMap<>();
-    ConcurrentMap<TupleStringKey, String> noSuffixViewURICache = new ConcurrentHashMap<>();
+    ConcurrentMap<TupleStringKey, String> templateURICache = new ConcurrentHashMap<>()
+    ConcurrentMap<TupleStringKey, String> deployedViewURICache = new ConcurrentHashMap<>()
+    ConcurrentMap<ControllerObjectKey, String> controllerNameCache = new ConcurrentHashMap<>()
+    ConcurrentMap<TupleStringKey, String> noSuffixViewURICache = new ConcurrentHashMap<>()
 
     private static class TupleStringKey {
-        String keyPart1;
-        String keyPart2;
+        String keyPart1
+        String keyPart2
 
         TupleStringKey(String keyPart1, String keyPart2) {
-            this.keyPart1 = keyPart1;
-            this.keyPart2 = keyPart2;
+            this.keyPart1 = keyPart1
+            this.keyPart2 = keyPart2
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
+        boolean equals(Object o) {
+            if (this.is(o)) {
+                return true
             }
             if (o == null || getClass() != o.getClass()) {
-                return false;
+                return false
             }
 
-            TupleStringKey that = (TupleStringKey) o;
+            TupleStringKey that = (TupleStringKey) o
 
             if (keyPart1 != null ? !keyPart1.equals(that.keyPart1) : that.keyPart1 != null) {
-                return false;
+                return false
             }
             if (keyPart2 != null ? !keyPart2.equals(that.keyPart2) : that.keyPart2 != null) {
-                return false;
+                return false
             }
 
-            return true;
+            return true
         }
 
         @Override
-        public int hashCode() {
-            int result = keyPart1 != null ? keyPart1.hashCode() : 0;
-            result = 31 * result + (keyPart2 != null ? keyPart2.hashCode() : 0);
-            return result;
+        int hashCode() {
+            int result = keyPart1 != null ? keyPart1.hashCode() : 0
+            result = 31 * result + (keyPart2 != null ? keyPart2.hashCode() : 0)
+            return result
         }
     }
 
     private static class ControllerObjectKey {
-        private long controllerHashCode;
-        private String controllerClassName;
+        private long controllerHashCode
+        private String controllerClassName
 
         ControllerObjectKey(GroovyObject controller) {
-            controllerHashCode = controller.getClass().hashCode();
-            controllerClassName = controller.getClass().getName();
+            controllerHashCode = controller.getClass().hashCode()
+            controllerClassName = controller.getClass().getName()
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+        boolean equals(Object o) {
+            if (this.is(o)) return true
+            if (o == null || getClass() != o.getClass()) return false
 
-            ControllerObjectKey that = (ControllerObjectKey) o;
+            ControllerObjectKey that = (ControllerObjectKey) o
 
-            if (controllerHashCode != that.controllerHashCode) return false;
-            if (!controllerClassName.equals(that.controllerClassName)) return false;
+            if (controllerHashCode != that.controllerHashCode) return false
+            if (!controllerClassName.equals(that.controllerClassName)) return false
 
-            return true;
+            return true
         }
 
         @Override
-        public int hashCode() {
-            int result = (int) (controllerHashCode ^ (controllerHashCode >>> 32));
-            result = 31 * result + controllerClassName.hashCode();
-            return result;
+        int hashCode() {
+            int result = (int) (controllerHashCode ^ (controllerHashCode >>> 32))
+            result = 31 * result + controllerClassName.hashCode()
+            return result
         }
     }
 
@@ -111,92 +111,93 @@ public class DefaultGroovyPagesUriService extends GroovyPagesUriSupport {
      * @see grails.web.pages.GroovyPagesUriService#getTemplateURI(java.lang.String, java.lang.String)
      */
     @Override
-    public String getTemplateURI(String controllerName, String templateName) {
-        TupleStringKey key = new TupleStringKey(controllerName, templateName);
-        String uri = templateURICache.get(key);
+    String getTemplateURI(String controllerName, String templateName) {
+        TupleStringKey key = new TupleStringKey(controllerName, templateName)
+        String uri = templateURICache.get(key)
         if (uri == null) {
-            uri = super.getTemplateURI(controllerName, templateName);
-            String prevuri = templateURICache.putIfAbsent(key, uri);
+            uri = super.getTemplateURI(controllerName, templateName)
+            String prevuri = templateURICache.putIfAbsent(key, uri)
             if (prevuri != null) {
-                return prevuri;
+                return prevuri
             }
         }
-        return uri;
+        return uri
     }
 
     /* (non-Javadoc)
      * @see grails.web.pages.GroovyPagesUriService#getDeployedViewURI(java.lang.String, java.lang.String)
      */
     @Override
-    public String getDeployedViewURI(String controllerName, String viewName) {
-        TupleStringKey key = new TupleStringKey(controllerName, viewName);
-        String uri = deployedViewURICache.get(key);
+    String getDeployedViewURI(String controllerName, String viewName) {
+        TupleStringKey key = new TupleStringKey(controllerName, viewName)
+        String uri = deployedViewURICache.get(key)
         if (uri == null) {
-            uri = super.getDeployedViewURI(controllerName, viewName);
-            String prevuri = deployedViewURICache.putIfAbsent(key, uri);
+            uri = super.getDeployedViewURI(controllerName, viewName)
+            String prevuri = deployedViewURICache.putIfAbsent(key, uri)
             if (prevuri != null) {
-                return prevuri;
+                return prevuri
             }
         }
-        return uri;
+        return uri
     }
 
     @Override
-    public String getLogicalControllerName(GroovyObject controller) {
-        ControllerObjectKey key = new ControllerObjectKey(controller);
-        String name = controllerNameCache.get(key);
+    String getLogicalControllerName(GroovyObject controller) {
+        ControllerObjectKey key = new ControllerObjectKey(controller)
+        String name = controllerNameCache.get(key)
         if (name == null) {
-            name = super.getLogicalControllerName(controller);
-            String prevname = name != null ? controllerNameCache.putIfAbsent(key, name) : null;
+            name = super.getLogicalControllerName(controller)
+            String prevname = name != null ? controllerNameCache.putIfAbsent(key, name) : null
             if (prevname != null) {
-                return prevname;
+                return prevname
             }
         }
-        return name;
+        return name
     }
 
     /* (non-Javadoc)
      * @see grails.web.pages.GroovyPagesUriService#getNoSuffixViewURI(groovy.lang.GroovyObject, java.lang.String)
      */
     @Override
-    public String getNoSuffixViewURI(GroovyObject controller, String viewName) {
-        Assert.notNull(controller, "Argument [controller] cannot be null");
-        return getNoSuffixViewURI(getLogicalControllerName(controller), viewName);
+    String getNoSuffixViewURI(GroovyObject controller, String viewName) {
+        Assert.notNull(controller, 'Argument [controller] cannot be null')
+        return getNoSuffixViewURI(getLogicalControllerName(controller), viewName)
     }
 
     /* (non-Javadoc)
      * @see grails.web.pages.GroovyPagesUriService#getNoSuffixViewURI(java.lang.String, java.lang.String)
      */
     @Override
-    public String getNoSuffixViewURI(String controllerName, String viewName) {
-        TupleStringKey key = new TupleStringKey(controllerName, viewName);
-        String uri = noSuffixViewURICache.get(key);
+    String getNoSuffixViewURI(String controllerName, String viewName) {
+        TupleStringKey key = new TupleStringKey(controllerName, viewName)
+        String uri = noSuffixViewURICache.get(key)
         if (uri == null) {
-            uri = super.getNoSuffixViewURI(controllerName, viewName);
-            String prevuri = noSuffixViewURICache.putIfAbsent(key, uri);
+            uri = super.getNoSuffixViewURI(controllerName, viewName)
+            String prevuri = noSuffixViewURICache.putIfAbsent(key, uri)
             if (prevuri != null) {
-                return prevuri;
+                return prevuri
             }
         }
-        return uri;
+        return uri
     }
 
     /* (non-Javadoc)
      * @see grails.web.pages.GroovyPagesUriService#getTemplateURI(groovy.lang.GroovyObject, java.lang.String)
      */
     @Override
-    public String getTemplateURI(GroovyObject controller, String templateName) {
-        return getTemplateURI(getLogicalControllerName(controller), templateName);
+    String getTemplateURI(GroovyObject controller, String templateName) {
+        return getTemplateURI(getLogicalControllerName(controller), templateName)
     }
 
     /* (non-Javadoc)
      * @see grails.web.pages.GroovyPagesUriService#clear()
      */
     @Override
-    public void clear() {
-        templateURICache.clear();
-        deployedViewURICache.clear();
-        controllerNameCache.clear();
-        noSuffixViewURICache.clear();
+    void clear() {
+        templateURICache.clear()
+        deployedViewURICache.clear()
+        controllerNameCache.clear()
+        noSuffixViewURICache.clear()
     }
+
 }

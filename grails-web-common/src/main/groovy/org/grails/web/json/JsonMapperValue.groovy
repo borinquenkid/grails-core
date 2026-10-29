@@ -16,23 +16,24 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.json;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.util.function.Predicate;
 
+import groovy.transform.CompileStatic;
+
 /**
- * A value for a {@link JSONWriter} to write with a {@link JsonMapperSupport}'s mapper. A {@code JSONWriter} created with
- * the same {@code JsonMapperSupport} instance streams it to its generator, and offers the values nested in it to the
- * value's nested value writer (see
+ * A value for a {@link JSONWriter} to write with a {@link JsonMapperSupport}'s mapper. A {@code JSONWriter} with the
+ * same mapper streams it to its generator, and offers the values nested in it to the value's nested value writer (see
  * {@link JsonMapperSupport#writeValue(tools.jackson.core.JsonGenerator, Object, Predicate)}). Anywhere else, it is
- * written as any {@link JSONElement} is: the JSON text the mapper writes for the value. A marshaller of
- * {@code grails.converters.JSON} creates one with the converter's {@code getJsonMapperSupport()}, which carries the
- * attributes of the write.
+ * written as any {@link JSONElement} is: the JSON text the mapper writes for the value.
  *
  * @since 9.0
  */
+// TODO(groovyism-cleanup): semicolons + double-quoted strings kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'UnnecessaryGString', 'UnnecessaryPublicModifier'])
+@CompileStatic
 public final class JsonMapperValue implements JSONElement {
 
     private final Object value;
@@ -46,7 +47,7 @@ public final class JsonMapperValue implements JSONElement {
      * @param jsonMapper the mapper to write it with
      */
     public JsonMapperValue(Object value, JsonMapperSupport jsonMapper) {
-        this(value, jsonMapper, nested -> false);
+        this(value, jsonMapper, { nested -> false });
     }
 
     /**

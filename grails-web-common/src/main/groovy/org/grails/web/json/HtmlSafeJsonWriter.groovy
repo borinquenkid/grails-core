@@ -16,10 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.json;
 
-import java.io.IOException;
-import java.io.Writer;
+import groovy.transform.CompileStatic;
 
 /**
  * Escapes JSON text so that it can be embedded in an HTML {@code <script>} element, as {@code grails.converters.JSON}
@@ -32,6 +32,9 @@ import java.io.Writer;
  *
  * @since 9.0
  */
+// TODO(groovyism-cleanup): semicolons + double-quoted strings kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'UnnecessaryGString', 'UnnecessaryPublicModifier'])
+@CompileStatic
 final class HtmlSafeJsonWriter extends Writer {
 
     private static final String ESCAPED_END_TAG = "<\\u002f";
@@ -74,9 +77,9 @@ final class HtmlSafeJsonWriter extends Writer {
                 }
                 runStart = i + 1;
             }
-            else if (c == '\u2028' || c == '\u2029') {
+            else if (c == ' ' || c == ' ') {
                 out.write(cbuf, runStart, i - runStart);
-                out.write(c == '\u2028' ? "\\u2028" : "\\u2029");
+                out.write(c == ' ' ? "\\u2028" : "\\u2029");
                 runStart = i + 1;
             }
         }

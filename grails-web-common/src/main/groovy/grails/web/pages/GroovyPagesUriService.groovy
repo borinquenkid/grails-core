@@ -16,9 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.web.pages;
-
-import groovy.lang.GroovyObject;
+package grails.web.pages
 
 /**
  * Provides methods to lookup URIs of views and templates.
@@ -26,11 +24,11 @@ import groovy.lang.GroovyObject;
  * @author Graeme Rocher
  * @since 1.2
  */
-public interface GroovyPagesUriService {
+interface GroovyPagesUriService {
 
-    String RENDERING_VIEW_ATTRIBUTE = "org.grails.rendering.view";
+    String RENDERING_VIEW_ATTRIBUTE = 'org.grails.rendering.view'
 
-    String BEAN_ID = "groovyPagesUriService";
+    String BEAN_ID = 'groovyPagesUriService'
 
     /**
      * Obtains a template name of the given controller name and template name
@@ -39,25 +37,25 @@ public interface GroovyPagesUriService {
      * @param templateName The template name
      * @return The template URI
      */
-    String getTemplateURI(String controllerName, String templateName);
+    String getTemplateURI(String controllerName, String templateName)
 
-    String getDeployedViewURI(String controllerName, String viewName);
+    String getDeployedViewURI(String controllerName, String viewName)
 
-    String getNoSuffixViewURI(GroovyObject controller, String viewName);
+    String getNoSuffixViewURI(GroovyObject controller, String viewName)
 
-    String getNoSuffixViewURI(String controllerName, String viewName);
+    String getNoSuffixViewURI(String controllerName, String viewName)
 
-    String getTemplateURI(GroovyObject controller, String templateName);
+    String getTemplateURI(GroovyObject controller, String templateName)
 
-    void clear();
+    void clear()
 
-    String getTemplateURI(String controllerName, String templateName, boolean includeExtension);
+    String getTemplateURI(String controllerName, String templateName, boolean includeExtension)
 
-    String getAbsoluteTemplateURI(String templateName, boolean includeExtension);
+    String getAbsoluteTemplateURI(String templateName, boolean includeExtension)
 
-    String getAbsoluteViewURI(String viewName);
+    String getAbsoluteViewURI(String viewName)
 
-    String getDeployedAbsoluteViewURI(String viewName);
+    String getDeployedAbsoluteViewURI(String viewName)
 
     /**
      * Obtains a view name for the given controller name and template name
@@ -66,7 +64,8 @@ public interface GroovyPagesUriService {
      * @param viewName The view name
      * @return The view URI
      */
-    String getViewURI(String controllerName, String viewName);
+    String getViewURI(String controllerName, String viewName)
 
-    String getTemplateURI(GroovyObject controller, String templateName, boolean includeExtension);
+    String getTemplateURI(GroovyObject controller, String templateName, boolean includeExtension)
+
 }
