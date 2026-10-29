@@ -17,17 +17,15 @@
  *  under the License.
  */
 
-package org.grails.datastore.gorm.mongo;
+package org.grails.datastore.gorm.mongo
 
-import java.util.Collection;
-import java.util.List;
+import groovy.transform.CompileStatic
+import org.springframework.util.Assert
 
-import org.springframework.util.Assert;
-
-import grails.mongodb.geo.Circle;
-import org.grails.datastore.gorm.finders.MethodExpression;
-import org.grails.datastore.mapping.mongo.query.MongoQuery;
-import org.grails.datastore.mapping.query.Query.Criterion;
+import grails.mongodb.geo.Circle
+import org.grails.datastore.gorm.finders.MethodExpression
+import org.grails.datastore.mapping.mongo.query.MongoQuery
+import org.grails.datastore.mapping.query.Query.Criterion
 
 /**
  * A dynamic finder method expression that adds the ability to query within a circle
@@ -35,40 +33,40 @@ import org.grails.datastore.mapping.query.Query.Criterion;
  * @author Graeme Rocher
  * @since 1.0
  */
-public class WithinCircle extends MethodExpression {
+@CompileStatic
+class WithinCircle extends MethodExpression {
 
-    public WithinCircle(Class<?> targetClass, String propertyName) {
-        super(targetClass, propertyName);
+    WithinCircle(Class<?> targetClass, String propertyName) {
+        super(targetClass, propertyName)
     }
 
     @Override
-    public Criterion createCriterion() {
-        Object argument = arguments[0];
+    Criterion createCriterion() {
+        Object argument = arguments[0]
         if (argument instanceof Circle) {
-            return new MongoQuery.WithinCircle(propertyName, ((Circle) argument).asList());
+            return new MongoQuery.WithinCircle(propertyName, ((Circle) argument).asList())
         }
-        else {
-            return new MongoQuery.WithinCircle(propertyName, (List<?>) argument);
-        }
+        return new MongoQuery.WithinCircle(propertyName, (List) argument)
     }
 
     @Override
-    public void setArguments(Object[] arguments) {
+    void setArguments(Object[] arguments) {
         Assert.isTrue(arguments.length > 0,
-                "Only a list of elements is supported in a 'WithinCircle' query");
+                "Only a list of elements is supported in a 'WithinCircle' query")
 
-        Object arg = arguments[0];
+        Object arg = arguments[0]
 
-        boolean isList = arg instanceof List;
+        boolean isList = arg instanceof List
         Assert.isTrue((isList || (arg instanceof Circle)),
-                "Only a list of elements is supported in a 'withinBox' query");
+                "Only a list of elements is supported in a 'withinBox' query")
 
         if (isList) {
-            Collection<?> argument = (Collection<?>) arguments[0];
+            Collection argument = (Collection) arguments[0]
             Assert.isTrue(argument.size() == 2,
-                    "A 'WithinCircle' query requires a two dimensional list of values");
+                    "A 'WithinCircle' query requires a two dimensional list of values")
         }
 
-        super.setArguments(arguments);
+        super.setArguments(arguments)
     }
+
 }

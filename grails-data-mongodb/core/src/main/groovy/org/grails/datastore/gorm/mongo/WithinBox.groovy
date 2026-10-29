@@ -13,17 +13,15 @@
 * limitations under the License.
 */
 
-package org.grails.datastore.gorm.mongo;
+package org.grails.datastore.gorm.mongo
 
-import java.util.Collection;
-import java.util.List;
+import groovy.transform.CompileStatic
+import org.springframework.util.Assert
 
-import org.springframework.util.Assert;
-
-import grails.mongodb.geo.Box;
-import org.grails.datastore.gorm.finders.MethodExpression;
-import org.grails.datastore.mapping.mongo.query.MongoQuery;
-import org.grails.datastore.mapping.query.Query.Criterion;
+import grails.mongodb.geo.Box
+import org.grails.datastore.gorm.finders.MethodExpression
+import org.grails.datastore.mapping.mongo.query.MongoQuery
+import org.grails.datastore.mapping.query.Query.Criterion
 
 /**
  * Dynamic finder expression for within box queries
@@ -31,40 +29,39 @@ import org.grails.datastore.mapping.query.Query.Criterion;
  * @author Graeme Rocher
  * @since 1.0
  */
-public class WithinBox extends MethodExpression {
+@CompileStatic
+class WithinBox extends MethodExpression {
 
-    public WithinBox(Class<?> targetClass, String propertyName) {
-        super(targetClass, propertyName);
+    WithinBox(Class<?> targetClass, String propertyName) {
+        super(targetClass, propertyName)
     }
 
     @Override
-    public Criterion createCriterion() {
-        Object argument = arguments[0];
+    Criterion createCriterion() {
+        Object argument = arguments[0]
         if (argument instanceof Box) {
-            return new MongoQuery.WithinBox(propertyName, ((Box) argument).asList());
+            return new MongoQuery.WithinBox(propertyName, ((Box) argument).asList())
         }
-        else {
-            return new MongoQuery.WithinBox(propertyName, (List<?>) argument);
-        }
+        return new MongoQuery.WithinBox(propertyName, (List) argument)
     }
 
     @Override
-    public void setArguments(Object[] arguments) {
+    void setArguments(Object[] arguments) {
         Assert.isTrue(arguments.length > 0,
-            "Only a list of elements is supported in a 'withinBox' query");
+                "Only a list of elements is supported in a 'withinBox' query")
 
-        Object arg = arguments[0];
+        Object arg = arguments[0]
 
-        boolean isList = arg instanceof List;
+        boolean isList = arg instanceof List
         Assert.isTrue((isList || (arg instanceof Box)),
-                "Only a list of elements is supported in a 'withinBox' query");
+                "Only a list of elements is supported in a 'withinBox' query")
 
         if (isList) {
-            Collection<?> argument = (Collection<?>) arg;
+            Collection argument = (Collection) arg
             Assert.isTrue(argument.size() == 2,
-                    "A 'withinBox' query requires a two dimensional list of values");
-
+                    "A 'withinBox' query requires a two dimensional list of values")
         }
-        super.setArguments(arguments);
+        super.setArguments(arguments)
     }
+
 }

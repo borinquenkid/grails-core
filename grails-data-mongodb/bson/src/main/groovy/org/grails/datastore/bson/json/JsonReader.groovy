@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.bson.json;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-
+import groovy.transform.CompileStatic;
+import groovy.transform.PackageScope;
 import org.bson.AbstractBsonReader;
+import org.bson.AbstractBsonReader.State;
 import org.bson.BsonBinary;
 import org.bson.BsonContextType;
 import org.bson.BsonDbPointer;
@@ -38,19 +38,21 @@ import org.bson.types.ObjectId;
  * @author Graeme Rocher
  * @since 6.0
  */
-public class JsonReader extends AbstractBsonReader {
+@CompileStatic
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+class JsonReader extends AbstractBsonReader {
 
-    private final JsonScanner scanner;
-    private JsonToken pushedToken;
-    private Object currentValue;
-    private Mark mark;
+    @PackageScope final JsonScanner scanner
+    @PackageScope JsonToken pushedToken
+    @PackageScope Object currentValue
 
     /**
      * Constructs a new instance with the given JSON string.
      *
      * @param json     A string representation of a JSON.
      */
-    public JsonReader(final String json) {
+    JsonReader(final String json) {
         this(new StringReader(json));
     }
 
@@ -59,7 +61,7 @@ public class JsonReader extends AbstractBsonReader {
      *
      * @param reader The reader.
      */
-    public JsonReader(final Reader reader) {
+    JsonReader(final Reader reader) {
         super();
         scanner = new JsonScanner(reader);
         setContext(new Context(null, BsonContextType.TOP_LEVEL));
@@ -85,28 +87,27 @@ public class JsonReader extends AbstractBsonReader {
         return (Boolean) currentValue;
     }
 
-    //CHECKSTYLE:OFF
     @Override
-    public BsonType readBsonType() {
+    BsonType readBsonType() {
         if (isClosed()) {
-            throw new IllegalStateException("This instance has been closed");
+            throw new IllegalStateException('This instance has been closed');
         }
         if (getState() == State.INITIAL || getState() == State.DONE || getState() == State.SCOPE_DOCUMENT) {
             // in JSON the top level value can be of any type so fall through
             setState(State.TYPE);
         }
         if (getState() != State.TYPE) {
-            throwInvalidState("readBSONType", State.TYPE);
+            throwInvalidState('readBSONType', State.TYPE);
         }
 
         if (getContext().getContextType() == BsonContextType.DOCUMENT) {
             JsonToken nameToken = popToken();
             switch (nameToken.getType()) {
-                case STRING:
-                case UNQUOTED_STRING:
-                    setCurrentName(nameToken.getValue(String.class));
+                case JsonTokenType.STRING:
+                case JsonTokenType.UNQUOTED_STRING:
+                    setCurrentName(nameToken.getValue(String));
                     break;
-                case END_OBJECT:
+                case JsonTokenType.END_OBJECT:
                     setState(State.END_OF_DOCUMENT);
                     return BsonType.END_OF_DOCUMENT;
                 default:
@@ -127,50 +128,50 @@ public class JsonReader extends AbstractBsonReader {
 
         boolean noValueFound = false;
         switch (token.getType()) {
-            case BEGIN_ARRAY:
+            case JsonTokenType.BEGIN_ARRAY:
                 setCurrentBsonType(BsonType.ARRAY);
                 break;
-            case BEGIN_OBJECT:
+            case JsonTokenType.BEGIN_OBJECT:
                 visitExtendedJSON();
                 break;
-            case DOUBLE:
+            case JsonTokenType.DOUBLE:
                 setCurrentBsonType(BsonType.DOUBLE);
                 currentValue = token.getValue();
                 break;
-            case END_OF_FILE:
+            case JsonTokenType.END_OF_FILE:
                 setCurrentBsonType(BsonType.END_OF_DOCUMENT);
                 break;
-            case INT32:
+            case JsonTokenType.INT32:
                 setCurrentBsonType(BsonType.INT32);
                 currentValue = token.getValue();
                 break;
-            case INT64:
+            case JsonTokenType.INT64:
                 setCurrentBsonType(BsonType.INT64);
                 currentValue = token.getValue();
                 break;
-            case REGULAR_EXPRESSION:
+            case JsonTokenType.REGULAR_EXPRESSION:
                 setCurrentBsonType(BsonType.REGULAR_EXPRESSION);
                 currentValue = token.getValue();
                 break;
-            case STRING:
+            case JsonTokenType.STRING:
                 setCurrentBsonType(BsonType.STRING);
                 currentValue = token.getValue();
                 break;
-            case UNQUOTED_STRING:
-                String value = token.getValue(String.class);
+            case JsonTokenType.UNQUOTED_STRING:
+                String value = token.getValue(String);
 
-                if (JsonToken.BOOLEAN_FALSE.equals(value) || JsonToken.BOOLEAN_TRUE.equals(value)) {
+                if (JsonToken.BOOLEAN_FALSE == value || JsonToken.BOOLEAN_TRUE == value) {
                     setCurrentBsonType(BsonType.BOOLEAN);
                     currentValue = Boolean.parseBoolean(value);
-                } else if ("Infinity".equals(value)) {
+                } else if ('Infinity' == value) {
                     setCurrentBsonType(BsonType.DOUBLE);
                     currentValue = Double.POSITIVE_INFINITY;
-                } else if ("NaN".equals(value)) {
+                } else if ('NaN' == value) {
                     setCurrentBsonType(BsonType.DOUBLE);
                     currentValue = Double.NaN;
-                } else if (JsonToken.NULL.equals(value)) {
+                } else if (JsonToken.NULL == value) {
                     setCurrentBsonType(BsonType.NULL);
-                } else if ("undefined".equals(value)) {
+                } else if ('undefined' == value) {
                     setCurrentBsonType(BsonType.UNDEFINED);
                 } else {
                     noValueFound = true;
@@ -192,20 +193,18 @@ public class JsonReader extends AbstractBsonReader {
         }
 
         switch (getContext().getContextType()) {
-            case DOCUMENT:
-            case SCOPE_DOCUMENT:
-            default:
-                setState(State.NAME);
-                break;
-            case ARRAY:
-            case JAVASCRIPT_WITH_SCOPE:
-            case TOP_LEVEL:
+            case BsonContextType.ARRAY:
+            case BsonContextType.JAVASCRIPT_WITH_SCOPE:
+            case BsonContextType.TOP_LEVEL:
                 setState(State.VALUE);
+                break;
+            default:
+                // DOCUMENT, SCOPE_DOCUMENT and anything else
+                setState(State.NAME);
                 break;
         }
         return getCurrentBsonType();
     }
-    //CHECKSTYLE:ON
 
     @Override
     protected long doReadDateTime() {
@@ -233,12 +232,12 @@ public class JsonReader extends AbstractBsonReader {
     protected void doReadEndDocument() {
         setContext(getContext().getParentContext());
         if (getContext() != null && getContext().getContextType() == BsonContextType.SCOPE_DOCUMENT) {
-            setContext(getContext().getParentContext()); // JavaScriptWithScope
-            verifyToken(JsonToken.CLOSE_BRACE); // outermost closing bracket for JavaScriptWithScope
+            setContext(getContext().getParentContext()) // JavaScriptWithScope;
+            verifyToken(JsonToken.CLOSE_BRACE) // outermost closing bracket for JavaScriptWithScope;
         }
 
         if (getContext() == null) {
-            throw new JsonParseException("Unexpected end of document.");
+            throw new JsonParseException('Unexpected end of document.');
         }
 
         if (getContext().getContextType() == BsonContextType.ARRAY || getContext().getContextType() == BsonContextType.DOCUMENT) {
@@ -276,14 +275,17 @@ public class JsonReader extends AbstractBsonReader {
 
     @Override
     protected void doReadMaxKey() {
+        // no-op
     }
 
     @Override
     protected void doReadMinKey() {
+        // no-op
     }
 
     @Override
     protected void doReadNull() {
+        // no-op
     }
 
     @Override
@@ -328,32 +330,34 @@ public class JsonReader extends AbstractBsonReader {
 
     @Override
     protected void doReadUndefined() {
+        // no-op
     }
 
     @Override
     protected void doSkipName() {
+        // no-op
     }
 
     @Override
     protected void doSkipValue() {
         switch (getCurrentBsonType()) {
-            case ARRAY:
+            case BsonType.ARRAY:
                 readStartArray();
                 while (readBsonType() != BsonType.END_OF_DOCUMENT) {
                     skipValue();
                 }
                 readEndArray();
                 break;
-            case BINARY:
+            case BsonType.BINARY:
                 readBinaryData();
                 break;
-            case BOOLEAN:
+            case BsonType.BOOLEAN:
                 readBoolean();
                 break;
-            case DATE_TIME:
+            case BsonType.DATE_TIME:
                 readDateTime();
                 break;
-            case DOCUMENT:
+            case BsonType.DOCUMENT:
                 readStartDocument();
                 while (readBsonType() != BsonType.END_OF_DOCUMENT) {
                     skipName();
@@ -361,22 +365,22 @@ public class JsonReader extends AbstractBsonReader {
                 }
                 readEndDocument();
                 break;
-            case DOUBLE:
+            case BsonType.DOUBLE:
                 readDouble();
                 break;
-            case INT32:
+            case BsonType.INT32:
                 readInt32();
                 break;
-            case INT64:
+            case BsonType.INT64:
                 readInt64();
                 break;
-            case DECIMAL128:
+            case BsonType.DECIMAL128:
                 readDecimal128();
                 break;
-            case JAVASCRIPT:
+            case BsonType.JAVASCRIPT:
                 readJavaScript();
                 break;
-            case JAVASCRIPT_WITH_SCOPE:
+            case BsonType.JAVASCRIPT_WITH_SCOPE:
                 readJavaScriptWithScope();
                 readStartDocument();
                 while (readBsonType() != BsonType.END_OF_DOCUMENT) {
@@ -385,34 +389,35 @@ public class JsonReader extends AbstractBsonReader {
                 }
                 readEndDocument();
                 break;
-            case MAX_KEY:
+            case BsonType.MAX_KEY:
                 readMaxKey();
                 break;
-            case MIN_KEY:
+            case BsonType.MIN_KEY:
                 readMinKey();
                 break;
-            case NULL:
+            case BsonType.NULL:
                 readNull();
                 break;
-            case OBJECT_ID:
+            case BsonType.OBJECT_ID:
                 readObjectId();
                 break;
-            case REGULAR_EXPRESSION:
+            case BsonType.REGULAR_EXPRESSION:
                 readRegularExpression();
                 break;
-            case STRING:
+            case BsonType.STRING:
                 readString();
                 break;
-            case SYMBOL:
+            case BsonType.SYMBOL:
                 readSymbol();
                 break;
-            case TIMESTAMP:
+            case BsonType.TIMESTAMP:
                 readTimestamp();
                 break;
-            case UNDEFINED:
+            case BsonType.UNDEFINED:
                 readUndefined();
                 break;
             default:
+                break;
         }
     }
 
@@ -421,12 +426,11 @@ public class JsonReader extends AbstractBsonReader {
             JsonToken token = pushedToken;
             pushedToken = null;
             return token;
-        } else {
-            try {
-                return scanner.nextToken();
-            } catch (IOException e) {
-                throw new JsonParseException("Cannot parse JSON due to IO error: " + e.getMessage(), e);
-            }
+        }
+        try {
+            return scanner.nextToken();
+        } catch (IOException e) {
+            throw new JsonParseException('Cannot parse JSON due to IO error: ' + e.getMessage(), e);
         }
     }
 
@@ -434,7 +438,7 @@ public class JsonReader extends AbstractBsonReader {
         if (pushedToken == null) {
             pushedToken = token;
         } else {
-            throw new BsonInvalidOperationException("There is already a pending token.");
+            throw new BsonInvalidOperationException('There is already a pending token.');
         }
     }
 
@@ -456,7 +460,7 @@ public class JsonReader extends AbstractBsonReader {
     }
 
     @Override
-    public BsonReaderMark getMark() {
+    BsonReaderMark getMark() {
         return new Mark();
     }
 
@@ -465,45 +469,64 @@ public class JsonReader extends AbstractBsonReader {
         return (Context) super.getContext();
     }
 
+    // Lets the inner Mark restore the context: setContext is protected on AbstractBsonReader, and a
+    // nested class is a different class to the JVM, so it cannot invoke it on the enclosing instance.
+    @PackageScope
+    void resetContext(final AbstractBsonReader.Context parentContext, final BsonContextType contextType) {
+        setContext(new Context(parentContext, contextType));
+    }
+
     protected class Mark extends AbstractBsonReader.Mark {
+
         private JsonToken pushedToken;
         private Object currentValue;
         private int position;
 
         protected Mark() {
-            super();
+            // The superclass is an inner class of AbstractBsonReader: its constructor takes the
+            // enclosing reader as a hidden first argument, which javac supplies implicitly but
+            // Groovy requires to be passed explicitly.
+            super(JsonReader.this);
             pushedToken = JsonReader.this.pushedToken;
             currentValue = JsonReader.this.currentValue;
             position = JsonReader.this.scanner.position;
         }
 
         @Override
-        public void reset() {
-
+        void reset() {
             super.reset();
             JsonReader.this.pushedToken = pushedToken;
             JsonReader.this.currentValue = currentValue;
             try {
                 JsonReader.this.scanner.reader.reset();
             } catch (IOException e) {
-                throw new JsonParseException("Failed to reset reader: " + e.getMessage(), e);
+                throw new JsonParseException('Failed to reset reader: ' + e.getMessage(), e);
             }
-            JsonReader.this.setContext(new Context(getParentContext(), getContextType()));
-            mark = null;
+            JsonReader.this.resetContext(getParentContext(), getContextType());
         }
+
     }
 
     protected class Context extends AbstractBsonReader.Context {
+
         protected Context(final AbstractBsonReader.Context parentContext, final BsonContextType contextType) {
-            super(parentContext, contextType);
+            // See Mark(): the enclosing reader is the inner superclass's hidden first argument.
+            super(JsonReader.this, parentContext, contextType);
         }
 
+        @Override
         protected Context getParentContext() {
             return (Context) super.getParentContext();
         }
 
+        // Not redundant: the inherited method is protected on org.bson's Context, so JsonReader
+        // can only call it through this re-declaration in its own nested class.
+        @Override
+        @SuppressWarnings('UnnecessaryOverridingMethod')
         protected BsonContextType getContextType() {
             return super.getContextType();
         }
+
     }
+
 }

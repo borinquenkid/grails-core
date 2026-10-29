@@ -13,16 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.bson.json;
+
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
 
 /**
  * A JSON token.
  */
+@CompileStatic
+@PackageScope
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
 class JsonToken {
 
-    static final String BOOLEAN_TRUE = "true";
-    static final String BOOLEAN_FALSE = "false";
-    static final String NULL = "null";
+    static final String BOOLEAN_TRUE = 'true';
+    static final String BOOLEAN_FALSE = 'false';
+    static final String NULL = 'null';
     static final char FORWARD_SLASH = '/';
     static final char BACK_SLASH = '\\';
     static final char MINUS = '-';
@@ -41,17 +49,17 @@ class JsonToken {
     private final Object value;
     private final JsonTokenType type;
 
-    public JsonToken(final JsonTokenType type, final Object value) {
+    JsonToken(final JsonTokenType type, final Object value) {
         this.value = value;
         this.type = type;
     }
 
-    public Object getValue() {
+    Object getValue() {
         return value;
     }
 
-    public <T> T getValue(final Class<T> clazz) {
-        if (Long.class == clazz) {
+    def <T> T getValue(final Class<T> clazz) {
+        if (Long == clazz) {
             if (value instanceof Integer) {
                 return clazz.cast(((Integer) value).longValue());
             } else if (value instanceof String) {
@@ -66,7 +74,8 @@ class JsonToken {
         }
     }
 
-    public JsonTokenType getType() {
+    JsonTokenType getType() {
         return type;
     }
+
 }

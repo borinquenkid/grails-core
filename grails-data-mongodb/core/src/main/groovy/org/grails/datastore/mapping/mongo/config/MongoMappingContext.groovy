@@ -16,26 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.mapping.mongo.config;
 
 import java.beans.PropertyDescriptor;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
-import groovy.lang.Closure;
-
 import com.mongodb.ConnectionString;
+import groovy.transform.CompileStatic;
+import groovy.transform.PackageScope;
 import org.bson.Document;
 import org.bson.codecs.Codec;
 import org.bson.codecs.configuration.CodecConfigurationException;
@@ -49,7 +38,6 @@ import org.bson.types.ObjectId;
 import org.bson.types.Symbol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterRegistry;
 import org.springframework.core.env.PropertyResolver;
@@ -89,6 +77,7 @@ import org.grails.datastore.mapping.model.EmbeddedPersistentEntity;
 import org.grails.datastore.mapping.model.MappingContext;
 import org.grails.datastore.mapping.model.MappingFactory;
 import org.grails.datastore.mapping.model.PersistentEntity;
+import org.grails.datastore.mapping.model.PersistentProperty;
 import org.grails.datastore.mapping.model.PropertyMapping;
 import org.grails.datastore.mapping.model.types.Custom;
 import org.grails.datastore.mapping.model.types.Identity;
@@ -103,42 +92,43 @@ import org.grails.datastore.mapping.reflect.ClassUtils;
  *
  * @author Graeme Rocher
  */
-@SuppressWarnings("rawtypes")
-public class MongoMappingContext extends DocumentMappingContext {
+@CompileStatic
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'UnnecessarySemicolon'])
+class MongoMappingContext extends DocumentMappingContext {
 
-    private static final Logger log = LoggerFactory.getLogger(MongoMappingContext.class);
-    private static final String DECIMAL_TYPE_CLASS_NAME = "org.bson.types.Decimal128";
+    private static final Logger LOG = LoggerFactory.getLogger(MongoMappingContext);
+    private static final String DECIMAL_TYPE_CLASS_NAME = 'org.bson.types.Decimal128';
     /**
      * Java types supported as mongo property types.
      */
-    private static final Set<String> MONGO_NATIVE_TYPES = new HashSet<>(Arrays.asList(
-            Double.class.getName(),
-            String.class.getName(),
-            Document.class.getName(),
-            "com.mongodb.DBObject",
-            org.bson.types.Binary.class.getName(),
-            org.bson.types.ObjectId.class.getName(),
-            "com.mongodb.DBRef",
-            Boolean.class.getName(),
-            Date.class.getName(),
-            Pattern.class.getName(),
-            Symbol.class.getName(),
-            Integer.class.getName(),
-            Code.class.getName(),
-            "org.bson.types.BSONTimestamp",
+    private static final Set<String> MONGO_NATIVE_TYPES = new HashSet<String>([
+            Double.getName(),
+            String.getName(),
+            Document.getName(),
+            'com.mongodb.DBObject',
+            Binary.getName(),
+            ObjectId.getName(),
+            'com.mongodb.DBRef',
+            Boolean.getName(),
+            Date.getName(),
+            Pattern.getName(),
+            Symbol.getName(),
+            Integer.getName(),
+            Code.getName(),
+            'org.bson.types.BSONTimestamp',
             DECIMAL_TYPE_CLASS_NAME,
-            "org.bson.types.CodeWScope",
-            "org.bson.types.Code",
-            "org.bson.types.Binary",
-            Long.class.getName(),
-            UUID.class.getName(),
+            'org.bson.types.CodeWScope',
+            'org.bson.types.Code',
+            'org.bson.types.Binary',
+            Long.getName(),
+            UUID.getName(),
             byte[].class.getName(),
-            Byte.class.getName()
+            Byte.getName()
+    ]);
 
-    ));
-
-    private CodecRegistry codecRegistry;
-    private Map<Class, Boolean> hasCodecCache = new HashMap<>();
+    @PackageScope CodecRegistry codecRegistry
+    @PackageScope Map<Class, Boolean> hasCodecCache = new HashMap<>()
 
     /**
      * Storage type applied to {@code String id} domains that declare no explicit
@@ -148,7 +138,7 @@ public class MongoMappingContext extends DocumentMappingContext {
      * {@code grails.mongodb.stringIds.defaultStoredAs: string}, or per domain with
      * {@code static mapping = { id storedAs: String }}.
      */
-    private static final Class<?> DEFAULT_STRING_ID_STORED_AS = ObjectId.class;
+    private static final Class<?> DEFAULT_STRING_ID_STORED_AS = ObjectId;
 
     /**
      * Global default storage type for {@code String id} fields that don't declare an explicit
@@ -158,22 +148,22 @@ public class MongoMappingContext extends DocumentMappingContext {
      * config-reading constructors overwrite it from
      * {@link MongoSettings#SETTING_STRING_IDS_DEFAULT_STORED_AS}. Null disables coercion.
      */
-    private Class<?> stringIdDefaultStoredAs = DEFAULT_STRING_ID_STORED_AS;
-    private Class<?> portableIdentityType = Long.class;
+    @PackageScope Class<?> stringIdDefaultStoredAs = DEFAULT_STRING_ID_STORED_AS
+    @PackageScope Class<?> portableIdentityType = Long
 
-    public Class<?> getStringIdDefaultStoredAs() {
+    Class<?> getStringIdDefaultStoredAs() {
         return stringIdDefaultStoredAs;
     }
 
-    public void setStringIdDefaultStoredAs(Class<?> stringIdDefaultStoredAs) {
+    void setStringIdDefaultStoredAs(Class<?> stringIdDefaultStoredAs) {
         this.stringIdDefaultStoredAs = stringIdDefaultStoredAs;
     }
 
-    public MongoMappingContext(String defaultDatabaseName) {
-        this(defaultDatabaseName, null);
+    MongoMappingContext(String defaultDatabaseName) {
+        this(defaultDatabaseName, (Closure) null);
     }
 
-    public MongoMappingContext(String defaultDatabaseName, Closure defaultMapping) {
+    MongoMappingContext(String defaultDatabaseName, Closure defaultMapping) {
         this(defaultDatabaseName, defaultMapping, new Class[0]);
     }
 
@@ -184,10 +174,9 @@ public class MongoMappingContext extends DocumentMappingContext {
      * @param defaultMapping The default database mapping configuration
      * @param classes The persistent classes
      */
-    public MongoMappingContext(String defaultDatabaseName, Closure defaultMapping, Class... classes) {
+    MongoMappingContext(String defaultDatabaseName, Closure defaultMapping, Class... classes) {
         super(defaultDatabaseName, defaultMapping);
         initialize(classes);
-
     }
 
     /**
@@ -199,27 +188,29 @@ public class MongoMappingContext extends DocumentMappingContext {
      *
      */
     @Deprecated
-    public MongoMappingContext(PropertyResolver configuration, Class... classes) {
-        super(getDefaultDatabaseName(configuration), configuration.getProperty(MongoSettings.SETTING_DEFAULT_MAPPING, Closure.class, null));
+    MongoMappingContext(PropertyResolver configuration, Class... classes) {
+        super(getDefaultDatabaseName(configuration), configuration.getProperty(MongoSettings.SETTING_DEFAULT_MAPPING, Closure, null));
         // Must run BEFORE initialize(classes) so that MongoDocumentMappingFactory.createIdentity
         // (invoked during entity registration) can read the global default.
-        String storedAsDefault = configuration.getProperty(MongoSettings.SETTING_STRING_IDS_DEFAULT_STORED_AS, String.class, null);
+        String storedAsDefault = configuration.getProperty(MongoSettings.SETTING_STRING_IDS_DEFAULT_STORED_AS, String, null);
         this.stringIdDefaultStoredAs = parseStoredAs(storedAsDefault);
         this.portableIdentityType = resolvePortableIdentityType(
-                configuration.getProperty("grails.gorm.defaultIdType", String.class, "long"));
+                configuration.getProperty('grails.gorm.defaultIdType', String, 'long'));
         initialize(classes);
     }
 
     private static Class<?> parseStoredAs(String value) {
-        if (value == null) return DEFAULT_STRING_ID_STORED_AS;
+        if (value == null) {
+            return DEFAULT_STRING_ID_STORED_AS;
+        }
         switch (value.toLowerCase()) {
-            case "objectid":
-            case "object_id":
-                return ObjectId.class;
-            case "string":
-                return String.class;
+            case 'objectid':
+            case 'object_id':
+                return ObjectId;
+            case 'string':
+                return String;
             default:
-                log.warn("Unrecognized value '{}' for {}; accepted values are 'objectid' or 'string'. " +
+                LOG.warn("Unrecognized value '{}' for {}; accepted values are 'objectid' or 'string'. " +
                         "Falling back to the default ('objectid').",
                         value, MongoSettings.SETTING_STRING_IDS_DEFAULT_STORED_AS);
                 return DEFAULT_STRING_ID_STORED_AS;
@@ -232,7 +223,7 @@ public class MongoMappingContext extends DocumentMappingContext {
      * @param settings The settings
      * @param classes The classes
      */
-    public MongoMappingContext(AbstractMongoConnectionSourceSettings settings, Class... classes) {
+    MongoMappingContext(AbstractMongoConnectionSourceSettings settings, Class... classes) {
         super(settings.getDatabase(), settings);
         // Must run BEFORE initialize(classes) so that MongoDocumentMappingFactory.createIdentity
         // (invoked during entity registration) can read the global default.
@@ -243,13 +234,13 @@ public class MongoMappingContext extends DocumentMappingContext {
     }
 
     private static Class<?> resolvePortableIdentityType(String configuredType) {
-        return "native".equalsIgnoreCase(configuredType) ? String.class : Long.class;
+        return 'native'.equalsIgnoreCase(configuredType) ? String : Long;
     }
 
     /**
      * @return The codec registry for this mapping context
      */
-    public CodecRegistry getCodecRegistry() {
+    CodecRegistry getCodecRegistry() {
         return codecRegistry;
     }
 
@@ -261,15 +252,15 @@ public class MongoMappingContext extends DocumentMappingContext {
         List<Class<? extends Codec>> codecClasses = mongoConnectionSourceSettings.getCodecs();
 
         if (mongoConnectionSourceSettings.isDecimalType() && ClassUtils.isPresent(DECIMAL_TYPE_CLASS_NAME)) {
-            MONGO_NATIVE_TYPES.add(BigDecimal.class.getName());
-            MONGO_NATIVE_TYPES.add(BigInteger.class.getName());
+            MONGO_NATIVE_TYPES.add(BigDecimal.getName());
+            MONGO_NATIVE_TYPES.add(BigInteger.getName());
             SimpleEncoder.enableBigDecimalEncoding();
 
-            codecClasses.add(BigDecimalCodec.class);
+            codecClasses.add(BigDecimalCodec);
         }
 
-        Iterable<Codec> codecList = ConfigurationUtils.findServices(codecClasses, Codec.class);
-        List<Codec<?>> codecs = new ArrayList<>();
+        Iterable<Codec> codecList = ConfigurationUtils.findServices(codecClasses, Codec);
+        List<Codec<?>> codecs = new ArrayList<Codec<?>>();
         codecs.add(new InstantCodec());
         codecs.add(new LocalDateCodec());
         codecs.add(new LocalDateTimeCodec());
@@ -288,8 +279,7 @@ public class MongoMappingContext extends DocumentMappingContext {
                     mongoConnectionSourceSettings.getCodecRegistry(),
                     CodecRegistries.fromCodecs(codecs)
             );
-        }
-        else {
+        } else {
             this.codecRegistry = CodecRegistries.fromCodecs(codecs);
         }
     }
@@ -299,58 +289,56 @@ public class MongoMappingContext extends DocumentMappingContext {
         final ConverterRegistry converterRegistry = getConverterRegistry();
 
         converterRegistry.addConverter(new Converter<String, ObjectId>() {
-            public ObjectId convert(String source) {
+            ObjectId convert(String source) {
                 if (ObjectId.isValid(source)) {
                     return new ObjectId(source);
                 }
-                else {
-                    return null;
-                }
+                return null;
             }
         });
 
         converterRegistry.addConverter(new Converter<ObjectId, String>() {
-            public String convert(ObjectId source) {
+            String convert(ObjectId source) {
                 return source.toString();
             }
         });
 
         converterRegistry.addConverter(new Converter<byte[], Binary>() {
-            public Binary convert(byte[] source) {
+            Binary convert(byte[] source) {
                 return new Binary(source);
             }
         });
 
         converterRegistry.addConverter(new Converter<Binary, byte[]>() {
-            public byte[] convert(Binary source) {
+            byte[] convert(Binary source) {
                 return source.getData();
             }
         });
 
         converterRegistry.addConverter(new Converter<Decimal128, BigDecimal>() {
             @Override
-            public BigDecimal convert(Decimal128 source) {
+            BigDecimal convert(Decimal128 source) {
                 return source.bigDecimalValue();
             }
         });
 
         converterRegistry.addConverter(new Converter<BigDecimal, Decimal128>() {
             @Override
-            public Decimal128 convert(BigDecimal source) {
+            Decimal128 convert(BigDecimal source) {
                 return new Decimal128(source);
             }
         });
 
         converterRegistry.addConverter(new Converter<Decimal128, BigInteger>() {
             @Override
-            public BigInteger convert(Decimal128 source) {
+            BigInteger convert(Decimal128 source) {
                 return source.bigDecimalValue().toBigInteger();
             }
         });
 
         converterRegistry.addConverter(new Converter<BigInteger, Decimal128>() {
             @Override
-            public Decimal128 convert(BigInteger source) {
+            Decimal128 convert(BigInteger source) {
                 return new Decimal128(new BigDecimal(source.toString()));
             }
         });
@@ -368,13 +356,13 @@ public class MongoMappingContext extends DocumentMappingContext {
      * @param clazz The class to check.
      * @return true if no conversion is required and the type can be stored natively.
      */
-    public static boolean isMongoNativeType(Class clazz) {
+    static boolean isMongoNativeType(Class clazz) {
         return MongoMappingContext.MONGO_NATIVE_TYPES.contains(clazz.getName()) ||
-                Bson.class.isAssignableFrom(clazz.getClass());
+                Bson.isAssignableFrom(clazz.getClass());
     }
 
-    public static String getDefaultDatabaseName(PropertyResolver configuration) {
-        String connectionString = configuration.getProperty(MongoDatastore.SETTING_CONNECTION_STRING, String.class, null);
+    static String getDefaultDatabaseName(PropertyResolver configuration) {
+        String connectionString = configuration.getProperty(MongoDatastore.SETTING_CONNECTION_STRING, String, null);
 
         if (connectionString != null) {
             String database = new ConnectionString(connectionString).getDatabase();
@@ -382,89 +370,99 @@ public class MongoMappingContext extends DocumentMappingContext {
                 return database;
             }
         }
-        return configuration.getProperty(MongoSettings.SETTING_DATABASE_NAME, "test");
+        return configuration.getProperty(MongoSettings.SETTING_DATABASE_NAME, 'test');
     }
 
     private final class MongoDocumentMappingFactory extends
             AbstractGormMappingFactory<MongoCollection, MongoAttribute> {
+
         @Override
         protected Class<MongoAttribute> getPropertyMappedFormType() {
-            return MongoAttribute.class;
+            return MongoAttribute;
         }
 
         @Override
         protected Class<MongoCollection> getEntityMappedFormType() {
-            return MongoCollection.class;
+            return MongoCollection;
         }
 
         @Override
-        public Identity<MongoAttribute> createIdentity(PersistentEntity owner, MappingContext context, PropertyDescriptor pd) {
+        Identity<MongoAttribute> createIdentity(PersistentEntity owner, MappingContext context, PropertyDescriptor pd) {
             Identity<MongoAttribute> identity;
-            if (Serializable.class.equals(pd.getPropertyType())) {
+            if (Serializable == pd.getPropertyType()) {
                 IdentityWithMapping<MongoAttribute> portableIdentity =
-                        new IdentityWithMapping<>(owner, context, pd.getName(), portableIdentityType);
+                        new IdentityWithMapping<MongoAttribute>(owner, context, pd.getName(), portableIdentityType);
                 portableIdentity.setMapping(createPropertyMapping(portableIdentity, owner));
                 identity = portableIdentity;
             } else {
                 identity = super.createIdentity(owner, context, pd);
             }
-            MongoAttribute mappedForm = identity.getMapping().getMappedForm();
+            MongoAttribute mappedForm = (MongoAttribute) identity.getMapping().getMappedForm();
             mappedForm.setTargetName(MongoConstants.MONGO_ID_FIELD);
             // Apply the global default storedAs for String-id domains that don't declare their own.
             if (mappedForm.getStoredAs() == null &&
                     stringIdDefaultStoredAs != null &&
-                    String.class.equals(identity.getType())) {
+                    String == identity.getType()) {
                 mappedForm.setStoredAs(stringIdDefaultStoredAs);
             }
             return identity;
         }
 
         @Override
-        public boolean isCustomType(Class<?> propertyType) {
+        boolean isCustomType(Class<?> propertyType) {
             return super.isCustomType(propertyType) || hasCodecForType(propertyType);
         }
 
         @Override
-        public Custom<MongoAttribute> createCustom(PersistentEntity owner, MappingContext context, final PropertyDescriptor pd) {
+        Custom<MongoAttribute> createCustom(PersistentEntity owner, MappingContext context, final PropertyDescriptor pd) {
             if (hasCodecForType(pd.getPropertyType())) {
                 CodecCustomTypeMarshaller customTypeMarshaller = new CodecCustomTypeMarshaller(codecRegistry.get(pd.getPropertyType()), MongoMappingContext.this);
-                return new Custom<>(owner, context, pd, customTypeMarshaller) {
-                    PropertyMapping<MongoAttribute> propertyMapping = createPropertyMapping(this, owner);
+                return new Custom<MongoAttribute>(owner, context, pd, customTypeMarshaller) {
 
-                    public PropertyMapping<MongoAttribute> getMapping() {
+                    PropertyMapping<MongoAttribute> propertyMapping = mappingFor(this, owner);
+
+                    PropertyMapping<MongoAttribute> getMapping() {
                         return propertyMapping;
                     }
-                };
+
+                }
             }
-            else {
-                return super.createCustom(owner, context, pd);
-            }
+            return super.createCustom(owner, context, pd);
         }
 
         @Override
-        public boolean isSimpleType(Class propType) {
-            if (propType == null) return false;
+        boolean isSimpleType(Class propType) {
+            if (propType == null) {
+                return false;
+            }
             if (propType.isArray()) {
                 return isSimpleType(propType.getComponentType()) || super.isSimpleType(propType);
             }
             return isMongoNativeType(propType) || super.isSimpleType(propType);
         }
+
+        // Exposes the inherited protected factory method to the anonymous Custom subclass above,
+        // which is a different class and could not otherwise invoke it on this instance.
+        @PackageScope
+        PropertyMapping<MongoAttribute> mappingFor(PersistentProperty property, PersistentEntity owner) {
+            return createPropertyMapping(property, owner);
+        }
+
     }
 
-    private boolean hasCodecForType(Class propType) {
+    @PackageScope
+    boolean hasCodecForType(Class propType) {
         if (hasCodecCache.containsKey(propType)) {
             return hasCodecCache.get(propType);
         }
-        else {
-            Boolean hasCodec;
-            try {
-                hasCodec = codecRegistry.get(propType) != null;
-            } catch (CodecConfigurationException e) {
-                hasCodec = false;
-            }
-            hasCodecCache.put(propType, hasCodec);
-            return hasCodec;
+        Boolean hasCodec;
+        try {
+            hasCodec = codecRegistry.get(propType) != null;
+        } catch (CodecConfigurationException e) {
+            hasCodec = false;
         }
+        hasCodecCache.put(propType, hasCodec);
+        return hasCodec;
     }
 
     protected void registerMongoTypes() {
@@ -490,7 +488,7 @@ public class MongoMappingContext extends DocumentMappingContext {
     }
 
     @Override
-    public PersistentEntity createEmbeddedEntity(Class type) {
+    PersistentEntity createEmbeddedEntity(Class type) {
         return new DocumentEmbeddedPersistentEntity(type, this);
     }
 
@@ -498,33 +496,37 @@ public class MongoMappingContext extends DocumentMappingContext {
 
         private DocumentCollectionMapping classMapping;
 
-        public DocumentEmbeddedPersistentEntity(Class type, MappingContext ctx) {
+        DocumentEmbeddedPersistentEntity(Class type, MappingContext ctx) {
             super(type, ctx);
             classMapping = new DocumentCollectionMapping(this, ctx);
         }
 
         @Override
-        public boolean isIdentityName(String propertyName) {
+        boolean isIdentityName(String propertyName) {
             return false;
         }
 
         @Override
-        public ClassMapping getMapping() {
+        ClassMapping getMapping() {
             return classMapping;
         }
 
-        public class DocumentCollectionMapping extends AbstractClassMapping<Collection> {
+        class DocumentCollectionMapping extends AbstractClassMapping<Collection> {
+
             private Collection mappedForm;
 
-            public DocumentCollectionMapping(PersistentEntity entity, MappingContext context) {
+            DocumentCollectionMapping(PersistentEntity entity, MappingContext context) {
                 super(entity, context);
                 this.mappedForm = (Collection) context.getMappingFactory().createMappedForm(DocumentEmbeddedPersistentEntity.this);
             }
 
             @Override
-            public Collection getMappedForm() {
+            Collection getMappedForm() {
                 return mappedForm;
             }
+
         }
+
     }
+
 }

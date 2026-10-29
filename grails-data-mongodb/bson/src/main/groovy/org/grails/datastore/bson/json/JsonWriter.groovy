@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.bson.json;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Date;
-import java.util.TimeZone;
 
-import org.bson.AbstractBsonWriter;
-import org.bson.BSONException;
-import org.bson.BsonBinary;
-import org.bson.BsonContextType;
-import org.bson.BsonDbPointer;
-import org.bson.BsonRegularExpression;
-import org.bson.BsonTimestamp;
-import org.bson.json.JsonWriterSettings;
-import org.bson.types.Decimal128;
-import org.bson.types.ObjectId;
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
+import org.bson.AbstractBsonWriter
+import org.bson.AbstractBsonWriter.State
+import org.bson.BSONException
+import org.bson.BsonBinary
+import org.bson.BsonContextType
+import org.bson.BsonDbPointer
+import org.bson.BsonRegularExpression
+import org.bson.BsonTimestamp
+import org.bson.json.JsonMode
+import org.bson.json.JsonWriterSettings
+import org.bson.types.Decimal128
+import org.bson.types.ObjectId
 
 /**
  * Simplified fork of {@link org.bson.json.JsonWriter} that ignores behaviour specific to MongoDB and produces more compat output
@@ -41,23 +41,26 @@ import org.bson.types.ObjectId;
  * @author Graeme Rocher
  * @since 6.0
  */
-public class JsonWriter extends AbstractBsonWriter {
+@CompileStatic
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+class JsonWriter extends AbstractBsonWriter {
 
     public static final String ISO_8601 = "yyyy-MM-dd'T'HH:mmZ";
-    public static final TimeZone UTC = TimeZone.getTimeZone("UTC");
+    public static final TimeZone UTC = TimeZone.getTimeZone('UTC');
 
     protected final Writer writer;
     protected final JsonWriterSettings settings;
 
-    public JsonWriter(Writer target) {
+    JsonWriter(Writer target) {
         this(target, JsonWriterSettings.builder().build());
     }
 
-    public JsonWriter(Writer target, JsonWriterSettings settings) {
+    JsonWriter(Writer target, JsonWriterSettings settings) {
         super(settings);
         this.writer = target;
         this.settings = settings;
-        setContext(new Context(null, BsonContextType.TOP_LEVEL, ""));
+        setContext(new Context(null, BsonContextType.TOP_LEVEL, ''));
     }
 
     @Override
@@ -99,7 +102,6 @@ public class JsonWriter extends AbstractBsonWriter {
         } catch (IOException e) {
             throwBsonException(e);
         }
-
     }
 
     @Override
@@ -110,7 +112,6 @@ public class JsonWriter extends AbstractBsonWriter {
             throwBsonException(e);
         }
         setContext(getContext().getParentContext());
-
     }
 
     @Override
@@ -166,7 +167,6 @@ public class JsonWriter extends AbstractBsonWriter {
         } catch (IOException e) {
             throwBsonException(e);
         }
-
     }
 
     @Override
@@ -185,8 +185,7 @@ public class JsonWriter extends AbstractBsonWriter {
             writeNameHelper(getName());
             if (value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE) {
                 writer.write(Long.toString(value));
-            }
-            else {
+            } else {
                 writer.write(JsonToken.QUOTE);
                 writer.write(Long.toString(value));
                 writer.write(JsonToken.QUOTE);
@@ -236,7 +235,6 @@ public class JsonWriter extends AbstractBsonWriter {
         } catch (IOException e) {
             throwBsonException(e);
         }
-
     }
 
     @Override
@@ -253,17 +251,17 @@ public class JsonWriter extends AbstractBsonWriter {
     protected void doWriteRegularExpression(BsonRegularExpression regularExpression) {
         try {
             switch (settings.getOutputMode()) {
-                case STRICT:
+                case JsonMode.STRICT:
                     writeStartDocument();
-                    writeString("$regex", regularExpression.getPattern());
-                    writeString("$options", regularExpression.getOptions());
+                    writeString('$regex', regularExpression.getPattern());
+                    writeString('$options', regularExpression.getOptions());
                     writeEndDocument();
                     break;
                 default:
                     writeNameHelper(getName());
                     writer.write(JsonToken.FORWARD_SLASH);
-                    String escaped = (regularExpression.getPattern().equals("")) ? "(?:)" : regularExpression.getPattern()
-                            .replace("/", "\\/");
+                    String escaped = (regularExpression.getPattern() == '') ? '(?:)' : regularExpression.getPattern()
+                            .replace('/', '\\/');
                     writer.write(escaped);
                     writer.write(JsonToken.FORWARD_SLASH);
                     writer.write(regularExpression.getOptions());
@@ -282,7 +280,6 @@ public class JsonWriter extends AbstractBsonWriter {
         } catch (IOException e) {
             throwBsonException(e);
         }
-
     }
 
     @Override
@@ -299,14 +296,14 @@ public class JsonWriter extends AbstractBsonWriter {
     protected void doWriteUndefined() {
         try {
             writeNameHelper(getName());
-            writer.write("undefined");
+            writer.write('undefined');
         } catch (IOException e) {
             throwBsonException(e);
         }
     }
 
     @Override
-    public void flush() {
+    void flush() {
         try {
             writer.flush();
         } catch (IOException e) {
@@ -316,14 +313,14 @@ public class JsonWriter extends AbstractBsonWriter {
 
     protected void writeNameHelper(final String name) throws IOException {
         switch (getContext().getContextType()) {
-            case ARRAY:
+            case BsonContextType.ARRAY:
                 // don't write Array element names in JSON
                 if (getContext().hasElements) {
                     writer.write(JsonToken.COMMA);
                 }
                 break;
-            case DOCUMENT:
-            case SCOPE_DOCUMENT:
+            case BsonContextType.DOCUMENT:
+            case BsonContextType.SCOPE_DOCUMENT:
                 if (getContext().hasElements) {
                     writer.write(JsonToken.COMMA);
                 }
@@ -334,17 +331,17 @@ public class JsonWriter extends AbstractBsonWriter {
                 writeStringHelper(name);
                 writer.write(JsonToken.COLON);
                 break;
-            case TOP_LEVEL:
+            case BsonContextType.TOP_LEVEL:
                 break;
             default:
-                throw new BSONException("Invalid contextType.");
+                throw new BSONException('Invalid contextType.');
         }
 
         getContext().hasElements = true;
     }
 
     private void throwBsonException(IOException e) {
-        throw new BSONException("Cannot write to writer writer: " + e.getMessage(), e);
+        throw new BSONException('Cannot write to writer writer: ' + e.getMessage(), e);
     }
 
     @Override
@@ -356,57 +353,37 @@ public class JsonWriter extends AbstractBsonWriter {
         writer.write('"');
         for (final char c : str.toCharArray()) {
             switch (c) {
-                case '"':
-                    writer.write("\\\"");
+                case ('"' as char):
+                    writer.write('\\"');
                     break;
-                case '\\':
-                    writer.write("\\\\");
+                case ('\\' as char):
+                    writer.write('\\\\');
                     break;
-                case '\b':
-                    writer.write("\\b");
+                case ('\b' as char):
+                    writer.write('\\b');
                     break;
-                case '\f':
-                    writer.write("\\f");
+                case ('\f' as char):
+                    writer.write('\\f');
                     break;
-                case '\n':
-                    writer.write("\\n");
+                case ('\n' as char):
+                    writer.write('\\n');
                     break;
-                case '\r':
-                    writer.write("\\r");
+                case ('\r' as char):
+                    writer.write('\\r');
                     break;
-                case '\t':
-                    writer.write("\\t");
+                case ('\t' as char):
+                    writer.write('\\t');
                     break;
                 default:
-                    switch (Character.getType(c)) {
-                        case Character.UPPERCASE_LETTER:
-                        case Character.LOWERCASE_LETTER:
-                        case Character.TITLECASE_LETTER:
-                        case Character.OTHER_LETTER:
-                        case Character.DECIMAL_DIGIT_NUMBER:
-                        case Character.LETTER_NUMBER:
-                        case Character.OTHER_NUMBER:
-                        case Character.SPACE_SEPARATOR:
-                        case Character.CONNECTOR_PUNCTUATION:
-                        case Character.DASH_PUNCTUATION:
-                        case Character.START_PUNCTUATION:
-                        case Character.END_PUNCTUATION:
-                        case Character.INITIAL_QUOTE_PUNCTUATION:
-                        case Character.FINAL_QUOTE_PUNCTUATION:
-                        case Character.OTHER_PUNCTUATION:
-                        case Character.MATH_SYMBOL:
-                        case Character.CURRENCY_SYMBOL:
-                        case Character.MODIFIER_SYMBOL:
-                        case Character.OTHER_SYMBOL:
-                            writer.write(c);
-                            break;
-                        default:
-                            writer.write("\\u");
-                            writer.write(Integer.toHexString((c & 0xf000) >> 12));
-                            writer.write(Integer.toHexString((c & 0x0f00) >> 8));
-                            writer.write(Integer.toHexString((c & 0x00f0) >> 4));
-                            writer.write(Integer.toHexString(c & 0x000f));
-                            break;
+                    if (isPrintable(c)) {
+                        writer.write(c);
+                    } else {
+                        int code = (int) c;
+                        writer.write('\\u');
+                        writer.write(Integer.toHexString((code & 0xf000) >> 12));
+                        writer.write(Integer.toHexString((code & 0x0f00) >> 8));
+                        writer.write(Integer.toHexString((code & 0x00f0) >> 4));
+                        writer.write(Integer.toHexString(code & 0x000f));
                     }
                     break;
             }
@@ -414,14 +391,40 @@ public class JsonWriter extends AbstractBsonWriter {
         writer.write('"');
     }
 
+    // The Unicode categories written verbatim rather than as a \\u escape. Compared with == rather
+    // than in a switch: Character.getType returns an int while the category constants are bytes,
+    // and a Groovy switch matches case values with equals(), which is false across those types.
+    private static boolean isPrintable(final char c) {
+        int type = Character.getType(c);
+        return type == Character.UPPERCASE_LETTER ||
+                type == Character.LOWERCASE_LETTER ||
+                type == Character.TITLECASE_LETTER ||
+                type == Character.OTHER_LETTER ||
+                type == Character.DECIMAL_DIGIT_NUMBER ||
+                type == Character.LETTER_NUMBER ||
+                type == Character.OTHER_NUMBER ||
+                type == Character.SPACE_SEPARATOR ||
+                type == Character.CONNECTOR_PUNCTUATION ||
+                type == Character.DASH_PUNCTUATION ||
+                type == Character.START_PUNCTUATION ||
+                type == Character.END_PUNCTUATION ||
+                type == Character.INITIAL_QUOTE_PUNCTUATION ||
+                type == Character.FINAL_QUOTE_PUNCTUATION ||
+                type == Character.OTHER_PUNCTUATION ||
+                type == Character.MATH_SYMBOL ||
+                type == Character.CURRENCY_SYMBOL ||
+                type == Character.MODIFIER_SYMBOL ||
+                type == Character.OTHER_SYMBOL;
+    }
+
     /**
      * The context for the writer, inheriting all the values from {@link org.bson.AbstractBsonWriter.Context}, and additionally providing
      * settings for the indentation level and whether there are any child elements at this level.
      */
+    class Context extends AbstractBsonWriter.Context {
 
-    public class Context extends AbstractBsonWriter.Context {
-        private final String indentation;
-        private boolean hasElements;
+        @PackageScope final String indentation;
+        @PackageScope boolean hasElements;
 
         /**
          * Creates a new context.
@@ -430,14 +433,19 @@ public class JsonWriter extends AbstractBsonWriter {
          * @param contextType   the type of this context
          * @param indentChars   the String to use for indentation at this level.
          */
-        public Context(final Context parentContext, final BsonContextType contextType, final String indentChars) {
-            super(parentContext, contextType);
+        Context(final Context parentContext, final BsonContextType contextType, final String indentChars) {
+            // The superclass is an inner class of AbstractBsonWriter: its constructor takes the
+            // enclosing writer as a hidden first argument, which javac supplies implicitly but
+            // Groovy requires to be passed explicitly.
+            super(JsonWriter.this, parentContext, contextType);
             this.indentation = (parentContext == null) ? indentChars : parentContext.indentation + indentChars;
         }
 
         @Override
-        public Context getParentContext() {
+        Context getParentContext() {
             return (Context) super.getParentContext();
         }
+
     }
+
 }

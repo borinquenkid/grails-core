@@ -12,39 +12,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.datastore.mapping.mongo;
+package org.grails.datastore.mapping.mongo
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap
 
-import com.mongodb.WriteConcern;
-import com.mongodb.bulk.BulkWriteResult;
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.ClientSession;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.model.FindOneAndDeleteOptions;
-import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.WriteModel;
-import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.UpdateResult;
-import org.bson.Document;
-import org.bson.conversions.Bson;
+import com.mongodb.WriteConcern
+import com.mongodb.bulk.BulkWriteResult
+import com.mongodb.client.AggregateIterable
+import com.mongodb.client.ClientSession
+import com.mongodb.client.FindIterable
+import com.mongodb.client.MongoClient
+import com.mongodb.client.model.FindOneAndDeleteOptions
+import com.mongodb.client.model.UpdateOptions
+import com.mongodb.client.result.DeleteResult
+import com.mongodb.client.result.UpdateResult
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
+import org.bson.Document
+import org.bson.conversions.Bson
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.transaction.IllegalTransactionStateException
+import org.springframework.transaction.TransactionDefinition
 
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.transaction.IllegalTransactionStateException;
-import org.springframework.transaction.TransactionDefinition;
-
-import org.grails.datastore.mapping.core.AbstractSession;
-import org.grails.datastore.mapping.core.impl.PendingOperation;
-import org.grails.datastore.mapping.document.config.DocumentMappingContext;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.mongo.config.MongoCollection;
-import org.grails.datastore.mapping.mongo.config.MongoMappingContext;
-import org.grails.datastore.mapping.transactions.SessionOnlyTransaction;
-import org.grails.datastore.mapping.transactions.Transaction;
+import org.grails.datastore.mapping.core.AbstractSession
+import org.grails.datastore.mapping.core.impl.PendingOperation
+import org.grails.datastore.mapping.document.config.DocumentMappingContext
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.mongo.config.MongoCollection
+import org.grails.datastore.mapping.mongo.config.MongoMappingContext
+import org.grails.datastore.mapping.transactions.SessionOnlyTransaction
+import org.grails.datastore.mapping.transactions.Transaction
 
 /**
  * Abstract implementation on the {@link org.grails.datastore.mapping.core.Session} interface for MongoDB
@@ -52,66 +50,67 @@ import org.grails.datastore.mapping.transactions.Transaction;
  * @author Graeme Rocher
  * @since 4.1
  */
-public abstract class AbstractMongoSession extends AbstractSession<MongoClient> {
-    public static final String MONGO_SET_OPERATOR = "$set";
-    public static final String MONGO_UNSET_OPERATOR = "$unset";
-    protected static final Map<PersistentEntity, WriteConcern> declaredWriteConcerns = new ConcurrentHashMap<>();
+@CompileStatic
+abstract class AbstractMongoSession extends AbstractSession<MongoClient> {
 
-    protected final String defaultDatabase;
-    protected MongoDatastore mongoDatastore;
-    protected WriteConcern writeConcern = null;
-    protected boolean errorOccured = false;
+    public static final String MONGO_SET_OPERATOR = '$set'
+    public static final String MONGO_UNSET_OPERATOR = '$unset'
+    protected static final Map<PersistentEntity, WriteConcern> declaredWriteConcerns = new ConcurrentHashMap<>()
+
+    protected final String defaultDatabase
+    protected MongoDatastore mongoDatastore
+    protected WriteConcern writeConcern = null
+    protected boolean errorOccured = false
     // Confined to the owning session's single thread (per the AbstractSession contract), so it needs
     // no synchronization; it is null unless a server-side transaction is active on this session.
-    protected ClientSession clientSession;
-    protected Map<PersistentEntity, String> mongoCollections = new ConcurrentHashMap<>();
-    protected Map<PersistentEntity, String> mongoDatabases = new ConcurrentHashMap<>();
+    protected ClientSession clientSession
+    protected Map<PersistentEntity, String> mongoCollections = new ConcurrentHashMap<>()
+    protected Map<PersistentEntity, String> mongoDatabases = new ConcurrentHashMap<>()
 
-    public AbstractMongoSession(MongoDatastore datastore, MappingContext mappingContext, ApplicationEventPublisher publisher) {
-        this(datastore, mappingContext, publisher, false);
+    AbstractMongoSession(MongoDatastore datastore, MappingContext mappingContext, ApplicationEventPublisher publisher) {
+        this(datastore, mappingContext, publisher, false)
     }
 
-    public AbstractMongoSession(MongoDatastore datastore, MappingContext mappingContext, ApplicationEventPublisher publisher, boolean stateless) {
-        super(datastore, mappingContext, publisher, stateless);
-        mongoDatastore = datastore;
-        this.defaultDatabase = getDocumentMappingContext().getDefaultDatabaseName();
+    AbstractMongoSession(MongoDatastore datastore, MappingContext mappingContext, ApplicationEventPublisher publisher, boolean stateless) {
+        super(datastore, mappingContext, publisher, stateless)
+        mongoDatastore = datastore
+        this.defaultDatabase = getDocumentMappingContext().getDefaultDatabaseName()
     }
 
     @Override
-    public boolean hasTransaction() {
+    boolean hasTransaction() {
         // the session is the transaction, since MongoDB doesn't support them directly
-        return true;
+        return true
     }
 
     @Override
-    public MongoDatastore getDatastore() {
-        return (MongoDatastore) super.getDatastore();
+    MongoDatastore getDatastore() {
+        return (MongoDatastore) super.getDatastore()
     }
 
     @Override
-    public void flush() {
-        flush(this.getWriteConcern());
+    void flush() {
+        flush(this.getWriteConcern())
     }
 
-    public abstract void flush(WriteConcern writeConcern);
+    abstract void flush(WriteConcern writeConcern)
 
     /**
      * @return The name of the default database
      */
-    public String getDefaultDatabase() {
-        return defaultDatabase;
+    String getDefaultDatabase() {
+        return defaultDatabase
     }
 
     /**
      * @return The name of the default database
      */
-    public String getDatabase(PersistentEntity entity) {
-
-        final String name = mongoDatabases.get(entity);
+    String getDatabase(PersistentEntity entity) {
+        final String name = mongoDatabases.get(entity)
         if (name != null) {
-            return name;
+            return name
         }
-        return getDatastore().getDatabaseName(entity);
+        return getDatastore().getDatabaseName(entity)
     }
 
     /**
@@ -119,52 +118,52 @@ public abstract class AbstractMongoSession extends AbstractSession<MongoClient> 
      *
      * @param writeConcern The WriteConcern to use
      */
-    public void setWriteConcern(WriteConcern writeConcern) {
-        this.writeConcern = writeConcern;
+    void setWriteConcern(WriteConcern writeConcern) {
+        this.writeConcern = writeConcern
     }
 
     /**
      * Obtains the WriteConcern to use for the session
      * @return the WriteConcern
      */
-    public WriteConcern getWriteConcern() {
-        return writeConcern;
+    WriteConcern getWriteConcern() {
+        return writeConcern
     }
 
-    public WriteConcern getDeclaredWriteConcern(PersistentEntity entity) {
-        return getDeclaredWriteConcern(this.writeConcern, entity);
+    WriteConcern getDeclaredWriteConcern(PersistentEntity entity) {
+        return getDeclaredWriteConcern(this.writeConcern, entity)
     }
 
     private WriteConcern getDeclaredWriteConcern(WriteConcern defaultConcern, PersistentEntity entity) {
-        WriteConcern writeConcern = declaredWriteConcerns.get(entity);
-        if (writeConcern == null) {
-            Object mappedForm = entity.getMapping().getMappedForm();
+        WriteConcern concern = declaredWriteConcerns.get(entity)
+        if (concern == null) {
+            Object mappedForm = entity.getMapping().getMappedForm()
             if (mappedForm instanceof MongoCollection) {
-                MongoCollection mc = (MongoCollection) mappedForm;
-                writeConcern = mc.getWriteConcern();
-                if (writeConcern == null) {
-                    writeConcern = defaultConcern;
+                MongoCollection mc = (MongoCollection) mappedForm
+                concern = mc.getWriteConcern()
+                if (concern == null) {
+                    concern = defaultConcern
                 }
             }
 
-            if (writeConcern != null) {
-                declaredWriteConcerns.put(entity, writeConcern);
+            if (concern != null) {
+                declaredWriteConcerns.put(entity, concern)
             }
         }
-        return writeConcern;
+        return concern
     }
 
-    public MongoClient getNativeInterface() {
-        return ((MongoDatastore) getDatastore()).getMongoClient();
+    MongoClient getNativeInterface() {
+        return getDatastore().getMongoClient()
     }
 
-    public DocumentMappingContext getDocumentMappingContext() {
-        return (DocumentMappingContext) getMappingContext();
+    DocumentMappingContext getDocumentMappingContext() {
+        return getMappingContext()
     }
 
-    public String getCollectionName(PersistentEntity entity) {
-        entity = entity.isRoot() ? entity : entity.getRootEntity();
-        return mongoCollections.containsKey(entity) ? mongoCollections.get(entity) : mongoDatastore.getCollectionName(entity);
+    String getCollectionName(PersistentEntity entity) {
+        PersistentEntity root = entity.isRoot() ? entity : entity.getRootEntity()
+        return mongoCollections.containsKey(root) ? mongoCollections.get(root) : mongoDatastore.getCollectionName(root)
     }
 
     /**
@@ -174,11 +173,11 @@ public abstract class AbstractMongoSession extends AbstractSession<MongoClient> 
      * @param collectionName The collection
      * @return The previous collection that was used
      */
-    public String useCollection(PersistentEntity entity, String collectionName) {
-        entity = entity.isRoot() ? entity : entity.getRootEntity();
-        String current = mongoCollections.containsKey(entity) ? mongoCollections.get(entity) : mongoDatastore.getCollectionName(entity);
-        mongoCollections.put(entity, collectionName);
-        return current;
+    String useCollection(PersistentEntity entity, String collectionName) {
+        PersistentEntity root = entity.isRoot() ? entity : entity.getRootEntity()
+        String current = mongoCollections.containsKey(root) ? mongoCollections.get(root) : mongoDatastore.getCollectionName(root)
+        mongoCollections.put(root, collectionName)
+        return current
     }
 
     /**
@@ -188,56 +187,53 @@ public abstract class AbstractMongoSession extends AbstractSession<MongoClient> 
      * @param databaseName The database name
      * @return The name of the previous database
      */
-    public String useDatabase(PersistentEntity entity, String databaseName) {
+    String useDatabase(PersistentEntity entity, String databaseName) {
         if (databaseName == null) {
-            return mongoDatabases.put(entity, getDefaultDatabase());
+            return mongoDatabases.put(entity, getDefaultDatabase())
         }
-        else {
-            return mongoDatabases.put(entity, databaseName);
-        }
+        return mongoDatabases.put(entity, databaseName)
     }
 
-    public com.mongodb.client.MongoCollection<Document> getCollection(PersistentEntity entity) {
+    com.mongodb.client.MongoCollection<Document> getCollection(PersistentEntity entity) {
         if (entity.isRoot()) {
-            final String database = getDatabase(entity);
-            final String collectionName = getCollectionName(entity);
+            final String database = getDatabase(entity)
+            final String collectionName = getCollectionName(entity)
             return getNativeInterface()
                     .getDatabase(database)
                     .getCollection(collectionName)
-                    .withCodecRegistry(getDatastore().getCodecRegistry());
+                    .withCodecRegistry(getDatastore().getCodecRegistry())
         }
-        else {
-            final PersistentEntity root = entity.getRootEntity();
-            return getCollection(root);
-        }
+        final PersistentEntity root = entity.getRootEntity()
+        return getCollection(root)
     }
 
     @Override
-    public MongoMappingContext getMappingContext() {
-        return (MongoMappingContext) super.getMappingContext();
+    MongoMappingContext getMappingContext() {
+        return (MongoMappingContext) super.getMappingContext()
     }
 
     /**
      * @return the active {@link ClientSession} for the current MongoDB transaction, or {@code null}
      * if no server-side transaction is in progress
      */
-    public ClientSession getClientSession() {
-        return clientSession;
+    ClientSession getClientSession() {
+        return clientSession
     }
 
     /**
      * @return {@code true} if a server-side MongoDB transaction is currently active on this session
      */
-    public boolean hasActiveTransaction() {
-        return clientSession != null && clientSession.hasActiveTransaction();
+    boolean hasActiveTransaction() {
+        return clientSession != null && clientSession.hasActiveTransaction()
     }
 
     /**
      * Detaches the {@link ClientSession} from this session once its transaction has completed.
      * Called by {@link MongoTransaction} after commit or rollback closes the session.
      */
+    @PackageScope
     void clearClientSession() {
-        this.clientSession = null;
+        this.clientSession = null
     }
 
     /**
@@ -247,35 +243,32 @@ public abstract class AbstractMongoSession extends AbstractSession<MongoClient> 
     protected void closeClientSessionQuietly() {
         if (clientSession != null) {
             try {
-                clientSession.close();
-            }
-            catch (RuntimeException ignored) {
+                clientSession.close()
+            } catch (RuntimeException ignored) {
                 // best effort
-            }
-            finally {
-                clientSession = null;
+            } finally {
+                clientSession = null
             }
         }
     }
 
     @Override
-    public void disconnect() {
+    void disconnect() {
         try {
-            closeClientSessionQuietly();
-        }
-        finally {
-            super.disconnect();
+            closeClientSessionQuietly()
+        } finally {
+            super.disconnect()
         }
     }
 
     @Override
     protected Transaction beginTransactionInternal() {
-        return beginTransactionInternal(false);
+        return beginTransactionInternal(false)
     }
 
     @Override
     protected Transaction beginTransactionInternal(TransactionDefinition definition) {
-        return beginTransactionInternal(definition != null && definition.isReadOnly());
+        return beginTransactionInternal(definition != null && definition.isReadOnly())
     }
 
     private Transaction beginTransactionInternal(boolean readOnly) {
@@ -285,35 +278,34 @@ public abstract class AbstractMongoSession extends AbstractSession<MongoClient> 
         if (getDatastore().isTransactionsEnabled() && !readOnly) {
             if (hasActiveTransaction()) {
                 // Starting another would abort this one, and every write made in it, without a word
-                throw new IllegalTransactionStateException("A MongoDB transaction is already active on this " +
-                        "session. Join it (PROPAGATION_REQUIRED) or run in a session of its own " +
-                        "(PROPAGATION_REQUIRES_NEW) instead of beginning another on the same session.");
+                throw new IllegalTransactionStateException('A MongoDB transaction is already active on this ' +
+                        'session. Join it (PROPAGATION_REQUIRED) or run in a session of its own ' +
+                        '(PROPAGATION_REQUIRES_NEW) instead of beginning another on the same session.')
             }
             // A session left behind by a transaction that did not complete cleanly holds no transaction
             // any more; close it so it cannot leak.
-            closeClientSessionQuietly();
-            ClientSession session = getNativeInterface().startSession();
+            closeClientSessionQuietly()
+            ClientSession session = getNativeInterface().startSession()
             try {
-                session.startTransaction();
+                session.startTransaction()
+            } catch (RuntimeException e) {
+                session.close()
+                throw e
             }
-            catch (RuntimeException e) {
-                session.close();
-                throw e;
-            }
-            this.clientSession = session;
-            return new MongoTransaction(this, session, readOnly);
+            this.clientSession = session
+            return new MongoTransaction(this, session, readOnly)
         }
         if (readOnly && getDatastore().isTransactionsEnabled()) {
             // No server transaction to time out, but a timeout is refused as it is for a read-write one,
             // rather than ignored
             return new SessionOnlyTransaction<MongoClient>(getNativeInterface(), this, true) {
                 @Override
-                public void setTimeout(int timeout) {
-                    MongoTransaction.refuseTimeout(timeout);
+                void setTimeout(int timeout) {
+                    MongoTransaction.refuseTimeout(timeout)
                 }
-            };
+            }
         }
-        return new SessionOnlyTransaction<>(getNativeInterface(), this, readOnly);
+        return new SessionOnlyTransaction<MongoClient>(getNativeInterface(), this, readOnly)
     }
 
     // The driver exposes a session-less and a ClientSession overload for every operation, and the
@@ -321,43 +313,40 @@ public abstract class AbstractMongoSession extends AbstractSession<MongoClient> 
     // is active on this session (see hasActiveTransaction()), and use the session-less overload
     // otherwise, so call sites stay readable.
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public BulkWriteResult bulkWrite(com.mongodb.client.MongoCollection collection, List<? extends WriteModel> writes) {
-        return hasActiveTransaction() ? collection.bulkWrite(clientSession, writes) : collection.bulkWrite(writes);
+    BulkWriteResult bulkWrite(com.mongodb.client.MongoCollection collection, List writes) {
+        return hasActiveTransaction() ? collection.bulkWrite(clientSession, writes) : collection.bulkWrite(writes)
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public DeleteResult deleteMany(com.mongodb.client.MongoCollection collection, Bson filter) {
-        return hasActiveTransaction() ? collection.deleteMany(clientSession, filter) : collection.deleteMany(filter);
+    DeleteResult deleteMany(com.mongodb.client.MongoCollection collection, Bson filter) {
+        return hasActiveTransaction() ? collection.deleteMany(clientSession, filter) : collection.deleteMany(filter)
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public UpdateResult updateMany(com.mongodb.client.MongoCollection collection, Bson filter, Bson update, UpdateOptions options) {
-        return hasActiveTransaction() ? collection.updateMany(clientSession, filter, update, options) : collection.updateMany(filter, update, options);
+    UpdateResult updateMany(com.mongodb.client.MongoCollection collection, Bson filter, Bson update, UpdateOptions options) {
+        return hasActiveTransaction() ? collection.updateMany(clientSession, filter, update, options) : collection.updateMany(filter, update, options)
     }
 
-    public <T> FindIterable<T> find(com.mongodb.client.MongoCollection<T> collection, Bson filter) {
-        return hasActiveTransaction() ? collection.find(clientSession, filter) : collection.find(filter);
+    def <T> FindIterable<T> find(com.mongodb.client.MongoCollection<T> collection, Bson filter) {
+        return hasActiveTransaction() ? collection.find(clientSession, filter) : collection.find(filter)
     }
 
-    public <R> FindIterable<R> find(com.mongodb.client.MongoCollection<?> collection, Bson filter, Class<R> resultClass) {
-        return hasActiveTransaction() ? collection.find(clientSession, filter, resultClass) : collection.find(filter, resultClass);
+    def <R> FindIterable<R> find(com.mongodb.client.MongoCollection<?> collection, Bson filter, Class<R> resultClass) {
+        return hasActiveTransaction() ? collection.find(clientSession, filter, resultClass) : collection.find(filter, resultClass)
     }
 
-    public <T> AggregateIterable<T> aggregate(com.mongodb.client.MongoCollection<T> collection, List<? extends Bson> pipeline) {
-        return hasActiveTransaction() ? collection.aggregate(clientSession, pipeline) : collection.aggregate(pipeline);
+    def <T> AggregateIterable<T> aggregate(com.mongodb.client.MongoCollection<T> collection, List<? extends Bson> pipeline) {
+        return hasActiveTransaction() ? collection.aggregate(clientSession, pipeline) : collection.aggregate(pipeline)
     }
 
-    public <T> T findOneAndDelete(com.mongodb.client.MongoCollection<T> collection, Bson filter) {
-        return hasActiveTransaction() ? collection.findOneAndDelete(clientSession, filter) : collection.findOneAndDelete(filter);
+    def <T> T findOneAndDelete(com.mongodb.client.MongoCollection<T> collection, Bson filter) {
+        return hasActiveTransaction() ? collection.findOneAndDelete(clientSession, filter) : collection.findOneAndDelete(filter)
     }
 
-    public <T> T findOneAndDelete(com.mongodb.client.MongoCollection<T> collection, Bson filter, FindOneAndDeleteOptions options) {
-        return hasActiveTransaction() ? collection.findOneAndDelete(clientSession, filter, options) : collection.findOneAndDelete(filter, options);
+    def <T> T findOneAndDelete(com.mongodb.client.MongoCollection<T> collection, Bson filter, FindOneAndDeleteOptions options) {
+        return hasActiveTransaction() ? collection.findOneAndDelete(clientSession, filter, options) : collection.findOneAndDelete(filter, options)
     }
 
-    public long countDocuments(com.mongodb.client.MongoCollection<?> collection, Bson filter) {
-        return hasActiveTransaction() ? collection.countDocuments(clientSession, filter) : collection.countDocuments(filter);
+    long countDocuments(com.mongodb.client.MongoCollection<?> collection, Bson filter) {
+        return hasActiveTransaction() ? collection.countDocuments(clientSession, filter) : collection.countDocuments(filter)
     }
 
     /**
@@ -368,11 +357,12 @@ public abstract class AbstractMongoSession extends AbstractSession<MongoClient> 
      * @param <T> The concrete type of the entity
      * @return An instanceof the type or null if it doesn't exist
      */
-    public abstract <T> T decode(Class<T> type, Object nativeObject);
+    abstract <T> T decode(Class<T> type, Object nativeObject)
 
     protected void addPostFlushOperations(List<PendingOperation> cascadeOperations) {
         for (PendingOperation cascadeOperation : cascadeOperations) {
-            addPostFlushOperation(cascadeOperation);
+            addPostFlushOperation(cascadeOperation)
         }
     }
+
 }

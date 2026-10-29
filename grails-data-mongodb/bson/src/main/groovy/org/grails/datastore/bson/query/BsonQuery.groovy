@@ -17,26 +17,19 @@
  *  under the License.
  */
 
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.bson.query;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.codehaus.groovy.runtime.NullObject;
-
+import groovy.transform.CompileStatic;
+import groovy.transform.PackageScope;
 import org.bson.BsonReader;
 import org.bson.BsonType;
 import org.bson.Document;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
-
+import org.codehaus.groovy.runtime.NullObject;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 
 import grails.gorm.DetachedCriteria;
@@ -53,6 +46,40 @@ import org.grails.datastore.mapping.model.types.Embedded;
 import org.grails.datastore.mapping.model.types.ToOne;
 import org.grails.datastore.mapping.proxy.ProxyHandler;
 import org.grails.datastore.mapping.query.Query;
+import org.grails.datastore.mapping.query.Query.Between;
+import org.grails.datastore.mapping.query.Query.Conjunction;
+import org.grails.datastore.mapping.query.Query.Criterion;
+import org.grails.datastore.mapping.query.Query.Disjunction;
+import org.grails.datastore.mapping.query.Query.Equals;
+import org.grails.datastore.mapping.query.Query.EqualsProperty;
+import org.grails.datastore.mapping.query.Query.GreaterThan;
+import org.grails.datastore.mapping.query.Query.GreaterThanEquals;
+import org.grails.datastore.mapping.query.Query.GreaterThanEqualsProperty;
+import org.grails.datastore.mapping.query.Query.GreaterThanProperty;
+import org.grails.datastore.mapping.query.Query.ILike;
+import org.grails.datastore.mapping.query.Query.IdEquals;
+import org.grails.datastore.mapping.query.Query.In;
+import org.grails.datastore.mapping.query.Query.IsNotNull;
+import org.grails.datastore.mapping.query.Query.IsNull;
+import org.grails.datastore.mapping.query.Query.Junction;
+import org.grails.datastore.mapping.query.Query.LessThan;
+import org.grails.datastore.mapping.query.Query.LessThanEquals;
+import org.grails.datastore.mapping.query.Query.LessThanEqualsProperty;
+import org.grails.datastore.mapping.query.Query.LessThanProperty;
+import org.grails.datastore.mapping.query.Query.Like;
+import org.grails.datastore.mapping.query.Query.Negation;
+import org.grails.datastore.mapping.query.Query.NotEquals;
+import org.grails.datastore.mapping.query.Query.NotEqualsProperty;
+import org.grails.datastore.mapping.query.Query.Projection;
+import org.grails.datastore.mapping.query.Query.PropertyCriterion;
+import org.grails.datastore.mapping.query.Query.PropertyNameCriterion;
+import org.grails.datastore.mapping.query.Query.RLike;
+import org.grails.datastore.mapping.query.Query.SizeEquals;
+import org.grails.datastore.mapping.query.Query.SizeGreaterThan;
+import org.grails.datastore.mapping.query.Query.SizeGreaterThanEquals;
+import org.grails.datastore.mapping.query.Query.SizeLessThan;
+import org.grails.datastore.mapping.query.Query.SizeLessThanEquals;
+import org.grails.datastore.mapping.query.Query.SizeNotEquals;
 import org.grails.datastore.mapping.reflect.EntityReflector;
 
 /**
@@ -61,35 +88,39 @@ import org.grails.datastore.mapping.reflect.EntityReflector;
  * @author Graeme Rocher
  * @since 6.0
  */
-public abstract class BsonQuery extends Query {
-    public static final String PROJECT_OPERATOR = "$project";
-    public static final String SORT_OPERATOR = "$sort";
-    public static final String IN_OPERATOR = "$in";
-    public static final String OR_OPERATOR = "$or";
-    public static final String AND_OPERATOR = "$and";
-    public static final String GTE_OPERATOR = "$gte";
-    public static final String LTE_OPERATOR = "$lte";
-    public static final String GT_OPERATOR = "$gt";
-    public static final String LT_OPERATOR = "$lt";
-    public static final String NE_OPERATOR = "$ne";
-    public static final String EQ_OPERATOR = "$eq";
-    public static final String NIN_OPERATOR = "$nin";
-    public static final String REGEX_OPERATOR = "$regex";
-    public static final String MATCH_OPERATOR = "$match";
-    public static final String AVERAGE_OPERATOR = "$avg";
-    public static final String GROUP_OPERATOR = "$group";
-    public static final String SUM_OPERATOR = "$sum";
-    public static final String MIN_OPERATOR = "$min";
-    public static final String MAX_OPERATOR = "$max";
-    public static final String SIZE_OPERATOR = "$size";
-    public static final String NOT_OPERATOR = "$not";
-    public static final String NOR_OPERATOR = "$nor";
-    public static final String EXISTS_OPERATOR = "$exists";
-    public static final String WHERE_OPERATOR = "$where";
-    public static final EncoderContext ENCODER_CONTEXT = EncoderContext.builder().build();
-    public static final String ID_REFERENCE_SUFFIX = ".$id";
+@CompileStatic
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+abstract class BsonQuery extends Query {
 
-    private static final String THIS_PREFIX = "this.";
+    public static final String PROJECT_OPERATOR = '$project';
+    public static final String SORT_OPERATOR = '$sort';
+    public static final String IN_OPERATOR = '$in';
+    public static final String OR_OPERATOR = '$or';
+    public static final String AND_OPERATOR = '$and';
+    public static final String GTE_OPERATOR = '$gte';
+    public static final String LTE_OPERATOR = '$lte';
+    public static final String GT_OPERATOR = '$gt';
+    public static final String LT_OPERATOR = '$lt';
+    public static final String NE_OPERATOR = '$ne';
+    public static final String EQ_OPERATOR = '$eq';
+    public static final String NIN_OPERATOR = '$nin';
+    public static final String REGEX_OPERATOR = '$regex';
+    public static final String MATCH_OPERATOR = '$match';
+    public static final String AVERAGE_OPERATOR = '$avg';
+    public static final String GROUP_OPERATOR = '$group';
+    public static final String SUM_OPERATOR = '$sum';
+    public static final String MIN_OPERATOR = '$min';
+    public static final String MAX_OPERATOR = '$max';
+    public static final String SIZE_OPERATOR = '$size';
+    public static final String NOT_OPERATOR = '$not';
+    public static final String NOR_OPERATOR = '$nor';
+    public static final String EXISTS_OPERATOR = '$exists';
+    public static final String WHERE_OPERATOR = '$where';
+    public static final EncoderContext ENCODER_CONTEXT = EncoderContext.builder().build();
+    public static final String ID_REFERENCE_SUFFIX = '.$id';
+
+    private static final String THIS_PREFIX = 'this.';
     /** Matches MongoDB's own document nesting limit, so no value the server would accept is refused. */
     private static final int MAX_CRITERION_VALUE_DEPTH = 100;
     protected static Map<Class, QueryHandler> queryHandlers = new HashMap<>();
@@ -106,15 +137,15 @@ public abstract class BsonQuery extends Query {
     protected static final Set<Class<? extends Criterion>> VALUE_VALIDATION_EXEMPT_CRITERIA = new HashSet<>();
 
     static {
-        VALUE_VALIDATION_EXEMPT_CRITERIA.add(SubqueryCriterion.class);
+        VALUE_VALIDATION_EXEMPT_CRITERIA.add(SubqueryCriterion);
 
-        queryHandlers.put(IdEquals.class, new QueryHandler<IdEquals>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, IdEquals criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(IdEquals, new QueryHandler<IdEquals>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, IdEquals criterion, Document query, PersistentEntity entity) {
                 MappingContext mappingContext = entity.getMappingContext();
                 PersistentProperty identity = entity.getIdentity();
                 Object value = criterion.getValue();
                 Object converted = mappingContext.getConversionService().convert(value, identity.getType());
-                Property mappedForm = identity.getMapping().getMappedForm();
+                Property mappedForm = (Property) identity.getMapping().getMappedForm();
                 String targetProperty = mappedForm.getTargetName();
                 if (targetProperty == null) {
                     targetProperty = identity.getName();
@@ -123,8 +154,8 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(Equals.class, new QueryHandler<Equals>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, Equals criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(Equals, new QueryHandler<Equals>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, Equals criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 PersistentProperty persistentProperty = entity.getPropertyByName(criterion.getProperty());
                 Object value;
@@ -142,64 +173,61 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(IsNull.class, new QueryHandler<IsNull>() {
-            @SuppressWarnings("unchecked")
-            public void handle(EmbeddedQueryEncoder queryEncoder, IsNull criterion, Document query, PersistentEntity entity) {
-                queryHandlers.get(Equals.class).handle(queryEncoder, new Equals(criterion.getProperty(), null), query, entity);
+        queryHandlers.put(IsNull, new QueryHandler<IsNull>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, IsNull criterion, Document query, PersistentEntity entity) {
+                queryHandlers.get(Equals).handle(queryEncoder, new Equals(criterion.getProperty(), null), query, entity);
             }
         });
-        queryHandlers.put(IsNotNull.class, new QueryHandler<IsNotNull>() {
-            @SuppressWarnings("unchecked")
-            public void handle(EmbeddedQueryEncoder queryEncoder, IsNotNull criterion, Document query, PersistentEntity entity) {
-                queryHandlers.get(NotEquals.class).handle(queryEncoder, new NotEquals(criterion.getProperty(), null), query, entity);
+        queryHandlers.put(IsNotNull, new QueryHandler<IsNotNull>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, IsNotNull criterion, Document query, PersistentEntity entity) {
+                queryHandlers.get(NotEquals).handle(queryEncoder, new NotEquals(criterion.getProperty(), null), query, entity);
             }
         });
-        queryHandlers.put(EqualsProperty.class, new QueryHandler<EqualsProperty>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, EqualsProperty criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(EqualsProperty, new QueryHandler<EqualsProperty>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, EqualsProperty criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 String otherPropertyName = getPropertyName(entity, criterion.getOtherProperty());
-                addWherePropertyComparison(query, propertyName, otherPropertyName, "==");
+                addWherePropertyComparison(query, propertyName, otherPropertyName, '==');
             }
         });
-        queryHandlers.put(NotEqualsProperty.class, new QueryHandler<NotEqualsProperty>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, NotEqualsProperty criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(NotEqualsProperty, new QueryHandler<NotEqualsProperty>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, NotEqualsProperty criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 String otherPropertyName = getPropertyName(entity, criterion.getOtherProperty());
-                addWherePropertyComparison(query, propertyName, otherPropertyName, "!=");
+                addWherePropertyComparison(query, propertyName, otherPropertyName, '!=');
             }
         });
-        queryHandlers.put(GreaterThanProperty.class, new QueryHandler<GreaterThanProperty>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, GreaterThanProperty criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(GreaterThanProperty, new QueryHandler<GreaterThanProperty>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, GreaterThanProperty criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 String otherPropertyName = getPropertyName(entity, criterion.getOtherProperty());
-                addWherePropertyComparison(query, propertyName, otherPropertyName, ">");
+                addWherePropertyComparison(query, propertyName, otherPropertyName, '>');
             }
         });
-        queryHandlers.put(LessThanProperty.class, new QueryHandler<LessThanProperty>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, LessThanProperty criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(LessThanProperty, new QueryHandler<LessThanProperty>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, LessThanProperty criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 String otherPropertyName = getPropertyName(entity, criterion.getOtherProperty());
-                addWherePropertyComparison(query, propertyName, otherPropertyName, "<");
+                addWherePropertyComparison(query, propertyName, otherPropertyName, '<');
             }
         });
-        queryHandlers.put(GreaterThanEqualsProperty.class, new QueryHandler<GreaterThanEqualsProperty>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, GreaterThanEqualsProperty criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(GreaterThanEqualsProperty, new QueryHandler<GreaterThanEqualsProperty>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, GreaterThanEqualsProperty criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 String otherPropertyName = getPropertyName(entity, criterion.getOtherProperty());
-                addWherePropertyComparison(query, propertyName, otherPropertyName, ">=");
+                addWherePropertyComparison(query, propertyName, otherPropertyName, '>=');
             }
         });
-        queryHandlers.put(LessThanEqualsProperty.class, new QueryHandler<LessThanEqualsProperty>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, LessThanEqualsProperty criterion, Document query, PersistentEntity entity) {
-
+        queryHandlers.put(LessThanEqualsProperty, new QueryHandler<LessThanEqualsProperty>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, LessThanEqualsProperty criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 String otherPropertyName = getPropertyName(entity, criterion.getOtherProperty());
-                addWherePropertyComparison(query, propertyName, otherPropertyName, "<=");
+                addWherePropertyComparison(query, propertyName, otherPropertyName, '<=');
             }
         });
 
-        queryHandlers.put(NotEquals.class, new QueryHandler<NotEquals>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, NotEquals criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(NotEquals, new QueryHandler<NotEquals>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, NotEquals criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 Document notEqualQuery = getOrCreatePropertyQuery(query, propertyName);
                 notEqualQuery.put(NE_OPERATOR, criterion.getValue());
@@ -208,22 +236,24 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(Like.class, new QueryHandler<Like>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, Like like, Document query, PersistentEntity entity) {
+        queryHandlers.put(Like, new QueryHandler<Like>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, Like like, Document query, PersistentEntity entity) {
                 handleLike(entity, like, query, true);
             }
         });
 
-        queryHandlers.put(ILike.class, new QueryHandler<ILike>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, ILike like, Document query, PersistentEntity entity) {
+        queryHandlers.put(ILike, new QueryHandler<ILike>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, ILike like, Document query, PersistentEntity entity) {
                 handleLike(entity, like, query, false);
             }
         });
 
-        queryHandlers.put(RLike.class, new QueryHandler<RLike>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, RLike like, Document query, PersistentEntity entity) {
+        queryHandlers.put(RLike, new QueryHandler<RLike>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, RLike like, Document query, PersistentEntity entity) {
                 Object value = like.getValue();
-                if (value == null) value = "null";
+                if (value == null) {
+                    value = 'null';
+                }
                 final String expr = value.toString();
                 Pattern regex = Pattern.compile(expr);
                 String propertyName = getPropertyName(entity, like);
@@ -231,18 +261,18 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(In.class, new QueryHandler<In>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, In in, Document query, PersistentEntity entity) {
+        queryHandlers.put(In, new QueryHandler<In>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, In inCriterion, Document query, PersistentEntity entity) {
                 Document inQuery = new Document();
-                List values = getInListQueryValues(entity, in);
+                List values = getInListQueryValues(entity, inCriterion);
                 inQuery.put(IN_OPERATOR, values);
-                String propertyName = getPropertyName(entity, in);
+                String propertyName = getPropertyName(entity, inCriterion);
                 query.put(propertyName, inQuery);
             }
         });
 
-        queryHandlers.put(Between.class, new QueryHandler<Between>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, Between between, Document query, PersistentEntity entity) {
+        queryHandlers.put(Between, new QueryHandler<Between>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, Between between, Document query, PersistentEntity entity) {
                 Document betweenQuery = new Document();
                 betweenQuery.put(GTE_OPERATOR, between.getFrom());
                 betweenQuery.put(LTE_OPERATOR, between.getTo());
@@ -251,8 +281,8 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(GreaterThan.class, new QueryHandler<GreaterThan>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, GreaterThan criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(GreaterThan, new QueryHandler<GreaterThan>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, GreaterThan criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 Document greaterThanQuery = getOrCreatePropertyQuery(query, propertyName);
                 greaterThanQuery.put(GT_OPERATOR, criterion.getValue());
@@ -261,8 +291,8 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(GreaterThanEquals.class, new QueryHandler<GreaterThanEquals>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, GreaterThanEquals criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(GreaterThanEquals, new QueryHandler<GreaterThanEquals>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, GreaterThanEquals criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 Document greaterThanQuery = getOrCreatePropertyQuery(query, propertyName);
                 greaterThanQuery.put(GTE_OPERATOR, criterion.getValue());
@@ -271,8 +301,8 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(LessThan.class, new QueryHandler<LessThan>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, LessThan criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(LessThan, new QueryHandler<LessThan>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, LessThan criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 Document lessThanQuery = getOrCreatePropertyQuery(query, propertyName);
                 lessThanQuery.put(LT_OPERATOR, criterion.getValue());
@@ -281,8 +311,8 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(LessThanEquals.class, new QueryHandler<LessThanEquals>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, LessThanEquals criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(LessThanEquals, new QueryHandler<LessThanEquals>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, LessThanEquals criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 Document lessThanQuery = getOrCreatePropertyQuery(query, propertyName);
                 lessThanQuery.put(LTE_OPERATOR, criterion.getValue());
@@ -291,15 +321,14 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(Conjunction.class, new QueryHandler<Conjunction>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, Conjunction criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(Conjunction, new QueryHandler<Conjunction>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, Conjunction criterion, Document query, PersistentEntity entity) {
                 populateBsonQuery(queryEncoder, query, criterion, entity);
             }
         });
 
-        queryHandlers.put(Negation.class, new QueryHandler<Negation>() {
-            @SuppressWarnings("unchecked")
-            public void handle(EmbeddedQueryEncoder queryEncoder, Negation criteria, Document query, PersistentEntity entity) {
+        queryHandlers.put(Negation, new QueryHandler<Negation>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, Negation criteria, Document query, PersistentEntity entity) {
                 List nor = new ArrayList();
                 query.put(NOR_OPERATOR, nor);
                 for (Criterion criterion : criteria.getCriteria()) {
@@ -309,7 +338,7 @@ public abstract class BsonQuery extends Query {
                         PropertyCriterion pc = (PropertyCriterion) criterion;
                         PersistentProperty property = entity.getPropertyByName(pc.getProperty());
                         if (property instanceof Custom) {
-                            CustomTypeMarshaller customTypeMarshaller = ((Custom) property).getCustomTypeMarshaller();
+                            CustomTypeMarshaller<Object, Object, Document> customTypeMarshaller = (CustomTypeMarshaller<Object, Object, Document>) ((Custom) property).getCustomTypeMarshaller();
                             customTypeMarshaller.query(property, pc, query);
                             continue;
                         }
@@ -319,22 +348,20 @@ public abstract class BsonQuery extends Query {
                     if (queryHandler != null) {
                         queryHandler.handle(queryEncoder, criterion, negatedQuery, entity);
                     } else {
-                        throw new UnsupportedOperationException("Query of type " + criterion.getClass().getSimpleName() + " cannot be negated");
+                        throw new UnsupportedOperationException('Query of type ' + criterion.getClass().getSimpleName() + ' cannot be negated');
                     }
                 }
             }
         });
 
-        queryHandlers.put(Disjunction.class, new QueryHandler<Disjunction>() {
-            @SuppressWarnings("unchecked")
-            public void handle(EmbeddedQueryEncoder queryEncoder, Disjunction criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(Disjunction, new QueryHandler<Disjunction>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, Disjunction criterion, Document query, PersistentEntity entity) {
                 populateBsonQuery(queryEncoder, query, criterion, entity);
             }
         });
 
-        queryHandlers.put(SizeEquals.class, new QueryHandler<SizeEquals>() {
-            @SuppressWarnings("unchecked")
-            public void handle(EmbeddedQueryEncoder queryEncoder, SizeEquals criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(SizeEquals, new QueryHandler<SizeEquals>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, SizeEquals criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 Document sizeEqualsQuery = getOrCreatePropertyQuery(query, propertyName);
                 sizeEqualsQuery.put(SIZE_OPERATOR, getNumber(criterion));
@@ -343,8 +370,8 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(SizeNotEquals.class, new QueryHandler<SizeNotEquals>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, SizeNotEquals criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(SizeNotEquals, new QueryHandler<SizeNotEquals>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, SizeNotEquals criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 Document sizeNotEqualsQuery = getOrCreatePropertyQuery(query, propertyName);
                 sizeNotEqualsQuery.put(NOT_OPERATOR, new Document(SIZE_OPERATOR, getNumber(criterion)));
@@ -353,9 +380,8 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(SizeGreaterThan.class, new QueryHandler<SizeGreaterThan>() {
-            @SuppressWarnings("unchecked")
-            public void handle(EmbeddedQueryEncoder queryEncoder, SizeGreaterThan criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(SizeGreaterThan, new QueryHandler<SizeGreaterThan>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, SizeGreaterThan criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 Integer greaterThanValue = getNumber(criterion);
 
@@ -363,9 +389,8 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(SizeLessThan.class, new QueryHandler<SizeLessThan>() {
-            @SuppressWarnings("unchecked")
-            public void handle(EmbeddedQueryEncoder queryEncoder, SizeLessThan criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(SizeLessThan, new QueryHandler<SizeLessThan>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, SizeLessThan criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 Integer lessThanValue = getNumber(criterion);
 
@@ -373,9 +398,8 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(SizeLessThanEquals.class, new QueryHandler<SizeLessThanEquals>() {
-            @SuppressWarnings("unchecked")
-            public void handle(EmbeddedQueryEncoder queryEncoder, SizeLessThanEquals criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(SizeLessThanEquals, new QueryHandler<SizeLessThanEquals>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, SizeLessThanEquals criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 Integer lessThanValue = getNumber(criterion);
 
@@ -383,9 +407,8 @@ public abstract class BsonQuery extends Query {
             }
         });
 
-        queryHandlers.put(SizeGreaterThanEquals.class, new QueryHandler<SizeGreaterThanEquals>() {
-            @SuppressWarnings("unchecked")
-            public void handle(EmbeddedQueryEncoder queryEncoder, SizeGreaterThanEquals criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(SizeGreaterThanEquals, new QueryHandler<SizeGreaterThanEquals>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, SizeGreaterThanEquals criterion, Document query, PersistentEntity entity) {
                 String propertyName = getPropertyName(entity, criterion);
                 Integer greaterThanValue = getNumber(criterion);
 
@@ -395,7 +418,7 @@ public abstract class BsonQuery extends Query {
 
         operatorHandlers.put(GT_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 Object value = readBsonValue(queryReader, queryReader.getCurrentBsonType());
                 if (value != null && !(value instanceof NullObject)) {
                     criteria.add(new Query.GreaterThan(attributeName, value));
@@ -405,7 +428,7 @@ public abstract class BsonQuery extends Query {
 
         operatorHandlers.put(GTE_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 Object value = readBsonValue(queryReader, queryReader.getCurrentBsonType());
                 if (value != null && !(value instanceof NullObject)) {
                     criteria.add(new Query.GreaterThanEquals(attributeName, value));
@@ -415,7 +438,7 @@ public abstract class BsonQuery extends Query {
 
         operatorHandlers.put(LT_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 Object value = readBsonValue(queryReader, queryReader.getCurrentBsonType());
                 if (value != null && !(value instanceof NullObject)) {
                     criteria.add(new Query.LessThan(attributeName, value));
@@ -424,7 +447,7 @@ public abstract class BsonQuery extends Query {
         });
         operatorHandlers.put(LTE_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 Object value = readBsonValue(queryReader, queryReader.getCurrentBsonType());
                 if (value != null && !(value instanceof NullObject)) {
                     criteria.add(new Query.LessThanEquals(attributeName, value));
@@ -433,7 +456,7 @@ public abstract class BsonQuery extends Query {
         });
         operatorHandlers.put(NE_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 Object value = readBsonValue(queryReader, queryReader.getCurrentBsonType());
                 if (value != null && !(value instanceof NullObject)) {
                     criteria.add(new Query.NotEquals(attributeName, value));
@@ -442,7 +465,7 @@ public abstract class BsonQuery extends Query {
         });
         operatorHandlers.put(EQ_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 Object value = readBsonValue(queryReader, queryReader.getCurrentBsonType());
                 if (value != null) {
                     criteria.add(new Query.Equals(attributeName, value));
@@ -452,7 +475,7 @@ public abstract class BsonQuery extends Query {
 
         operatorHandlers.put(REGEX_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 Object value = readBsonValue(queryReader, queryReader.getCurrentBsonType());
                 if (value != null && !(value instanceof NullObject)) {
                     criteria.add(new Query.RLike(attributeName, value.toString()));
@@ -462,7 +485,7 @@ public abstract class BsonQuery extends Query {
 
         operatorHandlers.put(OR_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 Disjunction disjunction = new Disjunction();
                 criteria.add(disjunction);
 
@@ -475,7 +498,7 @@ public abstract class BsonQuery extends Query {
 
         operatorHandlers.put(IN_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 List values = readArrayOfValues(queryReader);
                 criteria.add(new Query.In(attributeName, values));
             }
@@ -483,7 +506,7 @@ public abstract class BsonQuery extends Query {
 
         operatorHandlers.put(NIN_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 Negation negation = new Negation();
                 List values = readArrayOfValues(queryReader);
                 negation.add(new Query.In(attributeName, values));
@@ -493,7 +516,7 @@ public abstract class BsonQuery extends Query {
 
         operatorHandlers.put(NOT_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 Negation negation = new Negation();
                 criteria.add(negation);
 
@@ -506,7 +529,7 @@ public abstract class BsonQuery extends Query {
 
         operatorHandlers.put(AND_OPERATOR, new OperatorHandler() {
             @Override
-            public void handle(Junction criteria, String attributeName, BsonReader queryReader) {
+            void handle(Junction criteria, String attributeName, BsonReader queryReader) {
                 Conjunction conj = new Conjunction();
                 criteria.add(conj);
 
@@ -518,7 +541,8 @@ public abstract class BsonQuery extends Query {
         });
     }
 
-    private static List readArrayOfValues(BsonReader queryReader) {
+    @PackageScope
+    static List readArrayOfValues(BsonReader queryReader) {
         List values = new ArrayList();
         BsonType bsonType = queryReader.getCurrentBsonType();
         if (bsonType == BsonType.ARRAY) {
@@ -538,15 +562,16 @@ public abstract class BsonQuery extends Query {
         return values;
     }
 
-    private static void parseJunctionDocuments(Junction junction, String attributeName, BsonReader queryReader, BsonType bsonType) {
-        while (bsonType != BsonType.END_OF_DOCUMENT) {
-            if (bsonType == BsonType.DOCUMENT) {
-                parseQueryAttributeValue(queryReader, bsonType, attributeName, junction);
-            }
-            else {
+    @PackageScope
+    static void parseJunctionDocuments(Junction junction, String attributeName, BsonReader queryReader, BsonType bsonType) {
+        BsonType currentType = bsonType;
+        while (currentType != BsonType.END_OF_DOCUMENT) {
+            if (currentType == BsonType.DOCUMENT) {
+                parseQueryAttributeValue(queryReader, currentType, attributeName, junction);
+            } else {
                 queryReader.skipValue();
             }
-            bsonType = queryReader.readBsonType();
+            currentType = queryReader.readBsonType();
         }
     }
 
@@ -555,7 +580,7 @@ public abstract class BsonQuery extends Query {
     }
 
     protected BsonQuery(PersistentEntity entity) {
-        super(null, entity);
+        super((Session) null, entity);
     }
 
     /**
@@ -566,7 +591,7 @@ public abstract class BsonQuery extends Query {
      * @param criteria The criteria
      * @return The query
      */
-    public static Document createBsonQuery(CodecRegistry registry, PersistentEntity entity, List<Criterion> criteria) {
+    static Document createBsonQuery(CodecRegistry registry, PersistentEntity entity, List<Criterion> criteria) {
         Conjunction junction = new Conjunction(criteria);
         return createBsonQuery(registry, entity, junction);
     }
@@ -579,13 +604,12 @@ public abstract class BsonQuery extends Query {
      * @param junction The junction
      * @return The query
      */
-    public static Document createBsonQuery(CodecRegistry registry, PersistentEntity entity, Junction junction) {
+    static Document createBsonQuery(CodecRegistry registry, PersistentEntity entity, Junction junction) {
         EmbeddedQueryEncoder embeddedQueryEncoder = new CodecRegistryEmbeddedQueryEncoder(registry);
         Document query = new Document();
         if (junction instanceof Conjunction) {
             populateBsonQuery(embeddedQueryEncoder, query, junction.getCriteria(), entity);
-        }
-        else {
+        } else {
             populateBsonQuery(embeddedQueryEncoder, query, junction, entity);
         }
         return query;
@@ -599,10 +623,10 @@ public abstract class BsonQuery extends Query {
      * @param <T>         The entity concrete type
      * @return A {@link DetachedCriteria}
      */
-    public static <T> DetachedCriteria<T> parse(Class<T> type, BsonReader queryReader) {
+    static <T> DetachedCriteria<T> parse(Class<T> type, BsonReader queryReader) {
         queryReader.readStartDocument();
         BsonType bsonType = queryReader.getCurrentBsonType();
-        DetachedCriteria<T> criteria = new DetachedCriteria<>(type);
+        DetachedCriteria<T> criteria = new DetachedCriteria<T>(type);
         Query.Junction junction = new Query.Conjunction();
 
         if (bsonType != BsonType.END_OF_DOCUMENT) {
@@ -635,15 +659,13 @@ public abstract class BsonQuery extends Query {
                 while (bsonType != BsonType.END_OF_DOCUMENT) {
                     if (bsonType == BsonType.DOCUMENT) {
                         parseQueryAttributeValue(queryReader, queryReader.getCurrentBsonType(), attributeName, junction);
-                    }
-                    else {
+                    } else {
                         queryReader.skipValue();
                     }
                     bsonType = queryReader.readBsonType();
                 }
                 queryReader.readEndArray();
-            }
-            else {
+            } else {
                 while (bsonType != BsonType.END_OF_DOCUMENT) {
                     attributeName = queryReader.readName();
                     bsonType = queryReader.getCurrentBsonType();
@@ -651,78 +673,76 @@ public abstract class BsonQuery extends Query {
                     bsonType = queryReader.readBsonType();
                 }
             }
-
         }
 
         return criteria;
     }
 
     private static BsonType parseQueryAttributeValue(BsonReader queryReader, BsonType bsonType, String attributeName, Junction junction) {
-        if (bsonType == BsonType.DOCUMENT) {
+        BsonType currentType = bsonType;
+        if (currentType == BsonType.DOCUMENT) {
             queryReader.readStartDocument();
-            bsonType = queryReader.getCurrentBsonType();
-            while (bsonType != BsonType.END_OF_DOCUMENT) {
+            currentType = queryReader.getCurrentBsonType();
+            while (currentType != BsonType.END_OF_DOCUMENT) {
                 String operator = queryReader.readName();
                 OperatorHandler operatorHandler = operatorHandlers.get(operator);
                 if (operatorHandler != null) {
                     operatorHandler.handle(junction, attributeName, queryReader);
-                }
-                else {
+                } else {
                     parseQueryAttributeValue(queryReader, queryReader.getCurrentBsonType(), operator, junction);
                 }
-                bsonType = queryReader.readBsonType();
+                currentType = queryReader.readBsonType();
             }
             queryReader.readEndDocument();
         } else {
-            Object value = readBsonValue(queryReader, bsonType);
+            Object value = readBsonValue(queryReader, currentType);
             if (value != null) {
                 if (value instanceof NullObject) {
                     junction.add(new IsNull(attributeName));
-                }
-                else {
+                } else {
                     junction.add(new Equals(attributeName, value));
                 }
             }
         }
-        return bsonType;
+        return currentType;
     }
 
     protected static Object readBsonValue(BsonReader queryReader, BsonType bsonType) {
         Object value = null;
         switch (bsonType) {
-            case STRING:
+            case BsonType.STRING:
                 value = queryReader.readString();
                 break;
-            case INT32:
+            case BsonType.INT32:
                 value = queryReader.readInt32();
                 break;
-            case INT64:
+            case BsonType.INT64:
                 value = queryReader.readInt64();
                 break;
-            case BOOLEAN:
+            case BsonType.BOOLEAN:
                 value = queryReader.readBoolean();
                 break;
-            case DOUBLE:
+            case BsonType.DOUBLE:
                 value = queryReader.readDouble();
                 break;
-            case BINARY:
+            case BsonType.BINARY:
                 value = queryReader.readBinaryData().getData();
                 break;
-            case REGULAR_EXPRESSION:
+            case BsonType.REGULAR_EXPRESSION:
                 value = queryReader.readRegularExpression().getPattern();
                 break;
-            case DATE_TIME:
+            case BsonType.DATE_TIME:
                 value = new Date(queryReader.readDateTime());
                 break;
-            case OBJECT_ID:
+            case BsonType.OBJECT_ID:
                 value = queryReader.readObjectId();
                 break;
-            case NULL:
+            case BsonType.NULL:
                 value = NullObject.getNullObject();
                 break;
             default:
                 queryReader.skipValue();
-
+                break;
         }
         return value;
     }
@@ -733,34 +753,37 @@ public abstract class BsonQuery extends Query {
     }
 
     protected static String getPropertyName(PersistentEntity entity, String propertyName) {
-        if (entity.isIdentityName(propertyName)) {
-            String targetIdentityName = entity.getIdentity().getMapping().getMappedForm().getTargetName();
+        String name = propertyName;
+        if (entity.isIdentityName(name)) {
+            String targetIdentityName = ((Property) entity.getIdentity().getMapping().getMappedForm()).getTargetName();
             if (targetIdentityName != null) {
-                propertyName = targetIdentityName;
+                name = targetIdentityName;
             }
         } else {
-            PersistentProperty property = entity.getPropertyByName(propertyName);
+            PersistentProperty property = entity.getPropertyByName(name);
             if (property != null) {
-                propertyName = MappingUtils.getTargetKey(property);
+                name = MappingUtils.getTargetKey(property);
                 if (property instanceof ToOne && !(property instanceof Embedded)) {
                     ToOne association = (ToOne) property;
-                    Property attr = association.getMapping().getMappedForm();
+                    Property attr = (Property) association.getMapping().getMappedForm();
                     boolean isReference = attr == null || attr.isReference();
                     if (isReference) {
-                        propertyName = propertyName + ID_REFERENCE_SUFFIX;
+                        name = name + ID_REFERENCE_SUFFIX;
                     }
                 }
             }
         }
 
-        return propertyName;
+        return name;
     }
 
-    private static void addWherePropertyComparison(Document query, String propertyName, String otherPropertyName, String operator) {
+    @PackageScope
+    static void addWherePropertyComparison(Document query, String propertyName, String otherPropertyName, String operator) {
         query.put(WHERE_OPERATOR, new StringBuilder(THIS_PREFIX).append(propertyName).append(operator).append(THIS_PREFIX).append(otherPropertyName).toString());
     }
 
-    private static void handleLike(PersistentEntity entity, Like like, Document query, boolean caseSensitive) {
+    @PackageScope
+    static void handleLike(PersistentEntity entity, Like like, Document query, boolean caseSensitive) {
         Object value = like.getValue();
         String expr = patternToRegex(value);
 
@@ -774,21 +797,20 @@ public abstract class BsonQuery extends Query {
      * their persisted types.
      *
      * @param entity The entity
-     * @param in     The criterion
+     * @param inCriterion The criterion
      * @return The list of native values suitable for passing to Mongo.
      */
-    protected static List<Object> getInListQueryValues(PersistentEntity entity, In in) {
-        List<Object> values = new ArrayList<>(in.getValues().size());
+    protected static List<Object> getInListQueryValues(PersistentEntity entity, In inCriterion) {
+        List<Object> values = new ArrayList<Object>(inCriterion.getValues().size());
         final MappingContext mappingContext = entity.getMappingContext();
-        for (Object value : in.getValues()) {
+        for (Object value : inCriterion.getValues()) {
             if (mappingContext.isPersistentEntity(value)) {
                 PersistentEntity pe = mappingContext.getPersistentEntity(
                         value.getClass().getName());
                 ProxyHandler proxyHandler = mappingContext.getProxyHandler();
                 if (proxyHandler.isProxy(value)) {
                     values.add(proxyHandler.getIdentifier(value));
-                }
-                else {
+                } else {
                     EntityReflector reflector = mappingContext.getEntityReflector(pe);
                     values.add(reflector.getIdentifier(value));
                 }
@@ -812,7 +834,7 @@ public abstract class BsonQuery extends Query {
      */
     protected static void validateCriterionValues(Criterion criterion, PersistentEntity entity) {
         if (criterion instanceof Junction) {
-            for (Criterion nested : ((Junction) criterion).getCriteria()) {
+            for (Criterion nested in ((Junction) criterion).getCriteria()) {
                 validateCriterionValues(nested, entity);
             }
             return;
@@ -829,7 +851,7 @@ public abstract class BsonQuery extends Query {
         } else if (criterion instanceof In) {
             Collection values = ((In) criterion).getValues();
             if (values != null) {
-                for (Object value : values) {
+                for (Object value in values) {
                     validateCriterionValue(entity, propertyName, value);
                 }
             }
@@ -839,7 +861,7 @@ public abstract class BsonQuery extends Query {
     }
 
     private static boolean isExemptFromValueValidation(Criterion criterion) {
-        for (Class<? extends Criterion> exempt : VALUE_VALIDATION_EXEMPT_CRITERIA) {
+        for (Class<? extends Criterion> exempt in VALUE_VALIDATION_EXEMPT_CRITERIA) {
             if (exempt.isInstance(criterion)) {
                 return true;
             }
@@ -875,10 +897,10 @@ public abstract class BsonQuery extends Query {
 
     private static void rejectOperatorKeys(PersistentEntity entity, String propertyName, Map<?, ?> map, int depth) {
         rejectExcessiveDepth(entity, propertyName, depth);
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            if (String.valueOf(entry.getKey()).startsWith("$")) {
-                throw new InvalidDataAccessResourceUsageException("Invalid query value for property [" + propertyName +
-                        "] of entity [" + entity.getName() + "]: Map keys starting with '$' are not permitted in a query value");
+        for (Map.Entry<?, ?> entry in map.entrySet()) {
+            if (String.valueOf(entry.getKey()).startsWith('\$')) {
+                throw new InvalidDataAccessResourceUsageException('Invalid query value for property [' + propertyName +
+                        '] of entity [' + entity.getName() + "]: Map keys starting with '\$' are not permitted in a query value");
             }
             rejectNestedOperatorKeys(entity, propertyName, entry.getValue(), depth + 1);
         }
@@ -889,12 +911,12 @@ public abstract class BsonQuery extends Query {
             rejectOperatorKeys(entity, propertyName, (Map<?, ?>) nested, depth);
         } else if (nested instanceof Iterable) {
             rejectExcessiveDepth(entity, propertyName, depth);
-            for (Object element : (Iterable<?>) nested) {
+            for (Object element in (Iterable<?>) nested) {
                 rejectNestedOperatorKeys(entity, propertyName, element, depth + 1);
             }
         } else if (nested instanceof Object[]) {
             rejectExcessiveDepth(entity, propertyName, depth);
-            for (Object element : (Object[]) nested) {
+            for (Object element in (Object[]) nested) {
                 rejectNestedOperatorKeys(entity, propertyName, element, depth + 1);
             }
         }
@@ -902,8 +924,8 @@ public abstract class BsonQuery extends Query {
 
     private static void rejectExcessiveDepth(PersistentEntity entity, String propertyName, int depth) {
         if (depth > MAX_CRITERION_VALUE_DEPTH) {
-            throw new InvalidDataAccessResourceUsageException("Invalid query value for property [" + propertyName +
-                    "] of entity [" + entity.getName() + "]: value is nested deeper than " + MAX_CRITERION_VALUE_DEPTH + " levels");
+            throw new InvalidDataAccessResourceUsageException('Invalid query value for property [' + propertyName +
+                    '] of entity [' + entity.getName() + ']: value is nested deeper than ' + MAX_CRITERION_VALUE_DEPTH + ' levels');
         }
     }
 
@@ -916,12 +938,13 @@ public abstract class BsonQuery extends Query {
         return queryObject;
     }
 
-    private static Integer getNumber(PropertyCriterion criterion) {
+    @PackageScope
+    static Integer getNumber(PropertyCriterion criterion) {
         Object value = criterion.getValue();
         if (value instanceof Number) {
             return ((Number) value).intValue();
         }
-        throw new IllegalArgumentException("Argument to size constraint must be a number");
+        throw new IllegalArgumentException('Argument to size constraint must be a number');
     }
 
     /**
@@ -930,14 +953,18 @@ public abstract class BsonQuery extends Query {
      * @param <T>
      */
     protected interface QueryHandler<T> {
+
         void handle(EmbeddedQueryEncoder queryEncoder, T criterion, Document query, PersistentEntity entity);
+
     }
 
     /**
      * Handles query operators when reading BSON
      */
     protected interface OperatorHandler {
+
         void handle(Junction criteria, String attributeName, BsonReader queryReader);
+
     }
 
     /**
@@ -947,6 +974,7 @@ public abstract class BsonQuery extends Query {
      * @param <T>
      */
     protected interface ProjectionHandler<T extends Projection> {
+
         /**
          * Handles a projection modifying the aggregation pipeline appropriately
          *
@@ -956,6 +984,7 @@ public abstract class BsonQuery extends Query {
          * @return The key to be used to obtain the projected value from the pipeline results
          */
         String handle(PersistentEntity entity, Document projectObject, Document groupByObject, T projection);
+
     }
 
     protected static void populateBsonQuery(final EmbeddedQueryEncoder queryEncoder, Document query, List<Criterion> criteria, final PersistentEntity entity) {
@@ -970,7 +999,7 @@ public abstract class BsonQuery extends Query {
                     PropertyCriterion pc = (PropertyCriterion) criterion;
                     PersistentProperty property = entity.getPropertyByName(pc.getProperty());
                     if (property instanceof Custom) {
-                        CustomTypeMarshaller customTypeMarshaller = ((Custom) property).getCustomTypeMarshaller();
+                        CustomTypeMarshaller<Object, Object, Document> customTypeMarshaller = (CustomTypeMarshaller<Object, Object, Document>) ((Custom) property).getCustomTypeMarshaller();
                         if (!(customTypeMarshaller instanceof CodecCustomTypeMarshaller)) {
                             customTypeMarshaller.query(property, pc, query);
                             continue;
@@ -979,7 +1008,7 @@ public abstract class BsonQuery extends Query {
                 }
                 queryHandler.handle(queryEncoder, criterion, dbo, entity);
             } else {
-                throw new InvalidDataAccessResourceUsageException("Queries of type " + criterion.getClass().getSimpleName() + " are not supported by this implementation");
+                throw new InvalidDataAccessResourceUsageException('Queries of type ' + criterion.getClass().getSimpleName() + ' are not supported by this implementation');
             }
         }
     }
@@ -1011,15 +1040,16 @@ public abstract class BsonQuery extends Query {
                     PropertyCriterion pc = (PropertyCriterion) criterion;
                     PersistentProperty property = entity.getPropertyByName(pc.getProperty());
                     if (property instanceof Custom) {
-                        CustomTypeMarshaller customTypeMarshaller = ((Custom) property).getCustomTypeMarshaller();
+                        CustomTypeMarshaller<Object, Object, Document> customTypeMarshaller = (CustomTypeMarshaller<Object, Object, Document>) ((Custom) property).getCustomTypeMarshaller();
                         customTypeMarshaller.query(property, pc, query);
                         continue;
                     }
                 }
                 queryHandler.handle(queryEncoder, criterion, dbo, entity);
             } else {
-                throw new InvalidDataAccessResourceUsageException("Queries of type " + criterion.getClass().getSimpleName() + " are not supported by this implementation");
+                throw new InvalidDataAccessResourceUsageException('Queries of type ' + criterion.getClass().getSimpleName() + ' are not supported by this implementation');
             }
         }
     }
+
 }

@@ -4,21 +4,21 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.mapping.mongo.connections;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -39,6 +39,7 @@ import com.mongodb.client.model.bulk.ClientBulkWriteOptions;
 import com.mongodb.client.model.bulk.ClientBulkWriteResult;
 import com.mongodb.client.model.bulk.ClientNamespacedWriteModel;
 import com.mongodb.connection.ClusterDescription;
+import groovy.transform.CompileStatic;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
@@ -66,7 +67,10 @@ import org.bson.conversions.Bson;
  *
  * @since 8.0
  */
-public final class RestartableMongoClient implements MongoClient {
+@CompileStatic
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+final class RestartableMongoClient implements MongoClient {
 
     private enum State { NEW, STARTED, STOPPED, CLOSED }
 
@@ -87,12 +91,12 @@ public final class RestartableMongoClient implements MongoClient {
      * @param name the name of the connection the client is for, which is what its messages name
      * @param clientFactory builds a driver client each time one is needed
      */
-    public RestartableMongoClient(String name, Supplier<MongoClient> clientFactory) {
+    RestartableMongoClient(String name, Supplier<MongoClient> clientFactory) {
         if (name == null) {
-            throw new IllegalArgumentException("Argument [name] cannot be null");
+            throw new IllegalArgumentException('Argument [name] cannot be null');
         }
         if (clientFactory == null) {
-            throw new IllegalArgumentException("Argument [clientFactory] cannot be null");
+            throw new IllegalArgumentException('Argument [clientFactory] cannot be null');
         }
         this.name = name;
         this.clientFactory = clientFactory;
@@ -101,14 +105,14 @@ public final class RestartableMongoClient implements MongoClient {
     /**
      * @return the name of the connection the client is for
      */
-    public String getName() {
+    String getName() {
         return this.name;
     }
 
     /**
      * @return whether a driver client exists, and so whether the handle may hold sockets
      */
-    public boolean isConnected() {
+    boolean isConnected() {
         return this.client != null;
     }
 
@@ -118,7 +122,7 @@ public final class RestartableMongoClient implements MongoClient {
      *
      * @throws IllegalStateException if the handle has been closed
      */
-    public void start() {
+    void start() {
         synchronized (this.monitor) {
             if (this.state == State.CLOSED) {
                 throw closed();
@@ -134,7 +138,7 @@ public final class RestartableMongoClient implements MongoClient {
      * Closes the driver client, which releases its sockets, and refuses every use of the handle until
      * {@link #start()} builds a new one. Stopping a handle that was never used builds nothing.
      */
-    public void stop() {
+    void stop() {
         MongoClient stopping;
         synchronized (this.monitor) {
             if (this.state == State.CLOSED) {
@@ -153,7 +157,7 @@ public final class RestartableMongoClient implements MongoClient {
      * Closes the driver client for good. Closing again does nothing.
      */
     @Override
-    public void close() {
+    void close() {
         MongoClient closing;
         synchronized (this.monitor) {
             if (this.state == State.CLOSED) {
@@ -173,7 +177,7 @@ public final class RestartableMongoClient implements MongoClient {
      * building one: a stopped datastore must not be reconnected by whichever request happens to arrive,
      * since a socket opened then is one the checkpoint it was stopped for cannot be taken with.
      */
-    private MongoClient client() {
+    private MongoClient driverClient() {
         MongoClient current = this.client;
         if (current != null) {
             return current;
@@ -186,8 +190,8 @@ public final class RestartableMongoClient implements MongoClient {
                 throw closed();
             }
             if (this.state == State.STOPPED) {
-                throw new IllegalStateException("The MongoClient for connection [" + this.name + "] is stopped, " +
-                        "as it is while the application is checkpointed. It reconnects when its datastore is started again.");
+                throw new IllegalStateException('The MongoClient for connection [' + this.name + '] is stopped, ' +
+                        'as it is while the application is checkpointed. It reconnects when its datastore is started again.');
             }
             this.client = this.clientFactory.get();
             this.state = State.STARTED;
@@ -196,181 +200,181 @@ public final class RestartableMongoClient implements MongoClient {
     }
 
     private IllegalStateException closed() {
-        return new IllegalStateException("The MongoClient for connection [" + this.name + "] has been closed");
+        return new IllegalStateException('The MongoClient for connection [' + this.name + '] has been closed');
     }
 
     @Override
-    public String toString() {
-        return "RestartableMongoClient{connection=" + this.name + ", state=" + this.state + '}';
+    String toString() {
+        return 'RestartableMongoClient{connection=' + this.name + ', state=' + this.state + '}';
     }
 
     @Override
-    public ClusterDescription getClusterDescription() {
-        return client().getClusterDescription();
+    ClusterDescription getClusterDescription() {
+        return driverClient().getClusterDescription();
     }
 
     @Override
-    public void appendMetadata(MongoDriverInformation mongoDriverInformation) {
-        client().appendMetadata(mongoDriverInformation);
+    void appendMetadata(MongoDriverInformation mongoDriverInformation) {
+        driverClient().appendMetadata(mongoDriverInformation);
     }
 
     @Override
-    public CodecRegistry getCodecRegistry() {
-        return client().getCodecRegistry();
+    CodecRegistry getCodecRegistry() {
+        return driverClient().getCodecRegistry();
     }
 
     @Override
-    public ReadPreference getReadPreference() {
-        return client().getReadPreference();
+    ReadPreference getReadPreference() {
+        return driverClient().getReadPreference();
     }
 
     @Override
-    public WriteConcern getWriteConcern() {
-        return client().getWriteConcern();
+    WriteConcern getWriteConcern() {
+        return driverClient().getWriteConcern();
     }
 
     @Override
-    public ReadConcern getReadConcern() {
-        return client().getReadConcern();
+    ReadConcern getReadConcern() {
+        return driverClient().getReadConcern();
     }
 
     @Override
-    public Long getTimeout(TimeUnit timeUnit) {
-        return client().getTimeout(timeUnit);
+    Long getTimeout(TimeUnit timeUnit) {
+        return driverClient().getTimeout(timeUnit);
     }
 
     @Override
-    public MongoCluster withCodecRegistry(CodecRegistry codecRegistry) {
-        return client().withCodecRegistry(codecRegistry);
+    MongoCluster withCodecRegistry(CodecRegistry codecRegistry) {
+        return driverClient().withCodecRegistry(codecRegistry);
     }
 
     @Override
-    public MongoCluster withReadPreference(ReadPreference readPreference) {
-        return client().withReadPreference(readPreference);
+    MongoCluster withReadPreference(ReadPreference readPreference) {
+        return driverClient().withReadPreference(readPreference);
     }
 
     @Override
-    public MongoCluster withWriteConcern(WriteConcern writeConcern) {
-        return client().withWriteConcern(writeConcern);
+    MongoCluster withWriteConcern(WriteConcern writeConcern) {
+        return driverClient().withWriteConcern(writeConcern);
     }
 
     @Override
-    public MongoCluster withReadConcern(ReadConcern readConcern) {
-        return client().withReadConcern(readConcern);
+    MongoCluster withReadConcern(ReadConcern readConcern) {
+        return driverClient().withReadConcern(readConcern);
     }
 
     @Override
-    public MongoCluster withTimeout(long timeout, TimeUnit timeUnit) {
-        return client().withTimeout(timeout, timeUnit);
+    MongoCluster withTimeout(long timeout, TimeUnit timeUnit) {
+        return driverClient().withTimeout(timeout, timeUnit);
     }
 
     @Override
-    public MongoDatabase getDatabase(String databaseName) {
-        return client().getDatabase(databaseName);
+    MongoDatabase getDatabase(String databaseName) {
+        return driverClient().getDatabase(databaseName);
     }
 
     @Override
-    public ClientSession startSession() {
-        return client().startSession();
+    ClientSession startSession() {
+        return driverClient().startSession();
     }
 
     @Override
-    public ClientSession startSession(ClientSessionOptions options) {
-        return client().startSession(options);
+    ClientSession startSession(ClientSessionOptions options) {
+        return driverClient().startSession(options);
     }
 
     @Override
-    public MongoIterable<String> listDatabaseNames() {
-        return client().listDatabaseNames();
+    MongoIterable<String> listDatabaseNames() {
+        return driverClient().listDatabaseNames();
     }
 
     @Override
-    public MongoIterable<String> listDatabaseNames(ClientSession clientSession) {
-        return client().listDatabaseNames(clientSession);
+    MongoIterable<String> listDatabaseNames(ClientSession clientSession) {
+        return driverClient().listDatabaseNames(clientSession);
     }
 
     @Override
-    public ListDatabasesIterable<Document> listDatabases() {
-        return client().listDatabases();
+    ListDatabasesIterable<Document> listDatabases() {
+        return driverClient().listDatabases();
     }
 
     @Override
-    public ListDatabasesIterable<Document> listDatabases(ClientSession clientSession) {
-        return client().listDatabases(clientSession);
+    ListDatabasesIterable<Document> listDatabases(ClientSession clientSession) {
+        return driverClient().listDatabases(clientSession);
     }
 
     @Override
-    public <TResult> ListDatabasesIterable<TResult> listDatabases(Class<TResult> resultClass) {
-        return client().listDatabases(resultClass);
+    <TResult> ListDatabasesIterable<TResult> listDatabases(Class<TResult> resultClass) {
+        return driverClient().listDatabases(resultClass);
     }
 
     @Override
-    public <TResult> ListDatabasesIterable<TResult> listDatabases(ClientSession clientSession, Class<TResult> resultClass) {
-        return client().listDatabases(clientSession, resultClass);
+    <TResult> ListDatabasesIterable<TResult> listDatabases(ClientSession clientSession, Class<TResult> resultClass) {
+        return driverClient().listDatabases(clientSession, resultClass);
     }
 
     @Override
-    public ChangeStreamIterable<Document> watch() {
-        return client().watch();
+    ChangeStreamIterable<Document> watch() {
+        return driverClient().watch();
     }
 
     @Override
-    public <TResult> ChangeStreamIterable<TResult> watch(Class<TResult> resultClass) {
-        return client().watch(resultClass);
+    <TResult> ChangeStreamIterable<TResult> watch(Class<TResult> resultClass) {
+        return driverClient().watch(resultClass);
     }
 
     @Override
-    public ChangeStreamIterable<Document> watch(List<? extends Bson> pipeline) {
-        return client().watch(pipeline);
+    ChangeStreamIterable<Document> watch(List<? extends Bson> pipeline) {
+        return driverClient().watch(pipeline);
     }
 
     @Override
-    public <TResult> ChangeStreamIterable<TResult> watch(List<? extends Bson> pipeline, Class<TResult> resultClass) {
-        return client().watch(pipeline, resultClass);
+    <TResult> ChangeStreamIterable<TResult> watch(List<? extends Bson> pipeline, Class<TResult> resultClass) {
+        return driverClient().watch(pipeline, resultClass);
     }
 
     @Override
-    public ChangeStreamIterable<Document> watch(ClientSession clientSession) {
-        return client().watch(clientSession);
+    ChangeStreamIterable<Document> watch(ClientSession clientSession) {
+        return driverClient().watch(clientSession);
     }
 
     @Override
-    public <TResult> ChangeStreamIterable<TResult> watch(ClientSession clientSession, Class<TResult> resultClass) {
-        return client().watch(clientSession, resultClass);
+    <TResult> ChangeStreamIterable<TResult> watch(ClientSession clientSession, Class<TResult> resultClass) {
+        return driverClient().watch(clientSession, resultClass);
     }
 
     @Override
-    public ChangeStreamIterable<Document> watch(ClientSession clientSession, List<? extends Bson> pipeline) {
-        return client().watch(clientSession, pipeline);
+    ChangeStreamIterable<Document> watch(ClientSession clientSession, List<? extends Bson> pipeline) {
+        return driverClient().watch(clientSession, pipeline);
     }
 
     @Override
-    public <TResult> ChangeStreamIterable<TResult> watch(ClientSession clientSession, List<? extends Bson> pipeline,
+    <TResult> ChangeStreamIterable<TResult> watch(ClientSession clientSession, List<? extends Bson> pipeline,
             Class<TResult> resultClass) {
-        return client().watch(clientSession, pipeline, resultClass);
+        return driverClient().watch(clientSession, pipeline, resultClass);
     }
 
     @Override
-    public ClientBulkWriteResult bulkWrite(List<? extends ClientNamespacedWriteModel> models)
+    ClientBulkWriteResult bulkWrite(List<? extends ClientNamespacedWriteModel> models)
             throws ClientBulkWriteException {
-        return client().bulkWrite(models);
+        return driverClient().bulkWrite(models);
     }
 
     @Override
-    public ClientBulkWriteResult bulkWrite(List<? extends ClientNamespacedWriteModel> models,
+    ClientBulkWriteResult bulkWrite(List<? extends ClientNamespacedWriteModel> models,
             ClientBulkWriteOptions options) throws ClientBulkWriteException {
-        return client().bulkWrite(models, options);
+        return driverClient().bulkWrite(models, options);
     }
 
     @Override
-    public ClientBulkWriteResult bulkWrite(ClientSession clientSession, List<? extends ClientNamespacedWriteModel> models)
+    ClientBulkWriteResult bulkWrite(ClientSession clientSession, List<? extends ClientNamespacedWriteModel> models)
             throws ClientBulkWriteException {
-        return client().bulkWrite(clientSession, models);
+        return driverClient().bulkWrite(clientSession, models);
     }
 
     @Override
-    public ClientBulkWriteResult bulkWrite(ClientSession clientSession, List<? extends ClientNamespacedWriteModel> models,
+    ClientBulkWriteResult bulkWrite(ClientSession clientSession, List<? extends ClientNamespacedWriteModel> models,
             ClientBulkWriteOptions options) throws ClientBulkWriteException {
-        return client().bulkWrite(clientSession, models, options);
+        return driverClient().bulkWrite(clientSession, models, options);
     }
 }

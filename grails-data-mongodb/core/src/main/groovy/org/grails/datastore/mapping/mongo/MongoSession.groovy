@@ -16,60 +16,51 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.mapping.mongo;
+package org.grails.datastore.mapping.mongo
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.mongodb.DBRef
+import com.mongodb.WriteConcern
+import com.mongodb.bulk.BulkWriteResult
+import com.mongodb.client.FindIterable
+import com.mongodb.client.model.DeleteManyModel
+import com.mongodb.client.model.InsertOneModel
+import com.mongodb.client.model.UpdateOneModel
+import com.mongodb.client.model.UpdateOptions
+import com.mongodb.client.model.WriteModel
+import com.mongodb.client.result.DeleteResult
+import com.mongodb.client.result.UpdateResult
+import groovy.transform.CompileStatic
+import jakarta.persistence.FlushModeType
+import org.bson.Document
+import org.springframework.context.ApplicationEventPublisher
+import org.springframework.dao.DataIntegrityViolationException
 
-import jakarta.persistence.FlushModeType;
-
-import com.mongodb.DBRef;
-import com.mongodb.WriteConcern;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.DeleteManyModel;
-import com.mongodb.client.model.InsertOneModel;
-import com.mongodb.client.model.UpdateOneModel;
-import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.WriteModel;
-import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.UpdateResult;
-import org.bson.Document;
-
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataIntegrityViolationException;
-
-import org.grails.datastore.bson.query.BsonQuery;
-import org.grails.datastore.mapping.core.OptimisticLockingException;
-import org.grails.datastore.mapping.core.impl.PendingDelete;
-import org.grails.datastore.mapping.core.impl.PendingDeleteAdapter;
-import org.grails.datastore.mapping.core.impl.PendingInsert;
-import org.grails.datastore.mapping.core.impl.PendingOperation;
-import org.grails.datastore.mapping.core.impl.PendingUpdate;
-import org.grails.datastore.mapping.engine.EntityAccess;
-import org.grails.datastore.mapping.engine.EntityPersister;
-import org.grails.datastore.mapping.engine.Persister;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
-import org.grails.datastore.mapping.model.config.GormProperties;
-import org.grails.datastore.mapping.model.types.Association;
-import org.grails.datastore.mapping.model.types.Embedded;
-import org.grails.datastore.mapping.model.types.ManyToMany;
-import org.grails.datastore.mapping.model.types.OneToMany;
-import org.grails.datastore.mapping.model.types.ToOne;
-import org.grails.datastore.mapping.mongo.config.MongoAttribute;
-import org.grails.datastore.mapping.mongo.engine.AbstractMongoObectEntityPersister;
-import org.grails.datastore.mapping.mongo.engine.MongoEntityPersister;
-import org.grails.datastore.mapping.mongo.engine.MongoIdCoercion;
-import org.grails.datastore.mapping.mongo.query.MongoQuery;
-import org.grails.datastore.mapping.proxy.ProxyFactory;
-import org.grails.datastore.mapping.query.Query;
-import org.grails.datastore.mapping.query.api.QueryableCriteria;
+import org.grails.datastore.bson.query.BsonQuery
+import org.grails.datastore.mapping.core.OptimisticLockingException
+import org.grails.datastore.mapping.core.impl.PendingDelete
+import org.grails.datastore.mapping.core.impl.PendingDeleteAdapter
+import org.grails.datastore.mapping.core.impl.PendingInsert
+import org.grails.datastore.mapping.core.impl.PendingOperation
+import org.grails.datastore.mapping.core.impl.PendingUpdate
+import org.grails.datastore.mapping.engine.EntityAccess
+import org.grails.datastore.mapping.engine.EntityPersister
+import org.grails.datastore.mapping.engine.Persister
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
+import org.grails.datastore.mapping.model.config.GormProperties
+import org.grails.datastore.mapping.model.types.Association
+import org.grails.datastore.mapping.model.types.Embedded
+import org.grails.datastore.mapping.model.types.ManyToMany
+import org.grails.datastore.mapping.model.types.OneToMany
+import org.grails.datastore.mapping.model.types.ToOne
+import org.grails.datastore.mapping.mongo.config.MongoAttribute
+import org.grails.datastore.mapping.mongo.engine.AbstractMongoObectEntityPersister
+import org.grails.datastore.mapping.mongo.engine.MongoEntityPersister
+import org.grails.datastore.mapping.mongo.engine.MongoIdCoercion
+import org.grails.datastore.mapping.mongo.query.MongoQuery
+import org.grails.datastore.mapping.proxy.ProxyFactory
+import org.grails.datastore.mapping.query.Query
+import org.grails.datastore.mapping.query.api.QueryableCriteria
 
 /**
  * A {@link org.grails.datastore.mapping.core.Session} implementation for the Mongo document store.
@@ -83,212 +74,211 @@ import org.grails.datastore.mapping.query.api.QueryableCriteria;
  * separate persister hierarchy that has to be kept in step with the codec one for every
  * storage-layer change, and it carries no feature the codec engine lacks.
  */
+@CompileStatic
 @Deprecated
-public class MongoSession extends AbstractMongoSession {
+class MongoSession extends AbstractMongoSession {
 
-    public MongoSession(MongoDatastore datastore, MappingContext mappingContext, ApplicationEventPublisher publisher) {
-        this(datastore, mappingContext, publisher, false);
+    MongoSession(MongoDatastore datastore, MappingContext mappingContext, ApplicationEventPublisher publisher) {
+        this(datastore, mappingContext, publisher, false)
     }
 
-    public MongoSession(MongoDatastore datastore, MappingContext mappingContext, ApplicationEventPublisher publisher, boolean stateless) {
-        super(datastore, mappingContext, publisher, stateless);
+    MongoSession(MongoDatastore datastore, MappingContext mappingContext, ApplicationEventPublisher publisher, boolean stateless) {
+        super(datastore, mappingContext, publisher, stateless)
     }
 
     @Override
-    public Query createQuery(@SuppressWarnings("rawtypes") Class type) {
-        return super.createQuery(type);
+    Query createQuery(Class type) {
+        return super.createQuery(type)
     }
 
     @Override
     protected void cacheEntry(Serializable key, Object entry, Map<Serializable, Object> entryCache, boolean forDirtyCheck) {
-        entryCache.put(key, entry);
+        entryCache.put(key, entry)
     }
 
-    public void flush(WriteConcern writeConcern) {
+    void flush(WriteConcern writeConcern) {
         // A query that a listener runs while this flush runs its insert or update flushes first, which
         // would run the same pending operations again until the stack overflowed; see MongoCodecSession
         if (flushActive) {
-            return;
+            return
         }
-        flushActive = true;
-        WriteConcern currentWriteConcern = this.getWriteConcern();
+        flushActive = true
+        WriteConcern currentWriteConcern = this.getWriteConcern()
         try {
-            this.writeConcern = writeConcern;
-            final Map<PersistentEntity, Collection<PendingUpdate>> pendingUpdates = getPendingUpdates();
-            final Map<PersistentEntity, Collection<PendingInsert>> pendingInserts = getPendingInserts();
-            final Map<PersistentEntity, Collection<PendingDelete>> pendingDeletes = getPendingDeletes();
+            this.writeConcern = writeConcern
+            final Map<PersistentEntity, Collection<PendingUpdate>> pendingUpdates = getPendingUpdates()
+            final Map<PersistentEntity, Collection<PendingInsert>> pendingInserts = getPendingInserts()
+            final Map<PersistentEntity, Collection<PendingDelete>> pendingDeletes = getPendingDeletes()
 
             if (pendingUpdates.isEmpty() && pendingInserts.isEmpty() && pendingDeletes.isEmpty()) {
-                return;
+                return
             }
 
-            Map<String, Integer> numberOfOptimisticUpdates = new LinkedHashMap<>();
-            Map<String, Integer> numberOfPessimisticUpdates = new LinkedHashMap<>();
+            Map<String, Integer> numberOfOptimisticUpdates = new LinkedHashMap<>()
+            Map<String, Integer> numberOfPessimisticUpdates = new LinkedHashMap<>()
 
-            Map<PersistentEntity, List<WriteModel<Document>>> writeModels = new LinkedHashMap<>();
+            Map<PersistentEntity, List<WriteModel<Document>>> writeModels = new LinkedHashMap<>()
             for (PersistentEntity persistentEntity : pendingInserts.keySet()) {
-                final Collection<PendingInsert> inserts = pendingInserts.get(persistentEntity);
+                final Collection<PendingInsert> inserts = pendingInserts.get(persistentEntity)
                 if (inserts != null && !inserts.isEmpty()) {
-                    List<WriteModel<Document>> entityWrites = getWriteModelsForEntity(persistentEntity, writeModels);
+                    List<WriteModel<Document>> entityWrites = getWriteModelsForEntity(persistentEntity, writeModels)
                     for (PendingInsert insert : inserts) {
-                        insert.run();
+                        insert.run()
 
-                        if (insert.isVetoed()) continue;
+                        if (insert.isVetoed()) {
+                            continue
+                        }
 
-                        entityWrites.add(new InsertOneModel<>((Document) insert.getNativeEntry()));
+                        entityWrites.add(new InsertOneModel<Document>((Document) insert.getNativeEntry()))
 
-                        final List<PendingOperation> cascadeOperations = insert.getCascadeOperations();
-                        addPostFlushOperations(cascadeOperations);
+                        final List<PendingOperation> cascadeOperations = insert.getCascadeOperations()
+                        addPostFlushOperations(cascadeOperations)
                     }
                 }
             }
 
             for (PersistentEntity persistentEntity : pendingUpdates.keySet()) {
+                final String name = persistentEntity.isRoot() ? persistentEntity.getName() : persistentEntity.getRootEntity().getName()
+                int numberOfOptimistic = numberOfOptimisticUpdates.containsKey(name) ? numberOfOptimisticUpdates.get(name) : 0
+                int numberOfPessimistic = numberOfPessimisticUpdates.containsKey(name) ? numberOfPessimisticUpdates.get(name) : 0
 
-                final String name = persistentEntity.isRoot() ? persistentEntity.getName() : persistentEntity.getRootEntity().getName();
-                int numberOfOptimistic = numberOfOptimisticUpdates.containsKey(name) ? numberOfOptimisticUpdates.get(name) : 0;
-                int numberOfPessimistic = numberOfPessimisticUpdates.containsKey(name) ? numberOfPessimisticUpdates.get(name) : 0;
-
-                final Collection<PendingUpdate> updates = pendingUpdates.get(persistentEntity);
+                final Collection<PendingUpdate> updates = pendingUpdates.get(persistentEntity)
                 if (updates != null && !updates.isEmpty()) {
-                    List<WriteModel<Document>> entityWrites = getWriteModelsForEntity(persistentEntity, writeModels);
+                    List<WriteModel<Document>> entityWrites = getWriteModelsForEntity(persistentEntity, writeModels)
                     for (PendingUpdate update : updates) {
-                        update.run();
+                        update.run()
 
-                        if (update.isVetoed()) continue;
+                        if (update.isVetoed()) {
+                            continue
+                        }
 
-                        Document updateDoc = (Document) update.getNativeEntry();
-                        updateDoc.remove(MongoConstants.MONGO_ID_FIELD);
-                        updateDoc = createSetAndUnsetDoc(updateDoc);
+                        Document updateDoc = (Document) update.getNativeEntry()
+                        updateDoc.remove(MongoConstants.MONGO_ID_FIELD)
+                        updateDoc = createSetAndUnsetDoc(updateDoc)
                         final Object nativeKey = MongoIdCoercion.coerceIdToStoredType(
-                                update.getNativeKey(), persistentEntity);
-                        final Document id = new Document(MongoConstants.MONGO_ID_FIELD, nativeKey);
-                        MongoEntityPersister documentEntityPersister = (MongoEntityPersister) getPersister(persistentEntity);
-                        final EntityAccess entityAccess = update.getEntityAccess();
+                                update.getNativeKey(), persistentEntity)
+                        final Document id = new Document(MongoConstants.MONGO_ID_FIELD, nativeKey)
+                        MongoEntityPersister documentEntityPersister = (MongoEntityPersister) getPersister(persistentEntity)
+                        final EntityAccess entityAccess = update.getEntityAccess()
                         if (documentEntityPersister.isVersioned(entityAccess)) {
-                            Object currentVersion = documentEntityPersister.getCurrentVersion(entityAccess);
-                            documentEntityPersister.incrementVersion(entityAccess);
+                            Object currentVersion = documentEntityPersister.getCurrentVersion(entityAccess)
+                            documentEntityPersister.incrementVersion(entityAccess)
 
                             // if the entity is versioned we add to the query the current version
                             // if the query doesn't match a result this means the document has been updated by
                             // another thread an an optimistic locking exception should be thrown
-                            id.put(GormProperties.VERSION, currentVersion);
-                            numberOfOptimistic++;
+                            id.put(GormProperties.VERSION, currentVersion)
+                            numberOfOptimistic++
+                        } else {
+                            numberOfPessimistic++
                         }
-                        else {
-                            numberOfPessimistic++;
-                        }
-                        final UpdateOptions options = new UpdateOptions();
+                        final UpdateOptions options = new UpdateOptions()
 
-                        entityWrites.add(new UpdateOneModel<>(id, updateDoc, options.upsert(false)));
+                        entityWrites.add(new UpdateOneModel<Document>(id, updateDoc, options.upsert(false)))
 
-                        final List cascadeOperations = update.getCascadeOperations();
-                        addPostFlushOperations(cascadeOperations);
+                        final List cascadeOperations = update.getCascadeOperations()
+                        addPostFlushOperations(cascadeOperations)
                     }
                 }
-                numberOfOptimisticUpdates.put(name, numberOfOptimistic);
-                numberOfPessimisticUpdates.put(name, numberOfPessimistic);
-
+                numberOfOptimisticUpdates.put(name, numberOfOptimistic)
+                numberOfPessimisticUpdates.put(name, numberOfPessimistic)
             }
 
             for (PersistentEntity persistentEntity : pendingDeletes.keySet()) {
-                final Collection<PendingDelete> deletes = pendingDeletes.get(persistentEntity);
+                final Collection<PendingDelete> deletes = pendingDeletes.get(persistentEntity)
                 if (deletes != null && !deletes.isEmpty()) {
-                    List<WriteModel<Document>> entityWrites = getWriteModelsForEntity(persistentEntity, writeModels);
-                    List<Object> nativeKeys = new ArrayList<>();
+                    List<WriteModel<Document>> entityWrites = getWriteModelsForEntity(persistentEntity, writeModels)
+                    List<Object> nativeKeys = new ArrayList<>()
                     for (PendingDelete delete : deletes) {
-                        delete.run();
+                        delete.run()
 
-                        if (delete.isVetoed()) continue;
+                        if (delete.isVetoed()) {
+                            continue
+                        }
 
                         final Object k = MongoIdCoercion.coerceIdToStoredType(
-                                delete.getNativeKey(), persistentEntity);
+                                delete.getNativeKey(), persistentEntity)
                         if (k != null) {
                             if (k instanceof Document) {
-                                entityWrites.add(new DeleteManyModel<>((Document) k));
-                            }
-                            else {
-                                nativeKeys.add(k);
+                                entityWrites.add(new DeleteManyModel<Document>((Document) k))
+                            } else {
+                                nativeKeys.add(k)
                             }
                         }
 
-                        final List cascadeOperations = delete.getCascadeOperations();
-                        addPostFlushOperations(cascadeOperations);
+                        final List cascadeOperations = delete.getCascadeOperations()
+                        addPostFlushOperations(cascadeOperations)
                     }
-                    entityWrites.add(new DeleteManyModel<>(new Document(MongoConstants.MONGO_ID_FIELD, new Document(BsonQuery.IN_OPERATOR, nativeKeys))));
+                    entityWrites.add(new DeleteManyModel<Document>(new Document(MongoConstants.MONGO_ID_FIELD, new Document(BsonQuery.IN_OPERATOR, nativeKeys))))
                 }
             }
 
             for (PersistentEntity persistentEntity : writeModels.keySet()) {
-                com.mongodb.client.MongoCollection<Document> collection = getCollection(persistentEntity);
-                final WriteConcern wc = getWriteConcern();
+                com.mongodb.client.MongoCollection<Document> collection = getCollection(persistentEntity)
+                final WriteConcern wc = getWriteConcern()
                 if (wc != null) {
-                    collection = collection.withWriteConcern(wc);
+                    collection = collection.withWriteConcern(wc)
                 }
-                final List<WriteModel<Document>> writes = writeModels.get(persistentEntity);
+                final List<WriteModel<Document>> writes = writeModels.get(persistentEntity)
                 if (!writes.isEmpty()) {
-
-                    final com.mongodb.bulk.BulkWriteResult bulkWriteResult = bulkWrite(collection, writes);
+                    final BulkWriteResult bulkWriteResult = bulkWrite(collection, writes)
 
                     if (!bulkWriteResult.wasAcknowledged()) {
-                        errorOccured = true;
-                        throw new DataIntegrityViolationException("Write operation was not acknowledged");
+                        errorOccured = true
+                        throw new DataIntegrityViolationException('Write operation was not acknowledged')
                     }
-                    else {
-                        final int matchedCount = bulkWriteResult.getMatchedCount();
-                        final String name = persistentEntity.getName();
-                        final Integer numOptimistic = numberOfOptimisticUpdates.get(name);
-                        final Integer numPessimistic = numberOfPessimisticUpdates.get(name);
-                        final int no = numOptimistic != null ? numOptimistic : 0;
-                        final int pe = numPessimistic != null ? numPessimistic : 0;
-                        if ((matchedCount - pe) != no) {
-                            setFlushMode(FlushModeType.COMMIT);
-                            throw new OptimisticLockingException(persistentEntity, null);
-                        }
+                    final int matchedCount = bulkWriteResult.getMatchedCount()
+                    final String name = persistentEntity.getName()
+                    final Integer numOptimistic = numberOfOptimisticUpdates.get(name)
+                    final Integer numPessimistic = numberOfPessimisticUpdates.get(name)
+                    final int no = numOptimistic != null ? numOptimistic : 0
+                    final int pe = numPessimistic != null ? numPessimistic : 0
+                    if ((matchedCount - pe) != no) {
+                        setFlushMode(FlushModeType.COMMIT)
+                        throw new OptimisticLockingException(persistentEntity, null)
                     }
                 }
             }
 
             for (Runnable postFlushOperation : postFlushOperations) {
-                postFlushOperation.run();
+                postFlushOperation.run()
             }
         } finally {
-            clearPendingOperations();
-            postFlushOperations.clear();
-            firstLevelCollectionCache.clear();
-            this.writeConcern = currentWriteConcern;
-            flushActive = false;
+            clearPendingOperations()
+            postFlushOperations.clear()
+            firstLevelCollectionCache.clear()
+            this.writeConcern = currentWriteConcern
+            flushActive = false
         }
-
     }
 
     protected Document createSetAndUnsetDoc(Document updateDoc) {
-        final Set<String> keys = updateDoc.keySet();
-        final Document unsets = new Document();
+        final Set<String> keys = updateDoc.keySet()
+        final Document unsets = new Document()
         for (String key : keys) {
-            final Object v = updateDoc.get(key);
+            final Object v = updateDoc.get(key)
             if (v == null) {
-                unsets.put(key, "");
+                unsets.put(key, '')
             }
         }
         for (String key : unsets.keySet()) {
-            updateDoc.remove(key);
+            updateDoc.remove(key)
         }
-        updateDoc = new Document(MONGO_SET_OPERATOR, updateDoc);
+        Document setAndUnsetDoc = new Document(MONGO_SET_OPERATOR, updateDoc)
         if (!unsets.isEmpty()) {
-            updateDoc.put(MONGO_UNSET_OPERATOR, unsets);
+            setAndUnsetDoc.put(MONGO_UNSET_OPERATOR, unsets)
         }
-        return updateDoc;
+        return setAndUnsetDoc
     }
 
     protected List<WriteModel<Document>> getWriteModelsForEntity(PersistentEntity persistentEntity, Map<PersistentEntity, List<WriteModel<Document>>> writeModels) {
-        PersistentEntity key = persistentEntity.isRoot() ? persistentEntity : persistentEntity.getRootEntity();
-        List<WriteModel<Document>> entityWrites = writeModels.get(key);
+        PersistentEntity key = persistentEntity.isRoot() ? persistentEntity : persistentEntity.getRootEntity()
+        List<WriteModel<Document>> entityWrites = writeModels.get(key)
         if (entityWrites == null) {
-            entityWrites = new ArrayList<>();
-            writeModels.put(key, entityWrites);
+            entityWrites = new ArrayList<WriteModel<Document>>()
+            writeModels.put(key, entityWrites)
         }
-        return entityWrites;
+        return entityWrites
     }
 
     @Override
@@ -297,81 +287,76 @@ public class MongoSession extends AbstractMongoSession {
     }
 
     @Override
-    public void disconnect() {
-        super.disconnect();
+    protected Persister createPersister(Class cls, MappingContext mappingContext) {
+        final PersistentEntity entity = mappingContext.getPersistentEntity(cls.getName())
+        return entity == null ? null : new MongoEntityPersister(mappingContext, entity, this, publisher)
     }
 
     @Override
-    protected Persister createPersister(@SuppressWarnings("rawtypes") Class cls, MappingContext mappingContext) {
-        final PersistentEntity entity = mappingContext.getPersistentEntity(cls.getName());
-        return entity == null ? null : new MongoEntityPersister(mappingContext, entity, this, publisher);
-    }
+    void delete(Iterable objects) {
+        final Map<PersistentEntity, List> toDelete = getDeleteMap(objects)
 
-    @Override
-    public void delete(Iterable objects) {
-        final Map<PersistentEntity, List> toDelete = getDeleteMap(objects);
-
-        for (final PersistentEntity persistentEntity : toDelete.keySet()) {
-            final MongoQuery query = new MongoQuery(this, persistentEntity);
+        for (PersistentEntity persistentEntity : toDelete.keySet()) {
+            final PersistentEntity entity = persistentEntity
+            final List objectsToDelete = toDelete.get(entity)
+            final MongoQuery query = new MongoQuery(this, entity)
             // Filters on the literal "_id" field, not the logical identity name, so the
             // criterion preprocessing in MongoQuery does not recognise it as an id.
-            final List<Object> deleteKeys = new ArrayList<Object>();
-            for (Object k : toDelete.get(persistentEntity)) {
-                deleteKeys.add(MongoIdCoercion.coerceIdToStoredType(k, persistentEntity));
+            final List<Object> deleteKeys = new ArrayList<Object>()
+            for (Object k : objectsToDelete) {
+                deleteKeys.add(MongoIdCoercion.coerceIdToStoredType(k, entity))
             }
-            query.in(MongoEntityPersister.MONGO_ID_FIELD, deleteKeys);
-            final Document mongoQuery = query.getMongoQuery();
-            final EntityPersister persister = (EntityPersister) getPersister(persistentEntity);
-            addPendingDelete(new PendingDeleteAdapter<Object, Object>(persistentEntity, mongoQuery, null) {
+            query.in(MongoEntityPersister.MONGO_ID_FIELD, deleteKeys)
+            final Document mongoQuery = query.getMongoQuery()
+            final EntityPersister persister = (EntityPersister) getPersister(entity)
+            addPendingDelete(new PendingDeleteAdapter<Object, Object>(entity, mongoQuery, null) {
                 @Override
-                public void run() {
-                    for (Object o : toDelete.get(persistentEntity)) {
-                        if (!persister.cancelDelete(persistentEntity, createEntityAccess(persistentEntity, o))) {
-                            clear(o);
+                void run() {
+                    for (Object o : objectsToDelete) {
+                        if (!persister.cancelDelete(entity, createEntityAccess(entity, o))) {
+                            clear(o)
                         }
                     }
                 }
-            });
+            })
         }
-
     }
 
     protected Map<PersistentEntity, List> getDeleteMap(Iterable objects) {
         // sort the objects into sets by Persister, in case the objects are of different types.
-        Map<PersistentEntity, List> toDelete = new HashMap<>();
+        Map<PersistentEntity, List> toDelete = new HashMap<>()
         for (Object object : objects) {
             if (object == null) {
-                continue;
+                continue
             }
-            final PersistentEntity p = getMappingContext().getPersistentEntity(object.getClass().getName());
+            final PersistentEntity p = getMappingContext().getPersistentEntity(object.getClass().getName())
             if (p == null) {
-                continue;
+                continue
             }
-            List listForPersister = toDelete.get(p);
+            List listForPersister = toDelete.get(p)
             if (listForPersister == null) {
-                toDelete.put(p, listForPersister = new ArrayList());
+                listForPersister = new ArrayList()
+                toDelete.put(p, listForPersister)
             }
-            Serializable id = getObjectIdentifier(object);
+            Serializable id = getObjectIdentifier(object)
             if (id != null) {
-                listForPersister.add(id);
+                listForPersister.add(id)
             }
         }
-        return toDelete;
+        return toDelete
     }
 
     @Override
-    public long deleteAll(QueryableCriteria criteria) {
-        final PersistentEntity entity = criteria.getPersistentEntity();
-        final Document nativeQuery = buildNativeDocumentQueryFromCriteria(criteria, entity);
+    long deleteAll(QueryableCriteria criteria) {
+        final PersistentEntity entity = criteria.getPersistentEntity()
+        final Document nativeQuery = buildNativeDocumentQueryFromCriteria(criteria, entity)
 
-        final com.mongodb.client.MongoCollection<Document> collection = getCollection(entity);
-        final DeleteResult deleteResult = deleteMany(collection, nativeQuery);
+        final com.mongodb.client.MongoCollection<Document> collection = getCollection(entity)
+        final DeleteResult deleteResult = deleteMany(collection, nativeQuery)
         if (deleteResult.wasAcknowledged()) {
-            return deleteResult.getDeletedCount();
+            return deleteResult.getDeletedCount()
         }
-        else {
-            return 0;
-        }
+        return 0
     }
 
     /**
@@ -383,30 +368,30 @@ public class MongoSession extends AbstractMongoSession {
      * an identifier worked; reflecting it unconditionally would have broken that.
      */
     private Object identifierOf(Object value, PersistentEntity associatedEntity) {
-        final ProxyFactory proxyFactory = getMappingContext().getProxyFactory();
+        final ProxyFactory proxyFactory = getMappingContext().getProxyFactory()
         if (proxyFactory.isProxy(value)) {
-            return proxyFactory.getIdentifier(value);
+            return proxyFactory.getIdentifier(value)
         }
         if (associatedEntity.getJavaClass().isInstance(value)) {
-            return getMappingContext().getEntityReflector(associatedEntity).getIdentifier(value);
+            return getMappingContext().getEntityReflector(associatedEntity).getIdentifier(value)
         }
-        return value;
+        return value
     }
 
     @Override
-    public long updateAll(QueryableCriteria criteria, Map<String, Object> properties) {
-        final PersistentEntity entity = criteria.getPersistentEntity();
-        final Document nativeQuery = buildNativeDocumentQueryFromCriteria(criteria, entity);
-        final com.mongodb.client.MongoCollection<Document> collection = getCollection(entity);
-        final UpdateOptions updateOptions = new UpdateOptions();
-        updateOptions.upsert(false);
+    long updateAll(QueryableCriteria criteria, Map<String, Object> properties) {
+        final PersistentEntity entity = criteria.getPersistentEntity()
+        final Document nativeQuery = buildNativeDocumentQueryFromCriteria(criteria, entity)
+        final com.mongodb.client.MongoCollection<Document> collection = getCollection(entity)
+        final UpdateOptions updateOptions = new UpdateOptions()
+        updateOptions.upsert(false)
         // Encode to-one association values the way normal persistence does: the target's
         // identifier, in the type its _id is stored as, wrapped in a DBRef where the mapping
         // asks for one. Without this a bulk update writes the domain object itself.
         // Normalised into a copy -- the caller's map is theirs, and may be immutable.
-        final Map<String, Object> updateProperties = new LinkedHashMap<String, Object>(properties);
-        for (Association association : entity.getAssociations()) {
-            final String associationName = association.getName();
+        final Map<String, Object> updateProperties = new LinkedHashMap<String, Object>(properties)
+        for (Association association in entity.getAssociations()) {
+            final String associationName = association.getName()
             // Embedded extends ToOne, but an embedded value is a subdocument with no
             // identity of its own -- normal persistence encodes it through the embedded
             // path, not ToOneEncoder. Reflecting an id from one yields null.
@@ -417,24 +402,24 @@ public class MongoSession extends AbstractMongoSession {
                     ((ToOne) association).isForeignKeyInChild() &&
                     updateProperties.containsKey(associationName)) {
                 throw new UnsupportedOperationException(
-                        "Cannot updateAll the hasOne association [" + entity.getName() + "." +
-                        associationName + "]: its foreign key is held by the inverse side, " +
-                        "so update that instead");
+                        'Cannot updateAll the hasOne association [' + entity.getName() + '.' +
+                        associationName + ']: its foreign key is held by the inverse side, ' +
+                        'so update that instead')
             }
             if (association instanceof ToOne && !(association instanceof Embedded) &&
                     updateProperties.containsKey(associationName)) {
-                final Object value = updateProperties.get(associationName);
+                final Object value = updateProperties.get(associationName)
                 if (value != null) {
-                    final PersistentEntity associatedEntity = association.getAssociatedEntity();
+                    final PersistentEntity associatedEntity = association.getAssociatedEntity()
                     final Object associationId = MongoIdCoercion.coerceIdToStoredType(
-                            identifierOf(value, associatedEntity), associatedEntity);
-                    final MongoAttribute attr = (MongoAttribute) association.getMapping().getMappedForm();
+                            identifierOf(value, associatedEntity), associatedEntity)
+                    final MongoAttribute attr = (MongoAttribute) association.getMapping().getMappedForm()
                     if (attr != null && attr.isReference()) {
                         updateProperties.put(associationName,
-                                new DBRef(getCollectionName(associatedEntity), associationId));
+                                new DBRef(getCollectionName(associatedEntity), associationId))
                     }
                     else {
-                        updateProperties.put(associationName, associationId);
+                        updateProperties.put(associationName, associationId)
                     }
                 }
             }
@@ -446,9 +431,9 @@ public class MongoSession extends AbstractMongoSession {
             else if (association instanceof OneToMany && association.isBidirectional() &&
                     updateProperties.containsKey(associationName)) {
                 throw new UnsupportedOperationException(
-                        "Cannot updateAll the bidirectional one-to-many [" + entity.getName() + "." +
-                        associationName + "]: its foreign key is held by the inverse side, " +
-                        "so update that instead");
+                        'Cannot updateAll the bidirectional one-to-many [' + entity.getName() + '.' +
+                        associationName + ']: its foreign key is held by the inverse side, ' +
+                        'so update that instead')
             }
             // Unidirectional OneToMany and ManyToMany carry a collection of associated instances.
             // Normal persistence stores their ids -- DBRefs where the mapping asks for it -- so
@@ -458,82 +443,81 @@ public class MongoSession extends AbstractMongoSession {
             else if ((association instanceof OneToMany || association instanceof ManyToMany) &&
                     association.getAssociatedEntity() != null &&
                     updateProperties.containsKey(associationName)) {
-                final Object value = updateProperties.get(associationName);
+                final Object value = updateProperties.get(associationName)
                 if (value instanceof Collection) {
-                    final PersistentEntity associatedEntity = association.getAssociatedEntity();
-                    final MongoAttribute attr = (MongoAttribute) association.getMapping().getMappedForm();
-                    final List<Object> ids = new ArrayList<Object>();
-                    for (Object element : (Collection<?>) value) {
+                    final PersistentEntity associatedEntity = association.getAssociatedEntity()
+                    final MongoAttribute attr = (MongoAttribute) association.getMapping().getMappedForm()
+                    final List<Object> ids = new ArrayList<Object>()
+                    for (Object element in (Collection<?>) value) {
                         if (element == null) {
-                            ids.add(null);
-                            continue;
+                            ids.add(null)
+                            continue
                         }
                         ids.add(MongoIdCoercion.coerceIdToStoredType(
-                                identifierOf(element, associatedEntity), associatedEntity));
+                                identifierOf(element, associatedEntity), associatedEntity))
                     }
                     if (association instanceof ManyToMany) {
                         // setManyToMany stores plain identifiers under a suffixed key and
                         // getManyToManyKeys reads them back the same way -- never DBRefs -- so
                         // writing the plain name, or wrapping these, would leave the field the
                         // read path actually uses untouched.
-                        updateProperties.remove(associationName);
-                        updateProperties.put(associationName + "_$$manyToManyIds", ids);
+                        updateProperties.remove(associationName)
+                        updateProperties.put(associationName + '_$$manyToManyIds', ids)
                     }
                     else {
                         // Exactly OneToManyEncoder's shape: nulls are dropped before wrapping,
                         // never turned into DBRef(collection, null), and a non-reference list
                         // keeps whatever the caller passed.
-                        List<Object> encoded = ids;
+                        List<Object> encoded = ids
                         if (attr != null && attr.isReference()) {
-                            encoded = new ArrayList<Object>();
-                            for (Object id : ids) {
+                            encoded = new ArrayList<Object>()
+                            for (Object id in ids) {
                                 if (id != null) {
-                                    encoded.add(new DBRef(getCollectionName(associatedEntity), id));
+                                    encoded.add(new DBRef(getCollectionName(associatedEntity), id))
                                 }
                             }
                         }
-                        updateProperties.put(associationName, encoded);
+                        updateProperties.put(associationName, encoded)
                     }
                 }
             }
         }
-        final UpdateResult updateResult = updateMany(collection, nativeQuery, new Document("$set", updateProperties), updateOptions);
+        final UpdateResult updateResult = updateMany(collection, nativeQuery, new Document('$set', updateProperties), updateOptions)
         if (updateResult.wasAcknowledged()) {
             try {
-                return updateResult.getModifiedCount();
+                return updateResult.getModifiedCount()
             } catch (UnsupportedOperationException e) {
                 // not supported on versions of MongoDB earlier than 2.6
-                return -1;
+                return -1
             }
         }
-        else {
-            return 0;
-        }
+        return 0
     }
 
     @Override
-    public Object decode(Class type, Object nativeObject) {
+    def <T> T decode(Class<T> type, Object nativeObject) {
         if (nativeObject instanceof FindIterable) {
-            return decode(type, ((FindIterable) nativeObject).first());
+            return decode(type, ((FindIterable) nativeObject).first())
         }
-        else if (nativeObject instanceof Document) {
-            Document dbo = (Document) nativeObject;
-            Serializable key = (Serializable) dbo.get(AbstractMongoObectEntityPersister.MONGO_ID_FIELD);
-            final Persister persister = getPersister(type);
-            final MongoEntityPersister mongoEntityPersister = (MongoEntityPersister) persister;
-            return mongoEntityPersister.createObjectFromNativeEntry(mongoEntityPersister.getPersistentEntity(), key, dbo);
+        if (nativeObject instanceof Document) {
+            Document dbo = (Document) nativeObject
+            Serializable key = (Serializable) dbo.get(AbstractMongoObectEntityPersister.MONGO_ID_FIELD)
+            final Persister persister = getPersister(type)
+            final MongoEntityPersister mongoEntityPersister = (MongoEntityPersister) persister
+            return (T) mongoEntityPersister.createObjectFromNativeEntry(mongoEntityPersister.getPersistentEntity(), key, dbo)
         }
-        return null;
+        return null
     }
 
     private Document buildNativeDocumentQueryFromCriteria(QueryableCriteria criteria, PersistentEntity entity) {
-        MongoQuery mongoQuery = new MongoQuery(this, entity);
-        List<Query.Criterion> criteriaList = criteria.getCriteria();
+        MongoQuery mongoQuery = new MongoQuery(this, entity)
+        List<Query.Criterion> criteriaList = criteria.getCriteria()
 
         for (Query.Criterion c : criteriaList) {
-            mongoQuery.add(c);
+            mongoQuery.add(c)
         }
 
-        return mongoQuery.getMongoQuery();
+        return mongoQuery.getMongoQuery()
     }
+
 }

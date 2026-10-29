@@ -16,57 +16,56 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.gorm.mongo;
+package org.grails.datastore.gorm.mongo
 
-import java.util.List;
-import java.util.Map;
+import groovy.transform.CompileStatic
+import org.springframework.util.Assert
 
-import org.springframework.util.Assert;
+import grails.mongodb.geo.Distance
+import grails.mongodb.geo.Point
+import org.grails.datastore.gorm.finders.MethodExpression
+import org.grails.datastore.mapping.mongo.query.MongoQuery
+import org.grails.datastore.mapping.query.Query.Criterion
 
-import grails.mongodb.geo.Distance;
-import grails.mongodb.geo.Point;
-import org.grails.datastore.gorm.finders.MethodExpression;
-import org.grails.datastore.mapping.mongo.query.MongoQuery;
-import org.grails.datastore.mapping.query.Query.Criterion;
+@CompileStatic
+class Near extends MethodExpression {
 
-public class Near extends MethodExpression {
-
-    public Near(Class<?> targetClass, String propertyName) {
-        super(targetClass, propertyName);
+    Near(Class<?> targetClass, String propertyName) {
+        super(targetClass, propertyName)
     }
 
     @Override
-    public Criterion createCriterion() {
-        MongoQuery.Near near = new MongoQuery.Near(propertyName, arguments[0]);
+    Criterion createCriterion() {
+        MongoQuery.Near near = new MongoQuery.Near(propertyName, arguments[0])
 
         if (arguments.length > 1) {
-            Object o = arguments[1];
+            Object o = arguments[1]
             if (o instanceof Number) {
-                near.setMaxDistance(Distance.valueOf(((Number) o).doubleValue()));
-            }
-            else {
-                near.setMaxDistance((Distance) o);
+                near.setMaxDistance(Distance.valueOf(((Number) o).doubleValue()))
+            } else {
+                near.setMaxDistance((Distance) o)
             }
         }
-        return near;
+        return near
     }
 
     @Override
-    public void setArguments(Object[] arguments) {
+    void setArguments(Object[] arguments) {
         Assert.isTrue(arguments.length > 0,
-            "Missing required arguments to findBy*Near query");
+                'Missing required arguments to findBy*Near query')
 
-        Object arg1 = arguments[0];
+        Object arg1 = arguments[0]
 
         Assert.isTrue(((arg1 instanceof Point) || (arg1 instanceof Map) || (arg1 instanceof List)),
-                "Argument to findBy*Near should either be a Point, coordinate List or a Map");
+                'Argument to findBy*Near should either be a Point, coordinate List or a Map')
 
         if (arguments.length > 1) {
-            Object arg2 = arguments[1];
+            Object arg2 = arguments[1]
             Assert.isTrue(((arg2 instanceof Number) || (arg2 instanceof Distance)),
-                    "Second argument to findBy*Near should either the distance: either a number or an instanceof Distance");
+                    'Second argument to findBy*Near should either the distance: either a number or an instanceof Distance')
         }
 
-        super.setArguments(arguments);
+        super.setArguments(arguments)
     }
+
 }

@@ -12,35 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.datastore.mapping.mongo.query;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-
-import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 import com.mongodb.ReadConcern;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
+import groovy.transform.CompileStatic;
+import groovy.transform.PackageScope;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
 import org.bson.BsonDocumentWriter;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
-
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -54,6 +40,8 @@ import grails.mongodb.geo.Shape;
 import grails.mongodb.geo.Sphere;
 import org.grails.datastore.bson.codecs.CodecCustomTypeMarshaller;
 import org.grails.datastore.bson.query.BsonQuery;
+import org.grails.datastore.bson.query.BsonQuery.ProjectionHandler;
+import org.grails.datastore.bson.query.BsonQuery.QueryHandler;
 import org.grails.datastore.bson.query.EmbeddedQueryEncoder;
 import org.grails.datastore.gorm.mongo.geo.GeoJSONType;
 import org.grails.datastore.gorm.query.AbstractResultList;
@@ -80,6 +68,25 @@ import org.grails.datastore.mapping.mongo.engine.MongoIdCoercion;
 import org.grails.datastore.mapping.mongo.engine.codecs.PersistentEntityCodec;
 import org.grails.datastore.mapping.query.AssociationQuery;
 import org.grails.datastore.mapping.query.Query;
+import org.grails.datastore.mapping.query.Query.AvgProjection;
+import org.grails.datastore.mapping.query.Query.Conjunction;
+import org.grails.datastore.mapping.query.Query.CountDistinctProjection;
+import org.grails.datastore.mapping.query.Query.CountProjection;
+import org.grails.datastore.mapping.query.Query.Criterion;
+import org.grails.datastore.mapping.query.Query.Disjunction;
+import org.grails.datastore.mapping.query.Query.DistinctProjection;
+import org.grails.datastore.mapping.query.Query.DistinctPropertyProjection;
+import org.grails.datastore.mapping.query.Query.IdEquals;
+import org.grails.datastore.mapping.query.Query.IdProjection;
+import org.grails.datastore.mapping.query.Query.In;
+import org.grails.datastore.mapping.query.Query.Junction;
+import org.grails.datastore.mapping.query.Query.MaxProjection;
+import org.grails.datastore.mapping.query.Query.MinProjection;
+import org.grails.datastore.mapping.query.Query.Order;
+import org.grails.datastore.mapping.query.Query.Projection;
+import org.grails.datastore.mapping.query.Query.PropertyCriterion;
+import org.grails.datastore.mapping.query.Query.PropertyProjection;
+import org.grails.datastore.mapping.query.Query.SumProjection;
 import org.grails.datastore.mapping.query.api.QueryArgumentsAware;
 import org.grails.datastore.mapping.query.projections.ManualProjections;
 
@@ -89,8 +96,10 @@ import org.grails.datastore.mapping.query.projections.ManualProjections;
  * @author Graeme Rocher
  * @since 1.0
  */
-@SuppressWarnings("rawtypes")
-public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
+@CompileStatic
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['rawtypes', 'UnnecessarySemicolon'])
+class MongoQuery extends BsonQuery implements QueryArgumentsAware {
 
     public static final String MONGO_IN_OPERATOR = IN_OPERATOR;
     public static final String MONGO_OR_OPERATOR = OR_OPERATOR;
@@ -105,45 +114,45 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
 
     public static final String MONGO_WHERE_OPERATOR = WHERE_OPERATOR;
 
-    public static final String HINT_ARGUMENT = "hint";
-    public static final String READ_CONCERN_ARGUMENT = "readConcern";
+    public static final String HINT_ARGUMENT = 'hint';
+    public static final String READ_CONCERN_ARGUMENT = 'readConcern';
 
     private Map queryArguments = Collections.emptyMap();
 
-    public static final String NEAR_OPERATOR = "$near";
+    public static final String NEAR_OPERATOR = '$near';
 
-    public static final String BOX_OPERATOR = "$box";
+    public static final String BOX_OPERATOR = '$box';
 
-    public static final String POLYGON_OPERATOR = "$polygon";
+    public static final String POLYGON_OPERATOR = '$polygon';
 
-    public static final String WITHIN_OPERATOR = "$within";
+    public static final String WITHIN_OPERATOR = '$within';
 
-    public static final String CENTER_OPERATOR = "$center";
+    public static final String CENTER_OPERATOR = '$center';
 
-    public static final String GEO_WITHIN_OPERATOR = "$geoWithin";
+    public static final String GEO_WITHIN_OPERATOR = '$geoWithin';
 
-    public static final String GEOMETRY_OPERATOR = "$geometry";
+    public static final String GEOMETRY_OPERATOR = '$geometry';
 
-    public static final String CENTER_SPHERE_OPERATOR = "$centerSphere";
+    public static final String CENTER_SPHERE_OPERATOR = '$centerSphere';
 
-    public static final String GEO_INTERSECTS_OPERATOR = "$geoIntersects";
+    public static final String GEO_INTERSECTS_OPERATOR = '$geoIntersects';
 
-    public static final String MAX_DISTANCE_OPERATOR = "$maxDistance";
+    public static final String MAX_DISTANCE_OPERATOR = '$maxDistance';
 
-    public static final String NEAR_SPHERE_OPERATOR = "$nearSphere";
+    public static final String NEAR_SPHERE_OPERATOR = '$nearSphere';
 
     static {
         // Geospatial criteria carry shape documents by design and are exempt from criterion value validation.
-        VALUE_VALIDATION_EXEMPT_CRITERIA.add(GeoCriterion.class);
+        VALUE_VALIDATION_EXEMPT_CRITERIA.add(GeoCriterion);
 
-        queryHandlers.put(IdEquals.class, new QueryHandler<IdEquals>() {
+        queryHandlers.put(IdEquals, new QueryHandler<IdEquals>() {
             // Exercised end-to-end by StringIdWithObjectIdStorageSpec:
             //   - "with storedAs ObjectId, point lookup by hex string works" (happy path)
             //   - "with storedAs ObjectId, point lookup of a non-hex id matches the
             //     BSON String the encoder wrote" (null-return fallback for natural keys)
             //   - "with storedAs ObjectId, updates persist (no phantom OptimisticLockingException)"
             //     and related update/delete specs (which also hit IdEquals via the session filter)
-            public void handle(EmbeddedQueryEncoder queryEncoder, IdEquals criterion, Document query, PersistentEntity entity) {
+            void handle(EmbeddedQueryEncoder queryEncoder, IdEquals criterion, Document query, PersistentEntity entity) {
                 Object value = criterion.getValue();
                 // Prefer the configured storage type ('storedAs' on the id mapping) so query BSON
                 // matches what's actually on disk. Falls back to the declared Java type otherwise.
@@ -171,19 +180,19 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
         //   - "with storedAs ObjectId, criteria in('id', [...]) resolves all ids" (happy path via createCriteria)
         //   - "with storedAs ObjectId, batch getAll with non-hex ids falls back to BSON String in the in-list"
         //     (null-return fallback for natural keys)
-        queryHandlers.put(In.class, new QueryHandler<In>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, In in, Document query, PersistentEntity entity) {
+        queryHandlers.put(In, new QueryHandler<In>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, In inCriterion, Document query, PersistentEntity entity) {
                 Document inQuery = new Document();
-                List<Object> values = getInListQueryValues(entity, in);
+                List<Object> values = getInListQueryValues(entity, inCriterion);
 
                 // getInListQueryValues unwraps association instances to their *declared*
                 // identifier, so the storage type has to be applied afterwards -- for the
                 // entity's own identity (findAllByIdInList) and equally for a to-one
                 // association (`child in [childInstance]`, findAllByChildInList(..)), whose
                 // ids are governed by the associated entity's mapping, not this one's.
-                PersistentEntity idTarget = resolveIdCriterionTarget(entity, in.getProperty());
+                PersistentEntity idTarget = resolveIdCriterionTarget(entity, inCriterion.getProperty());
                 if (idTarget != null && MongoIdCoercion.resolveStoredAs(idTarget) != null) {
-                    List<Object> coerced = new ArrayList<>(values.size());
+                    List<Object> coerced = new ArrayList<Object>(values.size());
                     for (Object v : values) {
                         coerced.add(MongoIdCoercion.coerceIdToStoredType(v, idTarget));
                     }
@@ -191,19 +200,19 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                 }
 
                 inQuery.put(IN_OPERATOR, values);
-                String propertyName = getPropertyName(entity, in);
+                String propertyName = getPropertyName(entity, inCriterion);
                 query.put(propertyName, inQuery);
             }
         });
 
-        queryHandlers.put(AssociationQuery.class, new QueryHandler<AssociationQuery>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, AssociationQuery criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(AssociationQuery, new QueryHandler<AssociationQuery>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, AssociationQuery criterion, Document query, PersistentEntity entity) {
                 Association<?> association = criterion.getAssociation();
                 PersistentEntity associatedEntity = association.getAssociatedEntity();
                 if (association instanceof EmbeddedCollection) {
                     Document associationCollectionQuery = new Document();
                     populateMongoQuery(queryEncoder, associationCollectionQuery, criterion.getCriteria(), associatedEntity);
-                    Document collectionQuery = new Document("$elemMatch", associationCollectionQuery);
+                    Document collectionQuery = new Document('$elemMatch', associationCollectionQuery);
                     String propertyKey = getPropertyName(entity, association.getName());
                     query.put(propertyKey, collectionQuery);
                 } else if (associatedEntity instanceof EmbeddedPersistentEntity || association instanceof Embedded) {
@@ -212,13 +221,13 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                     String propertyKey = getPropertyName(entity, association.getName());
                     prefixEmbeddedQuery(propertyKey, associatedEntityQuery, query);
                 } else {
-                    throw new UnsupportedOperationException("Join queries are not supported by MongoDB");
+                    throw new UnsupportedOperationException('Join queries are not supported by MongoDB');
                 }
             }
         });
 
-        queryHandlers.put(WithinBox.class, new QueryHandler<WithinBox>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, WithinBox withinBox, Document query, PersistentEntity entity) {
+        queryHandlers.put(WithinBox, new QueryHandler<WithinBox>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, WithinBox withinBox, Document query, PersistentEntity entity) {
                 Document nearQuery = new Document();
                 Document box = new Document();
                 MongoEntityPersister.setDBObjectValue(box, BOX_OPERATOR, withinBox.getValues(), entity.getMappingContext());
@@ -228,8 +237,8 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
             }
         });
 
-        queryHandlers.put(WithinPolygon.class, new QueryHandler<WithinPolygon>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, WithinPolygon withinPolygon, Document query, PersistentEntity entity) {
+        queryHandlers.put(WithinPolygon, new QueryHandler<WithinPolygon>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, WithinPolygon withinPolygon, Document query, PersistentEntity entity) {
                 Document nearQuery = new Document();
                 Document box = new Document();
                 MongoEntityPersister.setDBObjectValue(box, POLYGON_OPERATOR, withinPolygon.getValues(), entity.getMappingContext());
@@ -239,8 +248,8 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
             }
         });
 
-        queryHandlers.put(WithinCircle.class, new QueryHandler<WithinCircle>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, WithinCircle withinCentre, Document query, PersistentEntity entity) {
+        queryHandlers.put(WithinCircle, new QueryHandler<WithinCircle>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, WithinCircle withinCentre, Document query, PersistentEntity entity) {
                 Document nearQuery = new Document();
                 Document center = new Document();
                 MongoEntityPersister.setDBObjectValue(center, CENTER_OPERATOR, withinCentre.getValues(), entity.getMappingContext());
@@ -250,8 +259,8 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
             }
         });
 
-        QueryHandler<Near> nearHandler = new QueryHandler<>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, Near near, Document query, PersistentEntity entity) {
+        QueryHandler<Near> nearHandler = new QueryHandler<Near>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, Near near, Document query, PersistentEntity entity) {
                 Document nearQuery = new Document();
                 Object value = near.getValue();
                 String nearOperator = near instanceof NearSphere ? NEAR_SPHERE_OPERATOR : NEAR_OPERATOR;
@@ -270,12 +279,12 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                 String propertyName = getPropertyName(entity, near);
                 query.put(propertyName, nearQuery);
             }
-        };
-        queryHandlers.put(Near.class, nearHandler);
-        queryHandlers.put(NearSphere.class, nearHandler);
+        }
+        queryHandlers.put(Near, nearHandler);
+        queryHandlers.put(NearSphere, nearHandler);
 
-        queryHandlers.put(GeoWithin.class, new QueryHandler<GeoWithin>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, GeoWithin geoWithin, Document query, PersistentEntity entity) {
+        queryHandlers.put(GeoWithin, new QueryHandler<GeoWithin>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, GeoWithin geoWithin, Document query, PersistentEntity entity) {
                 Document queryRoot = new Document();
                 Document queryGeoWithin = new Document();
                 queryRoot.put(GEO_WITHIN_OPERATOR, queryGeoWithin);
@@ -302,8 +311,8 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
             }
         });
 
-        queryHandlers.put(GeoIntersects.class, new QueryHandler<GeoIntersects>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, GeoIntersects geoIntersects, Document query, PersistentEntity entity) {
+        queryHandlers.put(GeoIntersects, new QueryHandler<GeoIntersects>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, GeoIntersects geoIntersects, Document query, PersistentEntity entity) {
                 Document queryRoot = new Document();
                 Document queryGeoWithin = new Document();
                 queryRoot.put(GEO_INTERSECTS_OPERATOR, queryGeoWithin);
@@ -320,107 +329,106 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                 query.put(targetProperty, queryRoot);
             }
         });
-        queryHandlers.put(Conjunction.class, new QueryHandler<Conjunction>() {
-            public void handle(EmbeddedQueryEncoder queryEncoder, Conjunction criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(Conjunction, new QueryHandler<Conjunction>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, Conjunction criterion, Document query, PersistentEntity entity) {
                 populateMongoQuery(queryEncoder, query, criterion, entity);
             }
         });
 
-        queryHandlers.put(Disjunction.class, new QueryHandler<Disjunction>() {
-            @SuppressWarnings("unchecked")
-            public void handle(EmbeddedQueryEncoder queryEncoder, Disjunction criterion, Document query, PersistentEntity entity) {
+        queryHandlers.put(Disjunction, new QueryHandler<Disjunction>() {
+            void handle(EmbeddedQueryEncoder queryEncoder, Disjunction criterion, Document query, PersistentEntity entity) {
                 populateMongoQuery(queryEncoder, query, criterion, entity);
             }
         });
 
-        groupByProjectionHandlers.put(AvgProjection.class, new ProjectionHandler<AvgProjection>() {
+        groupByProjectionHandlers.put(AvgProjection, new ProjectionHandler<AvgProjection>() {
             @Override
-            public String handle(PersistentEntity entity, Document projectObject, Document groupBy, AvgProjection projection) {
-                return addProjectionToGroupBy(projectObject, groupBy, projection, AVERAGE_OPERATOR, "avg_");
+            String handle(PersistentEntity entity, Document projectObject, Document groupBy, AvgProjection projection) {
+                return addProjectionToGroupBy(projectObject, groupBy, projection, AVERAGE_OPERATOR, 'avg_');
             }
         });
-        groupByProjectionHandlers.put(CountProjection.class, new ProjectionHandler<CountProjection>() {
+        groupByProjectionHandlers.put(CountProjection, new ProjectionHandler<CountProjection>() {
             @Override
-            public String handle(PersistentEntity entity, Document projectObject, Document groupBy, CountProjection projection) {
+            String handle(PersistentEntity entity, Document projectObject, Document groupBy, CountProjection projection) {
                 projectObject.put(MongoEntityPersister.MONGO_ID_FIELD, 1);
-                String projectionKey = "count";
+                String projectionKey = 'count';
                 groupBy.put(projectionKey, new Document(SUM_OPERATOR, 1));
                 return projectionKey;
             }
         });
-        groupByProjectionHandlers.put(CountDistinctProjection.class, new ProjectionHandler<CountDistinctProjection>() {
-            @Override
+        groupByProjectionHandlers.put(CountDistinctProjection, new ProjectionHandler<CountDistinctProjection>() {
             // equivalent of "select count (distinct fieldName) from someTable". Example:
             // db.someCollection.aggregate([{ $group: { _id: "$fieldName"}  },{ $group: { _id: 1, count: { $sum: 1 } } } ])
-            public String handle(PersistentEntity entity, Document projectObject, Document groupBy, CountDistinctProjection projection) {
+            @Override
+            String handle(PersistentEntity entity, Document projectObject, Document groupBy, CountDistinctProjection projection) {
                 projectObject.put(projection.getPropertyName(), 1);
                 String property = projection.getPropertyName();
-                String projectionValueKey = "countDistinct_" + property;
+                String projectionValueKey = 'countDistinct_' + property;
                 Document id = getIdObjectForGroupBy(groupBy);
-                id.put(projectionValueKey, "$" + property);
+                id.put(projectionValueKey, '$' + property);
                 return projectionValueKey;
             }
         });
 
-        groupByProjectionHandlers.put(MinProjection.class, new ProjectionHandler<MinProjection>() {
+        groupByProjectionHandlers.put(MinProjection, new ProjectionHandler<MinProjection>() {
             @Override
-            public String handle(PersistentEntity entity, Document projectObject, Document groupBy, MinProjection projection) {
-                return addProjectionToGroupBy(projectObject, groupBy, projection, MIN_OPERATOR, "min_");
+            String handle(PersistentEntity entity, Document projectObject, Document groupBy, MinProjection projection) {
+                return addProjectionToGroupBy(projectObject, groupBy, projection, MIN_OPERATOR, 'min_');
             }
         });
-        groupByProjectionHandlers.put(MaxProjection.class, new ProjectionHandler<MaxProjection>() {
+        groupByProjectionHandlers.put(MaxProjection, new ProjectionHandler<MaxProjection>() {
             @Override
-            public String handle(PersistentEntity entity, Document projectObject, Document groupBy, MaxProjection projection) {
-                return addProjectionToGroupBy(projectObject, groupBy, projection, MAX_OPERATOR, "max_");
+            String handle(PersistentEntity entity, Document projectObject, Document groupBy, MaxProjection projection) {
+                return addProjectionToGroupBy(projectObject, groupBy, projection, MAX_OPERATOR, 'max_');
             }
         });
-        groupByProjectionHandlers.put(SumProjection.class, new ProjectionHandler<SumProjection>() {
+        groupByProjectionHandlers.put(SumProjection, new ProjectionHandler<SumProjection>() {
             @Override
-            public String handle(PersistentEntity entity, Document projectObject, Document groupBy, SumProjection projection) {
-                return addProjectionToGroupBy(projectObject, groupBy, projection, SUM_OPERATOR, "sum_");
+            String handle(PersistentEntity entity, Document projectObject, Document groupBy, SumProjection projection) {
+                return addProjectionToGroupBy(projectObject, groupBy, projection, SUM_OPERATOR, 'sum_');
             }
         });
 
-        projectProjectionHandlers.put(DistinctPropertyProjection.class, new ProjectionHandler<DistinctPropertyProjection>() {
+        projectProjectionHandlers.put(DistinctPropertyProjection, new ProjectionHandler<DistinctPropertyProjection>() {
             @Override
-            public String handle(PersistentEntity entity, Document projectObject, Document groupBy, DistinctPropertyProjection projection) {
+            String handle(PersistentEntity entity, Document projectObject, Document groupBy, DistinctPropertyProjection projection) {
                 String property = projection.getPropertyName();
                 projectObject.put(property, 1);
                 Document id = getIdObjectForGroupBy(groupBy);
                 String projectedValueKey = property.replace('.', '_');
-                id.put(projectedValueKey, "$" + property);
+                id.put(projectedValueKey, '$' + property);
                 return projectedValueKey;
             }
         });
 
-        projectProjectionHandlers.put(PropertyProjection.class, new ProjectionHandler<PropertyProjection>() {
+        projectProjectionHandlers.put(PropertyProjection, new ProjectionHandler<PropertyProjection>() {
             @Override
-            public String handle(PersistentEntity entity, Document projectObject, Document groupBy, PropertyProjection projection) {
+            String handle(PersistentEntity entity, Document projectObject, Document groupBy, PropertyProjection projection) {
                 String property = projection.getPropertyName();
                 projectObject.put(property, 1);
                 Document id = getIdObjectForGroupBy(groupBy);
                 String projectedValueKey = property.replace('.', '_');
-                id.put(projectedValueKey, "$" + property);
+                id.put(projectedValueKey, '$' + property);
                 // we add the id to the grouping to make it not distinct
-                id.put(MongoEntityPersister.MONGO_ID_FIELD, "$" + MongoEntityPersister.MONGO_ID_FIELD);
+                id.put(MongoEntityPersister.MONGO_ID_FIELD, '$' + MongoEntityPersister.MONGO_ID_FIELD);
                 return projectedValueKey;
             }
         });
 
-        projectProjectionHandlers.put(IdProjection.class, new ProjectionHandler<IdProjection>() {
+        projectProjectionHandlers.put(IdProjection, new ProjectionHandler<IdProjection>() {
             @Override
-            public String handle(PersistentEntity entity, Document projectObject, Document groupBy, IdProjection projection) {
+            String handle(PersistentEntity entity, Document projectObject, Document groupBy, IdProjection projection) {
                 projectObject.put(MongoEntityPersister.MONGO_ID_FIELD, 1);
                 Document id = getIdObjectForGroupBy(groupBy);
-                id.put(MongoEntityPersister.MONGO_ID_FIELD, "$_id");
+                id.put(MongoEntityPersister.MONGO_ID_FIELD, '$_id');
 
                 return MongoEntityPersister.MONGO_ID_FIELD;
             }
         });
-
     }
 
-    private static Document getIdObjectForGroupBy(Document groupBy) {
+    @PackageScope
+    static Document getIdObjectForGroupBy(Document groupBy) {
         Object value = groupBy.get(MongoEntityPersister.MONGO_ID_FIELD);
         Document id;
         if (value instanceof Document) {
@@ -432,11 +440,12 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
         return id;
     }
 
-    private static String addProjectionToGroupBy(Document projectObject, Document groupBy, PropertyProjection projection, String operator, String prefix) {
+    @PackageScope
+    static String addProjectionToGroupBy(Document projectObject, Document groupBy, PropertyProjection projection, String operator, String prefix) {
         projectObject.put(projection.getPropertyName(), 1);
         String property = projection.getPropertyName();
         String projectionValueKey = prefix + property.replace('.', '_');
-        Document averageProjection = new Document(operator, "$" + property);
+        Document averageProjection = new Document(operator, '$' + property);
         groupBy.put(projectionValueKey, averageProjection);
         return projectionValueKey;
     }
@@ -446,18 +455,16 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
     private final ManualProjections manualProjections;
     private boolean isCodecPersister = false;
 
-    public MongoQuery(AbstractMongoSession session, PersistentEntity entity) {
+    MongoQuery(AbstractMongoSession session, PersistentEntity entity) {
         super(session, entity);
         this.mongoSession = session;
         this.manualProjections = new ManualProjections(entity);
         if (session != null) {
-
             this.mongoEntityPersister = (EntityPersister) session.getPersister(entity);
             if (this.mongoEntityPersister instanceof MongoCodecEntityPersister) {
                 this.isCodecPersister = true;
             }
-        }
-        else {
+        } else {
             mongoEntityPersister = null;
         }
     }
@@ -479,7 +486,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      *
      * @return The Mongo query
      */
-    public Document getMongoQuery() {
+    Document getMongoQuery() {
         Document query = createQueryObject(entity);
         populateMongoQuery((AbstractMongoSession) getSession(), query, criteria, entity);
         return query;
@@ -497,16 +504,22 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                 collection = (com.mongodb.client.MongoCollection<Document>) (com.mongodb.client.MongoCollection) collection
                         .withDocumentClass(entity.getJavaClass());
             }
-            final Object dbObject;
+            Object dbObject;
             if (criteria.isEmpty()) {
                 FindIterable<Document> cursor = mongoSession.find(collection, createQueryObject(entity));
 
-                dbObject = ((FindIterable<Document>) setHint(cursor)).limit(1)
+                // Raw on purpose: with the codec persister the collection was re-typed to the entity
+                // class above, so first() yields an entity, and a FindIterable<Document> here would
+                // make the static compiler insert a cast to Document that fails at runtime.
+                dbObject = ((FindIterable) setHint(cursor)).limit(1)
                         .first();
             } else {
                 FindIterable<Document> cursor = mongoSession.find(collection, getMongoQuery());
 
-                dbObject = ((FindIterable<Document>) setHint(cursor)).limit(1)
+                // Raw on purpose: with the codec persister the collection was re-typed to the entity
+                // class above, so first() yields an entity, and a FindIterable<Document> here would
+                // make the static compiler insert a cast to Document that fails at runtime.
+                dbObject = ((FindIterable) setHint(cursor)).limit(1)
                         .first();
             }
             if (dbObject == null) {
@@ -520,9 +533,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                 }
                 return wrapObjectResultInList(dbObject);
             }
-            else {
-                return wrapObjectResultInList(createObjectFromDBObject((Document) dbObject));
-            }
+            return wrapObjectResultInList(createObjectFromDBObject((Document) dbObject));
         }
 
         MongoCursor<Document> cursor;
@@ -571,7 +582,6 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
         }
 
         return projectedResults;
-
     }
 
     protected AggregatePipeline buildAggregatePipeline(PersistentEntity entity, Document query, List<Projection> projectionList) {
@@ -603,15 +613,15 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                 Object hint = queryArguments.get(HINT_ARGUMENT);
                 if (hint instanceof Map) {
                     if (cursor instanceof FindIterable) {
-                        result = ((FindIterable) cursor).hint(new Document((Map<String, Object>) hint));
+                        result = ((FindIterable<Document>) cursor).hint(new Document((Map<String, Object>) hint));
                     } else if (cursor instanceof AggregateIterable) {
-                        result = ((AggregateIterable) cursor).hint(new Document((Map<String, Object>) hint));
+                        result = ((AggregateIterable<Document>) cursor).hint(new Document((Map<String, Object>) hint));
                     }
                 } else {
                     if (cursor instanceof FindIterable) {
-                        result = ((FindIterable) cursor).hintString(hint.toString());
+                        result = ((FindIterable<Document>) cursor).hintString(hint.toString());
                     } else if (cursor instanceof AggregateIterable) {
-                        result = ((AggregateIterable) cursor).hintString(hint.toString());
+                        result = ((AggregateIterable<Document>) cursor).hintString(hint.toString());
                     }
                 }
             }
@@ -621,14 +631,15 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
     }
 
     protected FindIterable<Document> executeQueryAndApplyPagination(com.mongodb.client.MongoCollection<Document> collection, Document query) {
+        com.mongodb.client.MongoCollection<Document> target = collection;
         Object readConcernObject = queryArguments.get(READ_CONCERN_ARGUMENT);
         if (readConcernObject instanceof ReadConcern) {
-            collection = collection.withReadConcern(
-                (ReadConcern) readConcernObject
+            target = target.withReadConcern(
+                    (ReadConcern) readConcernObject
             );
         }
 
-        final FindIterable<Document> iterable = mongoSession.find(collection, query);
+        final FindIterable<Document> iterable = mongoSession.find(target, query);
         if (offset != null && offset > 0) {
             iterable.skip(offset);
         }
@@ -651,7 +662,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
             MongoCollection coll = (MongoCollection) entity.getMapping().getMappedForm();
             if (coll != null && coll.getSort() != null) {
                 Document orderObject = new Document();
-                Order order = coll.getSort();
+                Order order = (Order) coll.getSort();
                 String property = order.getProperty();
                 property = getPropertyName(entity, property);
                 orderObject.put(property, order.getDirection() == Order.Direction.DESC ? -1 : 1);
@@ -669,17 +680,17 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param entity The entity
      * @return The query, which is empty for a root entity
      */
-    public static Document createClassFieldQuery(final PersistentEntity entity) {
+    static Document createClassFieldQuery(final PersistentEntity entity) {
         if (entity.isRoot()) {
             return new Document();
         }
         Object classFieldValue;
         Collection<PersistentEntity> childEntities = entity.getMappingContext().getChildEntities(entity);
         if (childEntities.size() > 0) {
-            HashMap classValue = new HashMap<>();
-            ArrayList classes = new ArrayList<>();
+            HashMap classValue = new HashMap();
+            ArrayList classes = new ArrayList();
             classes.add(entity.getDiscriminator());
-            for (PersistentEntity childEntity: childEntities) {
+            for (PersistentEntity childEntity : childEntities) {
                 classes.add(childEntity.getDiscriminator());
             }
             classValue.put(MONGO_IN_OPERATOR, classes);
@@ -694,37 +705,35 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
         return createClassFieldQuery(persistentEntity);
     }
 
-    public static void populateMongoQuery(final AbstractMongoSession session, Document query, Junction criteria, final PersistentEntity entity) {
+    static void populateMongoQuery(final AbstractMongoSession session, Document query, Junction criteria, final PersistentEntity entity) {
         EmbeddedQueryEncoder queryEncoder;
         if (session instanceof MongoCodecSession) {
             final MongoDatastore datastore = session.getDatastore();
             final CodecRegistry codecRegistry = datastore.getCodecRegistry();
             queryEncoder = new EmbeddedQueryEncoder() {
                 @Override
-                public Object encode(Embedded embedded, Object instance) {
+                Object encode(Embedded embedded, Object instance) {
                     final PersistentEntityCodec codec = (PersistentEntityCodec) codecRegistry.get(embedded.getType());
                     final BsonDocument doc = new BsonDocument();
                     codec.encode(new BsonDocumentWriter(doc), instance, ENCODER_CONTEXT, false);
                     return doc;
                 }
-            };
-        }
-        else {
+            }
+        } else {
             queryEncoder = new EmbeddedQueryEncoder() {
                 @Override
-                public Object encode(Embedded embedded, Object instance) {
+                Object encode(Embedded embedded, Object instance) {
                     MongoEntityPersister persister = (MongoEntityPersister) session.getPersister(entity.getJavaClass());
                     return persister.createNativeObjectForEmbedded(embedded, instance);
-
                 }
-            };
+            }
         }
 
         populateMongoQuery(queryEncoder, query, criteria, entity);
     }
 
-    @SuppressWarnings("unchecked")
-    public static void populateMongoQuery(final EmbeddedQueryEncoder queryEncoder, Document query, Junction criteria, final PersistentEntity entity) {
+    @SuppressWarnings('unchecked')
+    static void populateMongoQuery(final EmbeddedQueryEncoder queryEncoder, Document query, Junction criteria, final PersistentEntity entity) {
         List subList = null;
         // if a query combines more than 1 item, wrap the items in individual $and or $or arguments
         // so that property names can't clash (e.g. for an $and containing two $ors)
@@ -753,7 +762,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                     PropertyCriterion pc = (PropertyCriterion) criterion;
                     PersistentProperty property = entity.getPropertyByName(pc.getProperty());
                     if (property instanceof Custom) {
-                        CustomTypeMarshaller customTypeMarshaller = ((Custom) property).getCustomTypeMarshaller();
+                        CustomTypeMarshaller<Object, Object, Document> customTypeMarshaller = (CustomTypeMarshaller<Object, Object, Document>) ((Custom) property).getCustomTypeMarshaller();
                         if (!(customTypeMarshaller instanceof CodecCustomTypeMarshaller)) {
                             customTypeMarshaller.query(property, pc, query);
                             continue;
@@ -762,7 +771,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                 }
                 queryHandler.handle(queryEncoder, criterion, dbo, entity);
             } else {
-                throw new InvalidDataAccessResourceUsageException("Queries of type " + criterion.getClass().getSimpleName() + " are not supported by this implementation");
+                throw new InvalidDataAccessResourceUsageException('Queries of type ' + criterion.getClass().getSimpleName() + ' are not supported by this implementation');
             }
         }
     }
@@ -785,7 +794,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      */
     private static void coerceIdCriterion(Criterion criterion, PersistentEntity entity) {
         if (criterion instanceof Junction) {
-            for (Criterion nested : ((Junction) criterion).getCriteria()) {
+            for (Criterion nested in ((Junction) criterion).getCriteria()) {
                 coerceIdCriterion(nested, entity);
             }
             return;
@@ -828,19 +837,20 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * {@code $and} and {@code $or} must stay at the current level (a key like {@code extRef1.$and}
      * matches nothing), so their nested documents are rewritten recursively instead.
      */
-    private static void prefixEmbeddedQuery(String prefix, Document source, Document target) {
+    @PackageScope
+    static void prefixEmbeddedQuery(String prefix, Document source, Document target) {
         for (String key : source.keySet()) {
             Object value = source.get(key);
-            if (key.charAt(0) == '$') {
+            if (key.charAt(0) == ('$' as char)) {
                 if (!(value instanceof List)) {
                     // A top-level operator whose value is not a rewritable list of clauses
                     // (e.g. $where from a property-to-property comparison, or $text) cannot be
                     // qualified with the embedded path - prefixing it would silently match nothing.
-                    throw new UnsupportedOperationException("Criterion [" + key +
-                            "] is not supported inside an embedded association query");
+                    throw new UnsupportedOperationException('Criterion [' + key +
+                            '] is not supported inside an embedded association query');
                 }
                 List<Object> rewritten = new ArrayList<>();
-                for (Object element : (List<?>) value) {
+                for (Object element : (List) value) {
                     if (element instanceof Document) {
                         Document rewrittenElement = new Document();
                         prefixEmbeddedQuery(prefix, (Document) element, rewrittenElement);
@@ -870,7 +880,6 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
         return instance;
     }
 
-    @SuppressWarnings("unchecked")
     private List wrapObjectResultInList(Object object) {
         List result = new ArrayList();
         result.add(object);
@@ -884,7 +893,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query near(String property, List value) {
+    Query near(String property, List value) {
         add(new Near(property, value));
         return this;
     }
@@ -896,7 +905,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query near(String property, Point value) {
+    Query near(String property, Point value) {
         add(new Near(property, value));
         return this;
     }
@@ -908,7 +917,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query near(String property, List value, Distance maxDistance) {
+    Query near(String property, List value, Distance maxDistance) {
         add(new Near(property, value, maxDistance));
         return this;
     }
@@ -920,7 +929,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query near(String property, Point value, Distance maxDistance) {
+    Query near(String property, Point value, Distance maxDistance) {
         add(new Near(property, value, maxDistance));
         return this;
     }
@@ -932,7 +941,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query near(String property, List value, Number maxDistance) {
+    Query near(String property, List value, Number maxDistance) {
         add(new Near(property, value, maxDistance));
         return this;
     }
@@ -944,7 +953,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query near(String property, Point value, Number maxDistance) {
+    Query near(String property, Point value, Number maxDistance) {
         add(new Near(property, value, maxDistance));
         return this;
     }
@@ -956,7 +965,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query nearSphere(String property, List value) {
+    Query nearSphere(String property, List value) {
         add(new NearSphere(property, value));
         return this;
     }
@@ -968,7 +977,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query nearSphere(String property, Point value) {
+    Query nearSphere(String property, Point value) {
         add(new NearSphere(property, value));
         return this;
     }
@@ -980,7 +989,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query nearSphere(String property, List value, Distance maxDistance) {
+    Query nearSphere(String property, List value, Distance maxDistance) {
         add(new NearSphere(property, value, maxDistance));
         return this;
     }
@@ -992,7 +1001,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query nearSphere(String property, Point value, Distance maxDistance) {
+    Query nearSphere(String property, Point value, Distance maxDistance) {
         add(new NearSphere(property, value, maxDistance));
         return this;
     }
@@ -1004,7 +1013,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query nearSphere(String property, List value, Number maxDistance) {
+    Query nearSphere(String property, List value, Number maxDistance) {
         add(new NearSphere(property, value, maxDistance));
         return this;
     }
@@ -1016,7 +1025,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A two dimensional list of values
      * @return this
      */
-    public Query nearSphere(String property, Point value, Number maxDistance) {
+    Query nearSphere(String property, Point value, Number maxDistance) {
         add(new NearSphere(property, value, maxDistance));
         return this;
     }
@@ -1029,7 +1038,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A multi-dimensional list of values
      * @return This query
      */
-    public Query withinBox(String property, List value) {
+    Query withinBox(String property, List value) {
         add(new WithinBox(property, value));
         return this;
     }
@@ -1041,7 +1050,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param shape    The shape
      * @return The query instance
      */
-    public Query geoWithin(String property, Shape shape) {
+    Query geoWithin(String property, Shape shape) {
         add(new GeoWithin(property, shape));
         return this;
     }
@@ -1053,7 +1062,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param shape    The shape
      * @return The query instance
      */
-    public Query geoIntersects(String property, GeoJSON shape) {
+    Query geoIntersects(String property, GeoJSON shape) {
         add(new GeoIntersects(property, shape));
         return this;
     }
@@ -1066,7 +1075,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A multi-dimensional list of values
      * @return This query
      */
-    public Query withinPolygon(String property, List value) {
+    Query withinPolygon(String property, List value) {
         add(new WithinPolygon(property, value));
         return this;
     }
@@ -1079,7 +1088,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @param value    A multi-dimensional list of values
      * @return This query
      */
-    public Query withinCircle(String property, List value) {
+    Query withinCircle(String property, List value) {
         add(new WithinBox(property, value));
         return this;
     }
@@ -1087,7 +1096,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
     /**
      * @param arguments The query arguments
      */
-    public void setArguments(Map arguments) {
+    void setArguments(Map arguments) {
         this.queryArguments = arguments;
     }
 
@@ -1097,27 +1106,28 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @author Graeme Rocher
      * @since 1.0
      */
-    public static class Near extends GeoCriterion {
+    static class Near extends GeoCriterion {
 
         Distance maxDistance = null;
 
-        public Near(String name, Object value) {
+        Near(String name, Object value) {
             super(name, value);
         }
 
-        public Near(String name, Object value, Distance maxDistance) {
+        Near(String name, Object value, Distance maxDistance) {
             super(name, value);
             this.maxDistance = maxDistance;
         }
 
-        public Near(String name, Object value, Number maxDistance) {
+        Near(String name, Object value, Number maxDistance) {
             super(name, value);
             this.maxDistance = Distance.valueOf(maxDistance.doubleValue());
         }
 
-        public void setMaxDistance(Distance maxDistance) {
+        void setMaxDistance(Distance maxDistance) {
             this.maxDistance = maxDistance;
         }
+
     }
 
     /**
@@ -1126,18 +1136,20 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @author Graeme Rocher
      * @since 1.0
      */
-    public static class NearSphere extends Near {
-        public NearSphere(String name, Object value) {
+    static class NearSphere extends Near {
+
+        NearSphere(String name, Object value) {
             super(name, value);
         }
 
-        public NearSphere(String name, Object value, Distance maxDistance) {
+        NearSphere(String name, Object value, Distance maxDistance) {
             super(name, value, maxDistance);
         }
 
-        public NearSphere(String name, Object value, Number maxDistance) {
+        NearSphere(String name, Object value, Number maxDistance) {
             super(name, value, maxDistance);
         }
+
     }
 
     /**
@@ -1146,37 +1158,43 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @author Graeme Rocher
      * @since 1.0
      */
-    public static class WithinBox extends PropertyCriterion {
+    static class WithinBox extends PropertyCriterion {
 
-        public WithinBox(String name, List value) {
+        WithinBox(String name, List value) {
             super(name, value);
         }
 
-        public List getValues() {
+        List getValues() {
             return (List) getValue();
         }
 
-        public void setValue(List matrix) {
-            this.value = matrix;
+        void setValue(List matrix) {
+            // Direct field access: through property syntax Groovy would route the assignment back
+            // into this setter.
+            this.@value = matrix;
         }
+
     }
 
     /**
      * Used for Geospacial querying of polygons
      */
-    public static class WithinPolygon extends PropertyCriterion {
+    static class WithinPolygon extends PropertyCriterion {
 
-        public WithinPolygon(String name, List value) {
+        WithinPolygon(String name, List value) {
             super(name, value);
         }
 
-        public List getValues() {
+        List getValues() {
             return (List) getValue();
         }
 
-        public void setValue(List value) {
-            this.value = value;
+        void setValue(List value) {
+            // Direct field access: through property syntax Groovy would route the assignment back
+            // into this setter.
+            this.@value = value;
         }
+
     }
 
     /**
@@ -1185,54 +1203,62 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
      * @author Graeme Rocher
      * @since 1.0
      */
-    public static class WithinCircle extends PropertyCriterion {
+    static class WithinCircle extends PropertyCriterion {
 
-        public WithinCircle(String name, List value) {
+        WithinCircle(String name, List value) {
             super(name, value);
         }
 
-        public List getValues() {
+        List getValues() {
             return (List) getValue();
         }
 
-        public void setValue(List matrix) {
-            this.value = matrix;
+        void setValue(List matrix) {
+            // Direct field access: through property syntax Groovy would route the assignment back
+            // into this setter.
+            this.@value = matrix;
         }
+
     }
 
     /**
      * Used for all GeoSpacial queries using 2dsphere indexes
      */
-    public static class GeoCriterion extends PropertyCriterion {
+    static class GeoCriterion extends PropertyCriterion {
 
-        public GeoCriterion(String name, Object value) {
+        GeoCriterion(String name, Object value) {
             super(name, value);
         }
+
     }
 
-    public static class GeoWithin extends GeoCriterion {
-        public GeoWithin(String name, Object value) {
+    static class GeoWithin extends GeoCriterion {
+
+        GeoWithin(String name, Object value) {
             super(name, value);
         }
+
     }
 
-    public static class GeoIntersects extends GeoCriterion {
-        public GeoIntersects(String name, Object value) {
+    static class GeoIntersects extends GeoCriterion {
+
+        GeoIntersects(String name, Object value) {
             super(name, value);
         }
+
     }
 
-    public static class AggregatedResultList extends AbstractList implements Closeable {
+    static class AggregatedResultList extends AbstractList implements Closeable {
 
-        private MongoCursor cursor;
+        @PackageScope MongoCursor cursor
         private List<ProjectedProperty> projectedProperties;
         private List initializedObjects = new ArrayList();
         private int internalIndex = 0;
-        private boolean initialized = false;
+        @PackageScope boolean initialized = false
         private boolean containsAssociations = false;
         private AbstractMongoSession session;
 
-        public AggregatedResultList(AbstractMongoSession session, MongoCursor<Document> cursor, List<ProjectedProperty> projectedProperties) {
+        AggregatedResultList(AbstractMongoSession session, MongoCursor<Document> cursor, List<ProjectedProperty> projectedProperties) {
             this.cursor = cursor;
             this.projectedProperties = projectedProperties;
             this.session = session;
@@ -1245,13 +1271,15 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
         }
 
         @Override
-        public String toString() {
+        String toString() {
             return initializedObjects.toString();
         }
 
         @Override
-        public Object get(int index) {
-            if (containsAssociations) initializeFully();
+        Object get(int index) {
+            if (containsAssociations) {
+                initializeFully();
+            }
             if (initializedObjects.size() > index) {
                 return initializedObjects.get(index);
             } else if (!initialized) {
@@ -1264,31 +1292,35 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                         return projected;
                     }
                 }
-                if (!hasResults) handleNoResults();
+                if (!hasResults) {
+                    handleNoResults();
+                }
                 initialized = true;
             }
-            throw new ArrayIndexOutOfBoundsException("Index value " + index + " exceeds size of aggregate list");
+            throw new ArrayIndexOutOfBoundsException('Index value ' + index + ' exceeds size of aggregate list');
         }
 
         @Override
-        public Object set(int index, Object element) {
+        Object set(int index, Object element) {
             initializeFully();
             return initializedObjects.set(index, element);
         }
 
         @Override
-        public ListIterator listIterator() {
+        ListIterator listIterator() {
             return listIterator(0);
         }
 
         @Override
-        public ListIterator listIterator(int index) {
+        ListIterator listIterator(int index) {
             initializeFully();
             return initializedObjects.listIterator(index);
         }
 
         protected void initializeFully() {
-            if (initialized) return;
+            if (initialized) {
+                return;
+            }
             if (containsAssociations) {
                 if (projectedProperties.size() == 1) {
                     ProjectedProperty projectedProperty = projectedProperties.get(0);
@@ -1303,8 +1335,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                     }
                     if (!hasResults) {
                         handleNoResults();
-                    }
-                    else if (property instanceof Embedded) {
+                    } else if (property instanceof Embedded) {
                         Embedded embedded = (Embedded) property;
                         List embeddedList = new ArrayList();
                         CodecRegistry codecRegistry = session.getDatastore().getCodecRegistry();
@@ -1314,16 +1345,15 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                             if (embeddedDoc instanceof Document) {
                                 Document documentObject = (Document) embeddedDoc;
 
-                                Object decoded = codec.decode(new BsonDocumentReader(documentObject.toBsonDocument(Document.class, codecRegistry)));
+                                Object decoded = codec.decode(new BsonDocumentReader(documentObject.toBsonDocument(Document, codecRegistry)));
                                 embeddedList.add(
-                                    decoded
+                                        decoded
                                 );
                             }
                         }
 
                         this.initializedObjects = embeddedList;
-                    }
-                    else {
+                    } else {
                         this.initializedObjects = session.retrieveAll(property.getType(), identifiers);
                     }
                 } else {
@@ -1346,7 +1376,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                                 }
                             }
                             projectedResult.add(value);
-                            index++;
+                            index++
                         }
 
                         initializedObjects.add(projectedResult);
@@ -1376,7 +1406,6 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                                 projected.set(index, null);
                             }
                         }
-
                     }
                 }
             } else {
@@ -1402,22 +1431,18 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
 
         private Map<Integer, Map<Class, List<Serializable>>> createAssociationMap() {
             Map<Integer, Map<Class, List<Serializable>>> associationMap = new HashMap<>();
-            associationMap = DefaultGroovyMethods.withDefault(associationMap, new Closure(this) {
-                public Object doCall(Object o) {
-                    Map<Class, List<Serializable>> subMap = new HashMap<>();
-                    subMap = DefaultGroovyMethods.withDefault(subMap, new Closure(this) {
-                        public Object doCall(Object o) {
-                            return new ArrayList<Serializable>();
-                        }
-                    });
-                    return subMap;
+            associationMap = associationMap.withDefault { Object o ->
+                Map<Class, List<Serializable>> subMap = new HashMap<>();
+                subMap = subMap.withDefault { Object k ->
+                    return new ArrayList<Serializable>();
                 }
-            });
+                return subMap;
+            }
             return associationMap;
         }
 
         @Override
-        public Iterator iterator() {
+        Iterator iterator() {
             if (initialized || containsAssociations || internalIndex > 0) {
                 initializeFully();
                 return initializedObjects.iterator();
@@ -1430,28 +1455,30 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
 
             return new Iterator() {
                 @Override
-                public boolean hasNext() {
+                boolean hasNext() {
                     boolean hasMore = cursor.hasNext();
-                    if (!hasMore) initialized = true;
+                    if (!hasMore) {
+                        initialized = true;
+                    }
                     return hasMore;
                 }
 
                 @Override
-                public Object next() {
+                Object next() {
                     Document dbo = (Document) cursor.next();
                     return addInitializedObject(dbo);
                 }
 
                 @Override
-                public void remove() {
-                    throw new UnsupportedOperationException("Aggregate result list cannot be mutated.");
+                void remove() {
+                    throw new UnsupportedOperationException('Aggregate result list cannot be mutated.');
                 }
-            };
+            }
         }
 
-        private Object addInitializedObject(Document dbo) {
+        @PackageScope
+        Object addInitializedObject(Document dbo) {
             if (projectedProperties.size() > 1) {
-
                 List<Object> projected = new ArrayList<>();
                 for (ProjectedProperty projectedProperty : projectedProperties) {
                     Object value;
@@ -1459,24 +1486,22 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                     projected.add(value);
                 }
                 initializedObjects.add(internalIndex, projected);
-                internalIndex++;
+                internalIndex++
                 return projected;
-            } else {
-                ProjectedProperty projectedProperty = projectedProperties.get(0);
-                Object projected = getProjectedValue(dbo, projectedProperty.projectionKey);
-                initializedObjects.add(internalIndex, projected);
-                internalIndex++;
-                return projected;
-
             }
+            ProjectedProperty projectedProperty = projectedProperties.get(0);
+            Object projected = getProjectedValue(dbo, projectedProperty.projectionKey);
+            initializedObjects.add(internalIndex, projected);
+            internalIndex++
+            return projected;
         }
 
         private Object getProjectedValue(Document dbo, String projectionKey) {
             Object value;
-            if (projectionKey.startsWith("id.")) {
-                projectionKey = projectionKey.substring(3);
+            if (projectionKey.startsWith('id.')) {
+                String key = projectionKey.substring(3);
                 Document id = (Document) dbo.get(MongoEntityPersister.MONGO_ID_FIELD);
-                value = id.get(projectionKey);
+                value = id.get(key);
             } else {
                 value = dbo.get(projectionKey);
             }
@@ -1484,26 +1509,26 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
         }
 
         @Override
-        public int size() {
+        int size() {
             initializeFully();
             return initializedObjects.size();
         }
 
         @Override
-        public void close() throws IOException {
+        void close() throws IOException {
             cursor.close();
         }
+
     }
 
-    @SuppressWarnings("serial")
-    public static class MongoResultList extends AbstractResultList {
+    @SuppressWarnings('serial')
+    static class MongoResultList extends AbstractResultList {
 
         private EntityPersister mongoEntityPersister;
         private MongoCursor cursor;
         private boolean isCodecPersister;
 
-        @SuppressWarnings("unchecked")
-        public MongoResultList(MongoCursor cursor, Integer offset, EntityPersister mongoEntityPersister) {
+        MongoResultList(MongoCursor cursor, Integer offset, EntityPersister mongoEntityPersister) {
             super(offset == null ? 0 : offset, cursor);
             this.cursor = cursor;
             this.mongoEntityPersister = mongoEntityPersister;
@@ -1511,12 +1536,12 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
         }
 
         @Override
-        public void close() throws IOException {
+        void close() throws IOException {
             cursor.close();
         }
 
         @Override
-        public String toString() {
+        String toString() {
             initializeFully();
             return initializedObjects.toString();
         }
@@ -1524,7 +1549,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
         /**
          * @return The underlying MongoDB cursor instance
          */
-        public MongoCursor getCursor() {
+        MongoCursor getCursor() {
             return cursor;
         }
 
@@ -1554,31 +1579,47 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
         protected Object convertDBObject(Object object) {
             if (mongoEntityPersister instanceof MongoCodecEntityPersister) {
                 return object;
-            } else {
-                final Document dbObject = (Document) object;
-                Object id = dbObject.get(MongoEntityPersister.MONGO_ID_FIELD);
-                SessionImplementor session = (SessionImplementor) mongoEntityPersister.getSession();
-                Class type = mongoEntityPersister.getPersistentEntity().getJavaClass();
-                Object instance = session.getCachedInstance(type, (Serializable) id);
-                if (instance == null) {
-                    final MongoEntityPersister mep = (MongoEntityPersister) this.mongoEntityPersister;
-                    instance = mep.createObjectFromNativeEntry(
-                            this.mongoEntityPersister.getPersistentEntity(), (Serializable) id, dbObject);
-                    session.cacheInstance(type, (Serializable) id, instance);
-                }
-                return instance;
             }
+            final Document dbObject = (Document) object;
+            Object id = dbObject.get(MongoEntityPersister.MONGO_ID_FIELD);
+            SessionImplementor session = (SessionImplementor) mongoEntityPersister.getSession();
+            Class type = mongoEntityPersister.getPersistentEntity().getJavaClass();
+            Object instance = session.getCachedInstance(type, (Serializable) id);
+            if (instance == null) {
+                final MongoEntityPersister mep = (MongoEntityPersister) this.mongoEntityPersister;
+                instance = mep.createObjectFromNativeEntry(
+                        this.mongoEntityPersister.getPersistentEntity(), (Serializable) id, dbObject);
+                session.cacheInstance(type, (Serializable) id, instance);
+            }
+            return instance;
         }
 
     }
 
-    public static class ProjectedProperty {
+    static class ProjectedProperty {
+
         public Projection projection;
         public String projectionKey;
         public PersistentProperty property;
+
+    }
+
+    /**
+     * Exposes the {@code protected static} handler maps inherited from {@link BsonQuery} to
+     * {@link AggregatePipeline}, which cannot reach them directly: it does not itself extend
+     * {@link BsonQuery}, so the cross-package protected access that {@link MongoQuery} has as a
+     * subclass does not carry over to a nested class merely enclosed by it.
+     */
+    private static Map<Class, ProjectionHandler> resolveProjectProjectionHandlers() {
+        projectProjectionHandlers;
+    }
+
+    private static Map<Class, ProjectionHandler> resolveGroupByProjectionHandlers() {
+        groupByProjectionHandlers;
     }
 
     protected static class AggregatePipeline {
+
         private PersistentEntity entity;
         private Document query;
         private List<Projection> projectionList;
@@ -1587,33 +1628,33 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
         private boolean singleResult;
         private final MongoQuery mongoQuery;
 
-        public AggregatePipeline(MongoQuery mongoQuery, PersistentEntity entity, Document queryObject, List<Projection> projectionList) {
+        AggregatePipeline(MongoQuery mongoQuery, PersistentEntity entity, Document queryObject, List<Projection> projectionList) {
             this.mongoQuery = mongoQuery;
             this.entity = entity;
             this.query = queryObject;
             this.projectionList = projectionList;
         }
 
-        public List<Document> getAggregationPipeline() {
+        List<Document> getAggregationPipeline() {
             return aggregationPipeline;
         }
 
-        public List<ProjectedProperty> getProjectedKeys() {
+        List<ProjectedProperty> getProjectedKeys() {
             return projectedKeys;
         }
 
-        public boolean isSingleResult() {
+        boolean isSingleResult() {
             return singleResult;
         }
 
-        public AggregatePipeline build() {
-            aggregationPipeline = new ArrayList<>();
+        AggregatePipeline build() {
+            aggregationPipeline = new ArrayList<Document>();
 
             if (!query.keySet().isEmpty()) {
                 aggregationPipeline.add(new Document(MATCH_OPERATOR, query));
             }
 
-            projectedKeys = new ArrayList<>();
+            projectedKeys = new ArrayList<ProjectedProperty>();
             singleResult = true;
 
             Document projectObject = new Document();
@@ -1623,7 +1664,7 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
             Document additionalGroupBy = null;
 
             for (Projection projection : projectionList) {
-                ProjectionHandler projectionHandler = projectProjectionHandlers.get(projection.getClass());
+                ProjectionHandler projectionHandler = resolveProjectProjectionHandlers().get(projection.getClass());
                 ProjectedProperty projectedProperty = new ProjectedProperty();
                 projectedProperty.projection = projection;
                 if (projection instanceof PropertyProjection) {
@@ -1633,20 +1674,19 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                     PersistentProperty property = entity.getPropertyByName(propertyName);
                     if (property != null) {
                         projectedProperty.property = property;
-                    } else if (!propertyName.contains(".")) {
-                        throw new InvalidDataAccessResourceUsageException("Attempt to project on a non-existent project [" + propertyName + "]");
+                    } else if (!propertyName.contains('.')) {
+                        throw new InvalidDataAccessResourceUsageException('Attempt to project on a non-existent project [' + propertyName + ']');
                     }
                 }
                 if (projectionHandler != null) {
                     singleResult = false;
 
                     String aggregationKey = projectionHandler.handle(entity, projectObject, groupByObject, projection);
-                    aggregationKey = "id." + aggregationKey;
+                    aggregationKey = 'id.' + aggregationKey;
                     projectedProperty.projectionKey = aggregationKey;
                     projectedKeys.add(projectedProperty);
                 } else {
-
-                    projectionHandler = groupByProjectionHandlers.get(projection.getClass());
+                    projectionHandler = resolveGroupByProjectionHandlers().get(projection.getClass());
                     if (projectionHandler != null) {
                         projectedProperty.projectionKey = projectionHandler.handle(entity, projectObject, groupByObject, projection);
                         projectedKeys.add(projectedProperty);
@@ -1657,7 +1697,6 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                             additionalGroupBy = new Document(GROUP_OPERATOR, finalCount);
                         }
                     }
-
                 }
             }
 
@@ -1678,10 +1717,10 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                     String prop = order.getProperty();
                     String sortKey = prop;
                     for (ProjectedProperty pp : projectedKeys) {
-                        if (pp.property != null && pp.property.getName().equals(prop)) {
+                        if (pp.property != null && pp.property.getName() == prop) {
                             sortKey = pp.projectionKey;
-                            if (sortKey.startsWith("id.")) {
-                                sortKey = MongoEntityPersister.MONGO_ID_FIELD + "." + sortKey.substring(3);
+                            if (sortKey.startsWith('id.')) {
+                                sortKey = MongoEntityPersister.MONGO_ID_FIELD + '.' + sortKey.substring(3);
                             }
                             break;
                         }
@@ -1691,16 +1730,18 @@ public class MongoQuery extends BsonQuery implements QueryArgumentsAware {
                 aggregationPipeline.add(new Document(SORT_OPERATOR, sortBy));
             }
 
-            int max = mongoQuery.max != null ? mongoQuery.max : -1;
+            int max = mongoQuery.getMax() != null ? mongoQuery.getMax() : -1;
             if (max > 0) {
-                aggregationPipeline.add(new Document("$limit", max));
+                aggregationPipeline.add(new Document('$limit', max));
             }
-            int offset = mongoQuery.offset != null ? mongoQuery.offset : 0;
+            int offset = mongoQuery.getOffset() != null ? mongoQuery.getOffset() : 0;
             if (offset > 0) {
-                aggregationPipeline.add(new Document("$skip", offset));
+                aggregationPipeline.add(new Document('$skip', offset));
             }
 
             return this;
         }
+
     }
+
 }
