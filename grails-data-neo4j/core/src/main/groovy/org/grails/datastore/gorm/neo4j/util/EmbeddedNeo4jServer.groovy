@@ -4,38 +4,32 @@
  *  distributed with this work for additional information
  *  regarding copyright ownership.  The ASF licenses this file
  *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
+ *  'License'); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
  *
  *    https://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.datastore.gorm.neo4j.util;
+package org.grails.datastore.gorm.neo4j.util
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.util.Collections;
-import java.util.Map;
+import groovy.transform.CompileStatic
+import org.neo4j.harness.ServerControls
+import org.neo4j.harness.TestServerBuilder
+import org.neo4j.harness.TestServerBuilders
+import org.neo4j.kernel.configuration.BoltConnector
+import org.neo4j.kernel.configuration.Connector
+import org.neo4j.server.ServerStartupException
 
-import org.neo4j.harness.ServerControls;
-import org.neo4j.harness.TestServerBuilder;
-import org.neo4j.harness.TestServerBuilders;
-import org.neo4j.kernel.configuration.BoltConnector;
-import org.neo4j.kernel.configuration.Connector;
-import org.neo4j.server.ServerStartupException;
+import org.grails.datastore.mapping.reflect.ClassUtils
 
-import org.grails.datastore.mapping.reflect.ClassUtils;
-
-import static org.neo4j.graphdb.factory.GraphDatabaseSettings.data_directory;
-import static org.neo4j.kernel.configuration.BoltConnector.EncryptionLevel.DISABLED;
+import static org.neo4j.graphdb.factory.GraphDatabaseSettings.data_directory
+import static org.neo4j.kernel.configuration.BoltConnector.EncryptionLevel.DISABLED
 
 /**
  * Helper class for starting a Neo4j 3.x embedded server
@@ -43,13 +37,14 @@ import static org.neo4j.kernel.configuration.BoltConnector.EncryptionLevel.DISAB
  * @author Graeme Rocher
  * @since 6.0
  */
-public class EmbeddedNeo4jServer {
+@CompileStatic
+class EmbeddedNeo4jServer {
 
     /**
      * @return Whether the embedded server capability is available or not
      */
-    public static boolean isAvailable() {
-        return ClassUtils.isPresent("org.neo4j.harness.ServerControls", EmbeddedNeo4jServer.class.getClassLoader());
+    static boolean isAvailable() {
+        return ClassUtils.isPresent('org.neo4j.harness.ServerControls', EmbeddedNeo4jServer.getClassLoader())
     }
 
     /**
@@ -58,8 +53,8 @@ public class EmbeddedNeo4jServer {
      * @return The server controls
      * @param dataLocation The data location
      */
-    public static ServerControls start(File dataLocation) throws IOException {
-        return attemptStartServer(0, dataLocation, Collections.emptyMap());
+    static ServerControls start(File dataLocation) throws IOException {
+        return attemptStartServer(0, dataLocation, Collections.emptyMap())
     }
 
     /**
@@ -68,8 +63,8 @@ public class EmbeddedNeo4jServer {
      * @return The server controls
      * @param dataLocation The data location
      */
-    public static ServerControls start(File dataLocation, Map<String, Object> options) throws IOException {
-        return attemptStartServer(0, dataLocation, options);
+    static ServerControls start(File dataLocation, Map<String, Object> options) throws IOException {
+        return attemptStartServer(0, dataLocation, options)
     }
 
     /**
@@ -79,8 +74,8 @@ public class EmbeddedNeo4jServer {
      *
      * @return The {@link ServerControls}
      */
-    public static ServerControls start(InetSocketAddress inetAddr) {
-        return start(inetAddr.getHostName(), inetAddr.getPort(), null);
+    static ServerControls start(InetSocketAddress inetAddr) {
+        return start(inetAddr.getHostName(), inetAddr.getPort(), null)
     }
 
     /**
@@ -90,8 +85,8 @@ public class EmbeddedNeo4jServer {
      *
      * @return The {@link ServerControls}
      */
-    public static ServerControls start(InetSocketAddress inetAddr, File dataLocation) {
-        return start(inetAddr.getHostName(), inetAddr.getPort(), dataLocation);
+    static ServerControls start(InetSocketAddress inetAddr, File dataLocation) {
+        return start(inetAddr.getHostName(), inetAddr.getPort(), dataLocation)
     }
 
     /**
@@ -101,8 +96,8 @@ public class EmbeddedNeo4jServer {
      *
      * @return The {@link ServerControls}
      */
-    public static ServerControls start(InetSocketAddress inetAddr, File dataLocation, Map<String, Object> options) {
-        return start(inetAddr.getHostName(), inetAddr.getPort(), dataLocation, options);
+    static ServerControls start(InetSocketAddress inetAddr, File dataLocation, Map<String, Object> options) {
+        return start(inetAddr.getHostName(), inetAddr.getPort(), dataLocation, options)
     }
 
     /**
@@ -112,9 +107,9 @@ public class EmbeddedNeo4jServer {
      *
      * @return The {@link ServerControls}
      */
-    public static ServerControls start(String address) {
-        URI uri = URI.create(address);
-        return start(new InetSocketAddress(uri.getHost(), uri.getPort()));
+    static ServerControls start(String address) {
+        URI uri = URI.create(address)
+        return start(new InetSocketAddress(uri.getHost(), uri.getPort()))
     }
 
     /**
@@ -124,9 +119,9 @@ public class EmbeddedNeo4jServer {
      *
      * @return The {@link ServerControls}
      */
-    public static ServerControls start(String address, File dataLocation) {
-        URI uri = URI.create(address);
-        return start(uri.getHost(), uri.getPort(), dataLocation);
+    static ServerControls start(String address, File dataLocation) {
+        URI uri = URI.create(address)
+        return start(uri.getHost(), uri.getPort(), dataLocation)
     }
 
     /**
@@ -136,9 +131,9 @@ public class EmbeddedNeo4jServer {
      *
      * @return The {@link ServerControls}
      */
-    public static ServerControls start(String address, File dataLocation, Map<String, Object> options) {
-        URI uri = URI.create(address);
-        return start(uri.getHost(), uri.getPort(), dataLocation, options);
+    static ServerControls start(String address, File dataLocation, Map<String, Object> options) {
+        URI uri = URI.create(address)
+        return start(uri.getHost(), uri.getPort(), dataLocation, options)
     }
 
     /**
@@ -149,8 +144,8 @@ public class EmbeddedNeo4jServer {
      *
      * @return The {@link ServerControls}
      */
-    public static ServerControls start(String host, int port) {
-        return start(host, port, null);
+    static ServerControls start(String host, int port) {
+        return start(host, port, null)
     }
 
     /**
@@ -161,8 +156,8 @@ public class EmbeddedNeo4jServer {
      *
      * @return The {@link ServerControls}
      */
-    public static ServerControls start(String host, int port, File dataLocation) {
-        return start(host, port, dataLocation, Collections.emptyMap());
+    static ServerControls start(String host, int port, File dataLocation) {
+        return start(host, port, dataLocation, Collections.emptyMap())
     }
 
     /**
@@ -173,37 +168,38 @@ public class EmbeddedNeo4jServer {
      *
      * @return The {@link ServerControls}
      */
-    public static ServerControls start(String host, int port, File dataLocation, Map<String, Object> options) {
-        String myBoltAddress = String.format("%s:%d", host, port);
+    static ServerControls start(String host, int port, File dataLocation, Map<String, Object> options) {
+        String myBoltAddress = String.format('%s:%d', host, port)
 
         TestServerBuilder serverBuilder = TestServerBuilders.newInProcessBuilder()
-            .withConfig(new BoltConnector("0").enabled, "true")
-            .withConfig(new BoltConnector("0").type, Connector.ConnectorType.BOLT.name())
-            .withConfig(new BoltConnector("0").encryption_level, DISABLED.name())
-            .withConfig(new BoltConnector("0").listen_address, myBoltAddress);
+            .withConfig(new BoltConnector('0').enabled, 'true')
+            .withConfig(new BoltConnector('0').type, Connector.ConnectorType.BOLT.name())
+            .withConfig(new BoltConnector('0').encryption_level, DISABLED.name())
+            .withConfig(new BoltConnector('0').listen_address, myBoltAddress)
         if (dataLocation != null) {
-            serverBuilder = serverBuilder.withConfig(data_directory, dataLocation.getPath());
+            serverBuilder = serverBuilder.withConfig(data_directory, dataLocation.getPath())
         }
 
-        for (String name : options.keySet()) {
-            serverBuilder.withConfig(name, options.get(name).toString());
+        for (String name in options.keySet()) {
+            serverBuilder.withConfig(name, options.get(name).toString())
         }
 
         return serverBuilder
-            .newServer();
+            .newServer()
     }
 
     private static ServerControls attemptStartServer(int retryCount, File dataLocation, Map<String, Object> options) throws IOException {
 
         try {
             //In the new driver 0 implicitly means a random port
-            return start("localhost", 0, dataLocation, options);
+            return start('localhost', 0, dataLocation, options)
         } catch (ServerStartupException sse) {
             if (retryCount < 4) {
-                return attemptStartServer(++retryCount, dataLocation, options);
+                return attemptStartServer(++retryCount, dataLocation, options)
             } else {
-                throw sse;
+                throw sse
             }
         }
     }
+
 }
