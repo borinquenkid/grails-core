@@ -20,7 +20,7 @@ package org.grails.datastore.rx.query.event
 
 import org.grails.datastore.mapping.query.Query
 import org.grails.datastore.mapping.query.event.QueryEventType
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 import spock.lang.Specification
 
 class PostQueryEventSpec extends Specification {

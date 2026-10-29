@@ -133,22 +133,22 @@ class RxAstUtils extends AstUtils {
         return false
     }
     /**
-     * Is the given class a {@link io.reactivex.rxjava3.core.Single}
+     * Is the given class a {@link rx.Single}
      *
      * @param cls The class
      * @return True if it is
      */
     static boolean isSingle(ClassNode cls) {
-        isSubclassOf(cls, 'io.reactivex.rxjava3.core.Single')
+        isSubclassOf(cls, 'rx.Single')
     }
 
     /**
-     * Is the given class an {@link io.reactivex.rxjava3.core.Observable}
+     * Is the given class an {@link rx.Observable}
      *
      * @param cls The class
      * @return True if it is
      */
     static boolean isObservable(ClassNode cls) {
-        return isSubclassOf(cls, 'io.reactivex.rxjava3.core.Observable')
+        return isSubclassOf(cls, 'rx.Observable')
     }
 }

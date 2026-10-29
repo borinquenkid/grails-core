@@ -32,7 +32,7 @@ import org.grails.datastore.mapping.model.types.ToOne
 import org.grails.datastore.mapping.query.Query
 import org.grails.datastore.mapping.reflect.EntityReflector
 import org.grails.datastore.rx.internal.RxDatastoreClientImplementor
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 import spock.lang.Specification
 
 import jakarta.persistence.FetchType
@@ -424,7 +424,8 @@ class RxQueryUtilsSpec extends Specification {
 
     private Object process(Object item, Map<String, FetchType> fetchStrategies) {
         RxQueryUtils.processFetchStrategies(datastoreClient, Observable.just(item), entity, fetchStrategies, queryState)
-                .blockingSingle()
+                .toBlocking()
+                .single()
     }
 
     private static class TestEntityInstance implements DirtyCheckable {

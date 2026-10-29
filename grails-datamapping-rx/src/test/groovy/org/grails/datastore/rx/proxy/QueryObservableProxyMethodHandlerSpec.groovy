@@ -24,7 +24,7 @@ import org.grails.datastore.rx.exceptions.BlockingOperationException
 import org.grails.datastore.rx.internal.RxDatastoreClientImplementor
 import org.grails.datastore.rx.query.QueryState
 import org.grails.datastore.rx.query.RxQuery
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 import spock.lang.Specification
 
 import java.lang.reflect.Method
@@ -56,7 +56,7 @@ class QueryObservableProxyMethodHandlerSpec extends Specification {
 
         when:
         Observable result = handler.invoke(new Object(), methodNamed('toObservable'), null, [] as Object[]) as Observable
-        Object resolved = result.blockingFirst()
+        Object resolved = result.toBlocking().first()
 
         then:
         resolved.is(loaded)
@@ -73,7 +73,7 @@ class QueryObservableProxyMethodHandlerSpec extends Specification {
 
         when:
         Observable result = handler.invoke(new Object(), methodNamed('toObservable'), null, [] as Object[]) as Observable
-        List received = result.toList().blockingGet()
+        List received = result.toList().toBlocking().first()
 
         then:
         received.isEmpty()

@@ -24,7 +24,7 @@ import org.grails.datastore.mapping.model.MappingContext
 import org.grails.datastore.mapping.query.Query
 import org.grails.datastore.mapping.query.QueryCreator
 import org.grails.datastore.rx.query.RxQuery
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 
 import static org.grails.datastore.gorm.finders.DynamicFinder.populateArgumentsForCriteria
 
@@ -117,7 +117,7 @@ class CriteriaBuilder<T> extends AbstractCriteriaBuilder {
      * @return An observable that emits a list
      */
     Observable<List<T>> list(Map args = Collections.emptyMap(), @DelegatesTo(CriteriaBuilder) Closure additionalCriteria = null) {
-        findAll(args, additionalCriteria).toList().toObservable()
+        findAll(args, additionalCriteria).toList()
     }
 
     /**
@@ -127,7 +127,7 @@ class CriteriaBuilder<T> extends AbstractCriteriaBuilder {
      * @return An observable that emits a list
      */
     Observable<List<T>> list(@DelegatesTo(CriteriaBuilder) Closure additionalCriteria) {
-        findAll(Collections.emptyMap(), additionalCriteria).toList().toObservable()
+        findAll(Collections.emptyMap(), additionalCriteria).toList()
     }
 
     /**
@@ -158,7 +158,7 @@ class CriteriaBuilder<T> extends AbstractCriteriaBuilder {
         prepareQuery(args, additionalCriteria)
         query.projections().distinct()
 
-        ((RxQuery)query).findAll(args).toList().toObservable()
+        ((RxQuery)query).findAll(args).toList()
     }
 
     Observable<List> listDistinct(@DelegatesTo(CriteriaBuilder) Closure callable) {

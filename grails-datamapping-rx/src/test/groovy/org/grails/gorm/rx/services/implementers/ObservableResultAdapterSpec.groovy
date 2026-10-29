@@ -35,8 +35,7 @@ import org.grails.datastore.gorm.services.implementers.IterableProjectionService
 import org.grails.datastore.gorm.services.implementers.IterableServiceImplementer
 import org.grails.datastore.mapping.core.Ordered
 import org.grails.gorm.rx.transform.RxScheduleIOTransformation
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
+import rx.Observable
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -129,24 +128,6 @@ class ObservableResultAdapterSpec extends Specification {
         projects << [true, false]
     }
 
-    def "doesImplement returns false for an iterable projection implementer when the method returns a Single rather than an Observable"() {
-        given: 'a projection the adapted implementer accepts on the projected type alone'
-        ObservableResultAdapter adapter = new ObservableResultAdapter(new ProjectionIterableImplementer(prefix: 'find', compatible: true))
-        MethodNode methodNode = methodNode('find', singleOf(ClassHelper.make(String)))
-
-        expect: 'a Single of the projected type is left to SingleResultAdapter'
-        !adapter.doesImplement(ClassHelper.make(RxDomainFixture), methodNode)
-    }
-
-    def "doesImplement returns false for an interface projection builder when the method returns a Single rather than an Observable"() {
-        given:
-        ObservableResultAdapter adapter = new ObservableResultAdapter(new InterfaceProjectionIterableImplementer(prefix: 'find', interfaceProjection: true))
-        MethodNode methodNode = methodNode('find', singleOf(ClassHelper.make(RxDomainFixture)))
-
-        expect:
-        !adapter.doesImplement(ClassHelper.make(RxDomainFixture), methodNode)
-    }
-
     def "doesImplement falls back to isInterfaceProjection when the Observable's generic type does not match the adapted domain type"() {
         given:
         ObservableResultAdapter adapter = new ObservableResultAdapter(new InterfaceProjectionIterableImplementer(prefix: 'find', interfaceProjection: true))
@@ -165,20 +146,6 @@ class ObservableResultAdapterSpec extends Specification {
 
         when:
         adapter.implement(ClassHelper.make(String), abstractMethodNode, newMethod, ClassHelper.make(Object))
-
-        then:
-        implementer.implementDomainClassNode.name == RxDomainFixture.name
-    }
-
-    def "implement leaves the domain class node untouched for a property projection implementer"() {
-        given: "an Observable whose generic type is the projected property's type rather than a domain class"
-        ProjectionIterableImplementer implementer = new ProjectionIterableImplementer(prefix: 'find')
-        ObservableResultAdapter adapter = new ObservableResultAdapter(implementer)
-        MethodNode abstractMethodNode = methodNode('find', observableOf(ClassHelper.make(String)))
-        MethodNode newMethod = methodNode('find', ClassHelper.OBJECT_TYPE)
-
-        when:
-        adapter.implement(ClassHelper.make(RxDomainFixture), abstractMethodNode, newMethod, ClassHelper.make(Object))
 
         then:
         implementer.implementDomainClassNode.name == RxDomainFixture.name
@@ -338,10 +305,6 @@ class ObservableResultAdapterSpec extends Specification {
     private static ClassNode observableOf(ClassNode genericType) {
         GenericsUtils.makeClassSafeWithGenerics(Observable, genericType)
     }
-
-    private static ClassNode singleOf(ClassNode genericType) {
-        GenericsUtils.makeClassSafeWithGenerics(Single, genericType)
-    }
 }
 
 interface RxDomainFixture extends GormEntity<RxDomainFixture> {
@@ -417,7 +380,6 @@ class AnnotatedIterableImplementer implements IterableServiceImplementer<GormEnt
 class ProjectionIterableImplementer implements IterableProjectionServiceImplementer {
     String prefix
     boolean compatible
-    ClassNode implementDomainClassNode
 
     Iterable<String> getHandledPrefixes() { ['find'] }
 
@@ -426,7 +388,6 @@ class ProjectionIterableImplementer implements IterableProjectionServiceImplemen
     boolean doesImplement(ClassNode domainClass, MethodNode methodNode) { false }
 
     void implement(ClassNode domainClassNode, MethodNode abstractMethodNode, MethodNode newMethodNode, ClassNode targetClassNode) {
-        implementDomainClassNode = domainClassNode
     }
 
     boolean isCompatibleReturnType(ClassNode domainClass, MethodNode methodNode, ClassNode returnType, String prefix) { compatible }

@@ -25,7 +25,7 @@ import org.grails.datastore.mapping.query.Query
 import org.grails.datastore.mapping.query.QueryCreator
 import org.grails.datastore.rx.query.RxQuery
 import org.springframework.core.convert.support.DefaultConversionService
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 import spock.lang.Specification
 
 class CriteriaBuilderSpec extends Specification {
@@ -177,7 +177,7 @@ class CriteriaBuilderSpec extends Specification {
 
         then:
         1 * query.findAll([:]) >> Observable.just(first, second)
-        result.blockingSingle() == [first, second]
+        result.toBlocking().single() == [first, second]
     }
 
     void "list(Closure) converts the found results into a list observable using an empty argument map"() {
@@ -190,7 +190,7 @@ class CriteriaBuilderSpec extends Specification {
 
         then:
         1 * query.findAll(Collections.emptyMap()) >> Observable.just(book)
-        result.blockingSingle() == [book]
+        result.toBlocking().single() == [book]
     }
 
     void "count(Map, Closure) applies a count projection and returns the reactive count without throwing"() {
@@ -205,7 +205,7 @@ class CriteriaBuilderSpec extends Specification {
         then:
         1 * query.projections() >> projectionList
         1 * query.singleResult(args) >> Observable.just(3)
-        result.blockingSingle() == 3
+        result.toBlocking().single() == 3
         projectionList.projectionList.size() == 1
         projectionList.projectionList[0] instanceof Query.CountProjection
     }
@@ -221,7 +221,7 @@ class CriteriaBuilderSpec extends Specification {
         then:
         1 * query.projections() >> projectionList
         1 * query.singleResult(Collections.emptyMap()) >> Observable.just(7)
-        result.blockingSingle() == 7
+        result.toBlocking().single() == 7
         projectionList.projectionList[0] instanceof Query.CountProjection
     }
 
@@ -238,7 +238,7 @@ class CriteriaBuilderSpec extends Specification {
         then:
         1 * query.projections() >> projectionList
         1 * query.findAll(args) >> Observable.just(book)
-        result.blockingSingle() == [book]
+        result.toBlocking().single() == [book]
         projectionList.projectionList.size() == 1
         projectionList.projectionList[0] instanceof Query.DistinctProjection
     }
@@ -255,7 +255,7 @@ class CriteriaBuilderSpec extends Specification {
         then:
         1 * query.projections() >> projectionList
         1 * query.findAll(Collections.emptyMap()) >> Observable.just(book)
-        result.blockingSingle() == [book]
+        result.toBlocking().single() == [book]
         projectionList.projectionList[0] instanceof Query.DistinctProjection
     }
 

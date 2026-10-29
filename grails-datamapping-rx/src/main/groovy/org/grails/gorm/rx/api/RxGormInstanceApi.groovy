@@ -24,7 +24,7 @@ import groovy.transform.CompileStatic
 import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.reflect.EntityReflector
 import org.grails.datastore.rx.RxDatastoreClient
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 
 /**
  * Bridge to the implementation of the instance method level operations

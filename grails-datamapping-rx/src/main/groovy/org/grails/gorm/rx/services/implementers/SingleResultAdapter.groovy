@@ -87,13 +87,8 @@ class SingleResultAdapter implements ServiceImplementer, Ordered, AdaptedImpleme
             else {
                 String prefix = adapted.resolvePrefix(methodNode)
                 if (adapted instanceof SingleResultProjectionServiceImplementer) {
-                    // The projection implementer checks the projected type alone, so the Single return type is
-                    // checked here: an Observable of the projected type belongs to ObservableResultAdapter
-                    if (!RxAstUtils.isSingle(methodReturnType)) {
-                        return false
-                    }
                     ClassNode genericType = resolveSingleGenericType(methodReturnType)
-                    return prefix && ((SingleResultProjectionServiceImplementer)adapted).isCompatibleReturnType(domainClass, methodNode, genericType, prefix)
+                    return ((SingleResultProjectionServiceImplementer)adapted).isCompatibleReturnType(domainClass, methodNode, genericType, prefix)
                 }
                 else {
                     return prefix && isObservableOfReturnType

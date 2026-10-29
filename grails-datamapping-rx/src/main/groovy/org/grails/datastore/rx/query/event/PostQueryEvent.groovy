@@ -23,7 +23,7 @@ import groovy.transform.CompileStatic
 import org.grails.datastore.mapping.query.Query
 import org.grails.datastore.mapping.query.event.AbstractQueryEvent
 import org.grails.datastore.mapping.query.event.QueryEventType
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 
 /**
  * Post query event fired by RxGORM

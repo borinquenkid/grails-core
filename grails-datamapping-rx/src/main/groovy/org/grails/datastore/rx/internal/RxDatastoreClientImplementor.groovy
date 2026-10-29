@@ -26,7 +26,7 @@ import org.grails.datastore.rx.query.QueryState
 import org.grails.gorm.rx.api.RxGormInstanceApi
 import org.grails.gorm.rx.api.RxGormStaticApi
 import org.grails.gorm.rx.api.RxGormValidationApi
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 
 /**
  * Internal non-client methods implemented by the implementor

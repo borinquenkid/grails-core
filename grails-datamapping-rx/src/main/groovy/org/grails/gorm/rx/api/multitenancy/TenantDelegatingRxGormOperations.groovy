@@ -26,7 +26,7 @@ import grails.gorm.rx.multitenancy.Tenants
 import grails.gorm.rx.proxy.ObservableProxy
 import groovy.transform.CompileStatic
 import org.grails.datastore.rx.RxDatastoreClient
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 
 /**
  * Delegates to a RxGORM API ensuring the tenant id is correct

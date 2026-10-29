@@ -21,7 +21,7 @@ package org.grails.datastore.rx.proxy
 import org.grails.datastore.rx.exceptions.BlockingOperationException
 import org.grails.datastore.rx.internal.RxDatastoreClientImplementor
 import org.grails.datastore.rx.query.QueryState
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 import spock.lang.Specification
 
 import java.lang.reflect.Method
@@ -44,7 +44,7 @@ class IdentifierObservableProxyMethodHandlerSpec extends Specification {
 
         when:
         Observable result = handler.invoke(new Object(), methodNamed('toObservable'), null, [] as Object[]) as Observable
-        Object resolved = result.blockingFirst()
+        Object resolved = result.toBlocking().first()
 
         then:
         resolved.is(loaded)
@@ -118,5 +118,22 @@ class IdentifierObservableProxyMethodHandlerSpec extends Specification {
         expect:
         handler.invoke(new Object(), methodNamed('getProxyKey'), null, [] as Object[]) == 21L
         handler.invoke(new Object(), methodNamed('getId'), null, [] as Object[]) == 21L
+    }
+
+    void "getTarget() performs a blocking read when there is no query state to consult"() {
+        given:
+        Widget loaded = new Widget(name: 'no query state')
+        RxDatastoreClientImplementor client = Stub(RxDatastoreClientImplementor) {
+            isAllowBlockingOperations() >> true
+            get(Widget, 23L, null) >> Observable.just(loaded)
+        }
+        IdentifierObservableProxyMethodHandler handler = new IdentifierObservableProxyMethodHandler(
+                Widget, Widget, 23L, client, null)
+
+        when:
+        Object target = handler.invoke(new Object(), methodNamed('getTarget'), null, [] as Object[])
+
+        then:
+        target.is(loaded)
     }
 }

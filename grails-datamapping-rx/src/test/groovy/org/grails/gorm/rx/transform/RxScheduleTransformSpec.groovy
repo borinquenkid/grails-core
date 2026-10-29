@@ -28,8 +28,8 @@ import org.codehaus.groovy.ast.tools.GeneralUtils
 import org.grails.datastore.gorm.services.implementers.FindAllImplementer
 import org.grails.datastore.gorm.services.implementers.FindOneImplementer
 import org.grails.datastore.mapping.services.Service
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Single
+import rx.Observable
+import rx.Single
 import spock.lang.Specification
 
 /**
@@ -45,7 +45,7 @@ class RxScheduleTransformSpec extends Specification {
 import grails.gorm.annotation.Entity
 import grails.gorm.rx.services.RxSchedule
 import grails.gorm.services.Service
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 import org.grails.gorm.rx.services.implementers.*
 
 @Entity
@@ -76,7 +76,7 @@ return Book.classLoader
         o != null
 
         when:"the observable result is produced"
-        o.blockingFirst()
+        o.toBlocking().first()
 
         then:"the underlying GORM call fails because no datastore is configured"
         def e = thrown(IllegalStateException)
@@ -89,7 +89,7 @@ return Book.classLoader
 import grails.gorm.annotation.Entity
 import grails.gorm.rx.services.RxSchedule
 import grails.gorm.services.Service
-import io.reactivex.rxjava3.core.Single
+import rx.Single
 import org.grails.gorm.rx.services.implementers.*
 
 @Entity
@@ -120,7 +120,7 @@ return Book.classLoader
         o != null
 
         when:"the single result is produced"
-        o.blockingGet()
+        o.toBlocking().value()
 
         then:"the underlying GORM call fails because no datastore is configured"
         def e = thrown(IllegalStateException)
@@ -133,7 +133,7 @@ return Book.classLoader
 import grails.gorm.rx.RxEntity
 import grails.gorm.services.Service
 import jakarta.persistence.Entity
-import io.reactivex.rxjava3.core.Observable
+import rx.Observable
 import org.grails.gorm.rx.services.implementers.*
 
 @Entity
