@@ -16,27 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.gsp;
+package org.grails.gsp
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.net.URL;
+import groovy.text.Template
+import groovy.text.TemplateEngine
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.control.CompilationFailedException
+import org.codehaus.groovy.runtime.DefaultGroovyMethodsSupport
+import org.springframework.core.io.Resource
 
-import groovy.text.Template;
-import groovy.text.TemplateEngine;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.runtime.DefaultGroovyMethodsSupport;
-
-import org.springframework.core.io.Resource;
-
-import grails.io.IOUtils;
-import org.grails.buffer.StreamByteBuffer;
+import grails.io.IOUtils
+import org.grails.buffer.StreamByteBuffer
 
 /**
  * An abstract TemplateEngine that extends the default Groovy TemplateEngine (@see groovy.text.TemplateEngine) and
@@ -45,9 +35,11 @@ import org.grails.buffer.StreamByteBuffer;
  * @author Graeme Rocher
  * @since 0.4
  */
-public abstract class ResourceAwareTemplateEngine extends TemplateEngine {
-    public static final String BEAN_ID = "groovyPagesTemplateEngine";
-    private static final String GROOVY_SOURCE_CHAR_ENCODING = "UTF-8";
+@CompileStatic
+abstract class ResourceAwareTemplateEngine extends TemplateEngine {
+
+    public static final String BEAN_ID = 'groovyPagesTemplateEngine'
+    private static final String GROOVY_SOURCE_CHAR_ENCODING = 'UTF-8'
 
     /**
      * Creates the specified Template using the given Spring Resource
@@ -57,8 +49,8 @@ public abstract class ResourceAwareTemplateEngine extends TemplateEngine {
      * @throws IOException Thrown when there was an error reading the Template
      * @throws ClassNotFoundException Thrown when there was a problem loading the Template into a class
      */
-    public Template createTemplate(Resource resource) throws IOException, ClassNotFoundException {
-        return createTemplateAndCloseInput(resource.getInputStream());
+    Template createTemplate(Resource resource) throws IOException, ClassNotFoundException {
+        return createTemplateAndCloseInput(resource.getInputStream())
     }
 
     /**
@@ -69,13 +61,13 @@ public abstract class ResourceAwareTemplateEngine extends TemplateEngine {
      * @return A Template instance
      *
      */
-    public abstract Template createTemplate(Resource resource, boolean cacheable);
+    abstract Template createTemplate(Resource resource, boolean cacheable)
 
     @Override
-    public final Template createTemplate(Reader reader) throws IOException {
-        StreamByteBuffer buf = new StreamByteBuffer();
-        IOUtils.copy(reader, new OutputStreamWriter(buf.getOutputStream(), GROOVY_SOURCE_CHAR_ENCODING));
-        return createTemplate(buf.getInputStream());
+    final Template createTemplate(Reader reader) throws IOException {
+        StreamByteBuffer buf = new StreamByteBuffer()
+        IOUtils.copy(reader, new OutputStreamWriter(buf.getOutputStream(), GROOVY_SOURCE_CHAR_ENCODING))
+        return createTemplate(buf.getInputStream())
     }
 
     /**
@@ -86,32 +78,33 @@ public abstract class ResourceAwareTemplateEngine extends TemplateEngine {
      * @return A Template instance
      * @throws IOException Thrown when an IO error occurs reading the stream
      */
-    public abstract Template createTemplate(InputStream inputStream) throws IOException;
+    abstract Template createTemplate(InputStream inputStream) throws IOException
 
     @Override
-    public Template createTemplate(String templateText) throws CompilationFailedException, ClassNotFoundException, IOException {
-        return createTemplate(new ByteArrayInputStream(templateText.getBytes(GROOVY_SOURCE_CHAR_ENCODING)));
+    Template createTemplate(String templateText) throws CompilationFailedException, ClassNotFoundException, IOException {
+        return createTemplate(new ByteArrayInputStream(templateText.getBytes(GROOVY_SOURCE_CHAR_ENCODING)))
     }
 
     @Override
-    public Template createTemplate(File file) throws CompilationFailedException, ClassNotFoundException, IOException {
-        return createTemplateAndCloseInput(new FileInputStream(file));
+    Template createTemplate(File file) throws CompilationFailedException, ClassNotFoundException, IOException {
+        return createTemplateAndCloseInput(new FileInputStream(file))
     }
 
     @Override
-    public Template createTemplate(URL url) throws CompilationFailedException, ClassNotFoundException, IOException {
-        return createTemplateAndCloseInput(url.openStream());
+    Template createTemplate(URL url) throws CompilationFailedException, ClassNotFoundException, IOException {
+        return createTemplateAndCloseInput(url.openStream())
     }
 
     private Template createTemplateAndCloseInput(InputStream input) throws FileNotFoundException, IOException {
         try {
-            return createTemplate(input);
+            return createTemplate(input)
         } finally {
-            DefaultGroovyMethodsSupport.closeWithWarning(input);
+            DefaultGroovyMethodsSupport.closeWithWarning(input)
         }
     }
 
-    abstract public Template createTemplateForUri(String[] uris);
+    abstract Template createTemplateForUri(String[] uris)
 
-    abstract public int mapStackLineNumber(String url, int lineNumber);
+    abstract int mapStackLineNumber(String url, int lineNumber)
+
 }

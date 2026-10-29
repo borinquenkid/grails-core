@@ -16,10 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.gsp.compiler;
+package org.grails.gsp.compiler
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
+import groovy.transform.CompileStatic
 
 /**
  * NOTE: Based on work done by on the GSP standalone project (https://gsp.dev.java.net/)
@@ -29,51 +31,54 @@ import java.util.regex.Pattern;
  * @author Troy Heninger
  * Date: Jan 10, 2004
  */
+@CompileStatic
 class Strip {
-    private static Pattern stripTag = Pattern.compile("\\^([a-zA-Z]+)%\\{([^}]|\\}[^%])*\\}%");
-    private static Pattern anyTag = Pattern.compile("((\\^[a-zA-Z])?%\\{([^}]|\\}[^%])*\\}%|[$@]\\{[^}]*\\})");
+
+    private static Pattern stripTag = Pattern.compile('\\^([a-zA-Z]+)%\\{([^}]|\\}[^%])*\\}%')
+    private static Pattern anyTag = Pattern.compile('((\\^[a-zA-Z])?%\\{([^}]|\\}[^%])*\\}%|[\$@]\\{[^}]*\\})')
 
     // not thread-safe but only used in the GroovyPageScanner constructor
-    private StringBuilder text;
+    private StringBuilder text
 
     Strip(CharSequence text) {
-        this.text = new StringBuilder(text.toString());
+        this.text = new StringBuilder(text.toString())
     }
 
     void strip(int index) {
-        Matcher match = stripTag.matcher(text);
+        Matcher match = stripTag.matcher(text)
         if (match.find(index)) {
-            strip(match.end());
-            String tag = match.group(1);
-            int start = match.start() + 1 + tag.length(); // begin after '^tag'; at the '%{'
-            int end = match.end();
-            Pattern patAfter = Pattern.compile("</" + tag + "(>|[^>a-zA-Z][^>]*>)\\s*", Pattern.CASE_INSENSITIVE);
-            Matcher matchAfter = patAfter.matcher(text);
+            strip(match.end())
+            String tag = match.group(1)
+            int start = match.start() + 1 + tag.length() // begin after '^tag'; at the '%{'
+            int end = match.end()
+            Pattern patAfter = Pattern.compile('</' + tag + '(>|[^>a-zA-Z][^>]*>)\\s*', Pattern.CASE_INSENSITIVE)
+            Matcher matchAfter = patAfter.matcher(text)
             if (matchAfter.find(end)) {
-                int end2 = matchAfter.end();
-                Matcher matchAny = anyTag.matcher(text.subSequence(0, end2));
-                if (matchAny.find(end)) end2 = matchAny.start();
-                Pattern nextTagPat = Pattern.compile("<" + tag + "(\\s|>)", Pattern.CASE_INSENSITIVE);
-                Matcher matchNext = nextTagPat.matcher(text.subSequence(0, end2));
-                if (matchNext.find(end)) end2 = matchNext.start();
+                int end2 = matchAfter.end()
+                Matcher matchAny = anyTag.matcher(text.subSequence(0, end2))
+                if (matchAny.find(end)) end2 = matchAny.start()
+                Pattern nextTagPat = Pattern.compile('<' + tag + '(\\s|>)', Pattern.CASE_INSENSITIVE)
+                Matcher matchNext = nextTagPat.matcher(text.subSequence(0, end2))
+                if (matchNext.find(end)) end2 = matchNext.start()
                 // System.out.println("Stripping " + text.subSequence(end, end2));
-                text.delete(end, end2);
+                text.delete(end, end2)
             }
-            Pattern patBefore = Pattern.compile(new Reverse("*s\\<" + tag).toString(),
-                    Pattern.CASE_INSENSITIVE);
-            Matcher matchBefore = patBefore.matcher(new Reverse(text, 0, start));
+            Pattern patBefore = Pattern.compile(new Reverse('*s\\<' + tag).toString(),
+                    Pattern.CASE_INSENSITIVE)
+            Matcher matchBefore = patBefore.matcher(new Reverse(text, 0, start))
             if (matchBefore.find()) {
-                int start2 = start - matchBefore.end();
-                Matcher matchAny = anyTag.matcher(text.subSequence(0, start));
-                if (matchAny.find(start2)) start2 = matchAny.end();
+                int start2 = start - matchBefore.end()
+                Matcher matchAny = anyTag.matcher(text.subSequence(0, start))
+                if (matchAny.find(start2)) start2 = matchAny.end()
                 // System.out.println("Stripping " + text.subSequence(start2, start));
-                text.delete(start2, start);
+                text.delete(start2, start)
             }
         }
     }
 
     @Override
-    public String toString() {
-        return text.toString();
+    String toString() {
+        return text.toString()
     }
+
 }

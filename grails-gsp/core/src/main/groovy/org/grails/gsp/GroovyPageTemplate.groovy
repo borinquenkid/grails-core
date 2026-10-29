@@ -16,15 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.gsp;
+package org.grails.gsp
 
-import java.util.Map;
+import groovy.text.Template
+import groovy.transform.CompileStatic
 
-import groovy.lang.Writable;
-import groovy.text.Template;
-
-import org.grails.taglib.encoder.OutputContextLookup;
-import org.grails.taglib.encoder.OutputContextLookupHelper;
+import org.grails.taglib.encoder.OutputContextLookup
+import org.grails.taglib.encoder.OutputContextLookupHelper
 
 /**
  * Knows how to make in instance of GroovyPageWritable.
@@ -32,47 +30,50 @@ import org.grails.taglib.encoder.OutputContextLookupHelper;
  * @author Graeme Rocher
  * @since 0.5
  */
-public class GroovyPageTemplate implements Template, Cloneable {
-    private final OutputContextLookup outputContextLookup;
-    private GroovyPageMetaInfo metaInfo;
-    private boolean allowSettingContentType = false;
+@CompileStatic
+class GroovyPageTemplate implements Template, Cloneable {
 
-    public GroovyPageTemplate(GroovyPageMetaInfo metaInfo) {
-        this(metaInfo, OutputContextLookupHelper.getOutputContextLookup());
+    private final OutputContextLookup outputContextLookup
+    private GroovyPageMetaInfo metaInfo
+    private boolean allowSettingContentType = false
+
+    GroovyPageTemplate(GroovyPageMetaInfo metaInfo) {
+        this(metaInfo, OutputContextLookupHelper.getOutputContextLookup())
     }
 
-    public GroovyPageTemplate(GroovyPageMetaInfo metaInfo, OutputContextLookup outputContextLookup) {
-        this.metaInfo = metaInfo;
-        this.outputContextLookup = outputContextLookup;
+    GroovyPageTemplate(GroovyPageMetaInfo metaInfo, OutputContextLookup outputContextLookup) {
+        this.metaInfo = metaInfo
+        this.outputContextLookup = outputContextLookup
     }
 
-    public Writable make() {
-        return new GroovyPageWritable(metaInfo, outputContextLookup, allowSettingContentType);
+    Writable make() {
+        return new GroovyPageWritable(metaInfo, outputContextLookup, allowSettingContentType)
     }
 
-    @SuppressWarnings("rawtypes")
-    public GroovyPageWritable make(Map binding) {
-        GroovyPageWritable gptw = new GroovyPageWritable(metaInfo, outputContextLookup, allowSettingContentType);
-        gptw.setBinding(binding);
-        return gptw;
+    @SuppressWarnings('rawtypes')
+    GroovyPageWritable make(Map binding) {
+        GroovyPageWritable gptw = new GroovyPageWritable(metaInfo, outputContextLookup, allowSettingContentType)
+        gptw.setBinding(binding)
+        return gptw
     }
 
-    public GroovyPageMetaInfo getMetaInfo() {
-        return metaInfo;
+    GroovyPageMetaInfo getMetaInfo() {
+        return metaInfo
     }
 
-    public boolean isAllowSettingContentType() {
-        return allowSettingContentType;
+    boolean isAllowSettingContentType() {
+        return allowSettingContentType
     }
 
-    public void setAllowSettingContentType(boolean allowSettingContentType) {
-        this.allowSettingContentType = allowSettingContentType;
+    void setAllowSettingContentType(boolean allowSettingContentType) {
+        this.allowSettingContentType = allowSettingContentType
     }
 
     @Override
-    public Object clone() {
-        GroovyPageTemplate cloned = new GroovyPageTemplate(metaInfo);
-        cloned.setAllowSettingContentType(allowSettingContentType);
-        return cloned;
+    Object clone() {
+        GroovyPageTemplate cloned = new GroovyPageTemplate(metaInfo)
+        cloned.setAllowSettingContentType(allowSettingContentType)
+        return cloned
     }
+
 }

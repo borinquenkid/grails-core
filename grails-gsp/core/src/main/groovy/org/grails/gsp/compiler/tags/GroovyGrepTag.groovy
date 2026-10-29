@@ -16,7 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.gsp.compiler.tags;
+
+import groovy.transform.CompileStatic;
 
 import grails.util.GrailsStringUtils;
 import org.grails.taglib.GrailsTagException;
@@ -26,7 +29,7 @@ import org.grails.taglib.GrailsTagException;
  * Example:
  *
  * <pre>
- * {@code 
+ * {@code
  *  <gr:grep in="${thing}" filter="${Pattern.compile('[a-zA-Z]')}">
  *        <p>${it}</p>
  *  </gr:grep>
@@ -35,46 +38,50 @@ import org.grails.taglib.GrailsTagException;
  *
  * @author Graeme Rocher
  */
-public class GroovyGrepTag extends GroovySyntaxTag {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+@CompileStatic
+class GroovyGrepTag extends GroovySyntaxTag {
 
-    public static final String TAG_NAME = "grep";
-    private static final String ATTRIBUTE_FILTER = "filter";
+    public static final String TAG_NAME = 'grep';
+    private static final String ATTRIBUTE_FILTER = 'filter';
 
     @Override
-    public boolean isKeepPrecedingWhiteSpace() {
+    boolean isKeepPrecedingWhiteSpace() {
         return false;
     }
 
     @Override
-    public boolean isAllowPrecedingContent() {
+    boolean isAllowPrecedingContent() {
         return true;
     }
 
-    public void doStartTag() {
+    void doStartTag() {
         String in = attributes.get(ATTRIBUTE_IN);
         if (GrailsStringUtils.isBlank(in)) {
-            throw new GrailsTagException("Tag [" + TAG_NAME + "] missing required attribute [" + ATTRIBUTE_IN + "]", parser.getPageName(), parser.getCurrentOutputLineNumber());
+            throw new GrailsTagException('Tag [' + TAG_NAME + '] missing required attribute [' + ATTRIBUTE_IN + ']', parser.getPageName(), parser.getCurrentOutputLineNumber());
         }
 
         String filter = attributes.get(ATTRIBUTE_FILTER);
         if (GrailsStringUtils.isBlank(filter)) {
-            throw new GrailsTagException("Tag [" + TAG_NAME + "] missing required attribute [" + ATTRIBUTE_FILTER + "]", parser.getPageName(), parser.getCurrentOutputLineNumber());
+            throw new GrailsTagException('Tag [' + TAG_NAME + '] missing required attribute [' + ATTRIBUTE_FILTER + ']', parser.getPageName(), parser.getCurrentOutputLineNumber());
         }
 
         StringBuilder builder = new StringBuilder();
         builder.append(in);
-        builder.append(".grep(");
+        builder.append('.grep(');
         filter = calculateExpression(filter);
         builder.append(filter);
-        builder.append(")");
+        builder.append(')');
         doEachMethod(builder.toString());
     }
 
-    public void doEndTag() {
+    void doEndTag() {
         endEachMethod();
     }
 
-    public String getName() {
+    String getName() {
         return TAG_NAME;
     }
+
 }

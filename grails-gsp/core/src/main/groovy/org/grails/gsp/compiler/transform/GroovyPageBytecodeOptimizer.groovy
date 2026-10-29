@@ -16,49 +16,50 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.gsp.compiler.transform;
+package org.grails.gsp.compiler.transform
 
-import java.net.URL;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.ast.MethodNode
+import org.codehaus.groovy.ast.Parameter
+import org.codehaus.groovy.ast.stmt.BlockStatement
+import org.codehaus.groovy.classgen.GeneratorContext
+import org.codehaus.groovy.control.SourceUnit
 
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.ast.MethodNode;
-import org.codehaus.groovy.ast.Parameter;
-import org.codehaus.groovy.ast.stmt.BlockStatement;
-import org.codehaus.groovy.classgen.GeneratorContext;
-import org.codehaus.groovy.control.SourceUnit;
-
-import grails.compiler.ast.AstTransformer;
-import grails.compiler.ast.GroovyPageInjector;
+import grails.compiler.ast.AstTransformer
+import grails.compiler.ast.GroovyPageInjector
 
 @AstTransformer
-public class GroovyPageBytecodeOptimizer implements GroovyPageInjector {
+@CompileStatic
+class GroovyPageBytecodeOptimizer implements GroovyPageInjector {
 
-    private final static String RUN_METHOD = "run";
+    private final static String RUN_METHOD = 'run'
 
-    public void performInjection(SourceUnit source, GeneratorContext context, ClassNode classNode) {
+    void performInjection(SourceUnit source, GeneratorContext context, ClassNode classNode) {
 
         // search run method in GSP script and get codeblock
-        MethodNode runMethod = classNode.getMethod(RUN_METHOD, new Parameter[0]);
+        MethodNode runMethod = classNode.getMethod(RUN_METHOD, new Parameter[0])
         if (runMethod != null && runMethod.getCode() instanceof BlockStatement) {
-            BlockStatement block = (BlockStatement) runMethod.getCode();
+            BlockStatement block = (BlockStatement) runMethod.getCode()
 
             //scan all MethodExpressionCalls to optimize them
-            GroovyPageOptimizerVisitor groovyPageVisitor = new GroovyPageOptimizerVisitor(classNode);
-            groovyPageVisitor.visitBlockStatement(block);
+            GroovyPageOptimizerVisitor groovyPageVisitor = new GroovyPageOptimizerVisitor(classNode)
+            groovyPageVisitor.visitBlockStatement(block)
         }
     }
 
-    public void performInjection(SourceUnit source, ClassNode classNode) {
-        performInjection(source, null, classNode);
+    void performInjection(SourceUnit source, ClassNode classNode) {
+        performInjection(source, null, classNode)
     }
 
     @Override
-    public void performInjectionOnAnnotatedClass(SourceUnit source, ClassNode classNode) {
-        performInjection(source, null, classNode);
+    void performInjectionOnAnnotatedClass(SourceUnit source, ClassNode classNode) {
+        performInjection(source, null, classNode)
     }
 
     //Avoid other injection
-    public boolean shouldInject(URL url) {
-        return false;
+    boolean shouldInject(URL url) {
+        return false
     }
+
 }

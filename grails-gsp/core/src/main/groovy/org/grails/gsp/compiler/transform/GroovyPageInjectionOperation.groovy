@@ -16,19 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.gsp.compiler.transform;
+package org.grails.gsp.compiler.transform
 
-import java.util.ArrayList;
-import java.util.List;
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.classgen.GeneratorContext
+import org.codehaus.groovy.control.CompilationFailedException
+import org.codehaus.groovy.control.SourceUnit
 
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.classgen.GeneratorContext;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.SourceUnit;
-
-import grails.compiler.ast.ClassInjector;
-import grails.compiler.ast.GroovyPageInjector;
-import org.grails.compiler.injection.GrailsAwareInjectionOperation;
+import grails.compiler.ast.ClassInjector
+import grails.compiler.ast.GroovyPageInjector
+import org.grails.compiler.injection.GrailsAwareInjectionOperation
 
 /**
  * A GroovyPage compiler injection operation that uses a specified array of ClassInjector instances to
@@ -37,33 +35,35 @@ import org.grails.compiler.injection.GrailsAwareInjectionOperation;
  * @author Stephane Maldini
  * @since 2.0
  */
-public class GroovyPageInjectionOperation extends GrailsAwareInjectionOperation {
+@CompileStatic
+class GroovyPageInjectionOperation extends GrailsAwareInjectionOperation {
 
-    private GroovyPageInjector[] groovyPageInjectors;
+    private GroovyPageInjector[] groovyPageInjectors
 
     @Override
-    public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
-        for (GroovyPageInjector classInjector : getGroovyPageInjectors()) {
+    void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
+        for (GroovyPageInjector classInjector in getGroovyPageInjectors()) {
             try {
-                classInjector.performInjection(source, context, classNode);
+                classInjector.performInjection(source, context, classNode)
             } catch (RuntimeException e) {
-                System.err.println("Error occurred calling AST injector [" + classInjector.getClass() + "]: " + e.getMessage());
-                e.printStackTrace(System.err);
-                throw e;
+                System.err.println('Error occurred calling AST injector [' + classInjector.getClass() + ']: ' + e.getMessage())
+                e.printStackTrace(System.err)
+                throw e
             }
         }
     }
 
     private GroovyPageInjector[] getGroovyPageInjectors() {
         if (groovyPageInjectors == null) {
-            List<GroovyPageInjector> injectors = new ArrayList<>();
-            for (ClassInjector ci : getClassInjectors()) {
+            List<GroovyPageInjector> injectors = new ArrayList<>()
+            for (ClassInjector ci in getClassInjectors()) {
                 if (ci instanceof GroovyPageInjector) {
-                    injectors.add((GroovyPageInjector) ci);
+                    injectors.add((GroovyPageInjector) ci)
                 }
             }
-            groovyPageInjectors = injectors.toArray(new GroovyPageInjector[injectors.size()]);
+            groovyPageInjectors = injectors.toArray(new GroovyPageInjector[injectors.size()])
         }
-        return groovyPageInjectors;
+        return groovyPageInjectors
     }
+
 }

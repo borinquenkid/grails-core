@@ -16,12 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.gsp.io;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import groovy.transform.CompileStatic;
 import org.springframework.core.io.Resource;
 
 import grails.util.CacheEntry;
@@ -33,17 +35,22 @@ import grails.util.CacheEntry;
  * @author Graeme Rocher
  * @since 2.0
  */
-public class CachingGroovyPageStaticResourceLocator extends GroovyPageStaticResourceLocator {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+@CompileStatic
+class CachingGroovyPageStaticResourceLocator extends GroovyPageStaticResourceLocator {
+
     private ConcurrentMap<String, CacheEntry<Resource>> uriResolveCache = new ConcurrentHashMap<>();
     private long cacheTimeout = -1;
 
     @Override
-    public Resource findResourceForURI(final String uri) {
-        Callable<Resource> updater = new Callable<>() {
-            public Resource call() {
-                Resource resource = CachingGroovyPageStaticResourceLocator.super.findResourceForURI(uri);
+    Resource findResourceForURI(final String uri) {
+        final Resource nullResource = NULL_RESOURCE;
+        Callable<Resource> updater = new Callable<Resource>() {
+            Resource call() {
+                Resource resource = superFindResourceForURI(uri);
                 if (resource == null) {
-                    resource = NULL_RESOURCE;
+                    resource = nullResource;
                 }
                 return resource;
             }
@@ -53,11 +60,21 @@ public class CachingGroovyPageStaticResourceLocator extends GroovyPageStaticReso
         return resource == NULL_RESOURCE ? null : resource;
     }
 
-    public long getCacheTimeout() {
+    /**
+     * Groovy has no {@code OuterClass.super.method()} syntax for reaching this class's own
+     * superclass from the anonymous {@link Callable} above, unlike Java's qualified super. This
+     * gives that call a name the anonymous class can invoke unambiguously.
+     */
+    private Resource superFindResourceForURI(String uri) {
+        return super.findResourceForURI(uri);
+    }
+
+    long getCacheTimeout() {
         return cacheTimeout;
     }
 
-    public void setCacheTimeout(long cacheTimeout) {
+    void setCacheTimeout(long cacheTimeout) {
         this.cacheTimeout = cacheTimeout;
     }
+
 }

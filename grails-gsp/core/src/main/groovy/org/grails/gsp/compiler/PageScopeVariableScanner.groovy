@@ -16,9 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.gsp.compiler;
+package org.grails.gsp.compiler
 
-import java.util.Set;
+import groovy.transform.CompileStatic
 
 /**
  * Finds the names a page introduces through the {@code var} and {@code status} attributes of the
@@ -39,6 +39,7 @@ import java.util.Set;
  * recursing once per character until the compiling thread runs out of stack. Here the work is linear
  * in the page and the depth of the call stack is constant, whatever the page contains.</p>
  */
+@CompileStatic
 final class PageScopeVariableScanner {
 
     private PageScopeVariableScanner() {
@@ -49,21 +50,21 @@ final class PageScopeVariableScanner {
      * namespaced tag in {@code source}.
      */
     static void collect(String source, Set<String> names) {
-        int length = source.length();
-        int i = 0;
+        int length = source.length()
+        int i = 0
         while (i < length) {
-            int afterNamespace = source.charAt(i) == '<' ? namespaceEnd(source, i + 1) : -1;
-            i = afterNamespace < 0 ? i + 1 : scanTag(source, afterNamespace, names);
+            int afterNamespace = source.charAt(i) == '<' ? namespaceEnd(source, i + 1) : -1
+            i = afterNamespace < 0 ? i + 1 : scanTag(source, afterNamespace, names)
         }
     }
 
     /** The index just past {@code \w+:} starting at {@code from}, or -1 when there is none there. */
     private static int namespaceEnd(String source, int from) {
-        int i = from;
+        int i = from
         while (i < source.length() && isWordChar(source.charAt(i))) {
-            i++;
+            i++
         }
-        return i > from && i < source.length() && source.charAt(i) == ':' ? i + 1 : -1;
+        return i > from && i < source.length() && source.charAt(i) == ':' ? i + 1 : -1
     }
 
     /**
@@ -71,24 +72,24 @@ final class PageScopeVariableScanner {
      * the index just past its closing {@code >}, or the end of the source when it has none.
      */
     private static int scanTag(String source, int from, Set<String> names) {
-        int length = source.length();
-        int i = from;
+        int length = source.length()
+        int i = from
         while (i < length) {
-            char c = source.charAt(i);
+            char c = source.charAt(i)
             if (c == '>') {
-                return i + 1;
+                return i + 1
             }
             if (isExpressionStart(source, i)) {
-                i = skipExpression(source, i + 2);
+                i = skipExpression(source, i + 2)
             } else if (c == '"' || c == '\'') {
-                i = skipAttributeValue(source, i + 1, c);
+                i = skipAttributeValue(source, i + 1, c)
             } else if (isWordChar(c) && !isWordChar(source.charAt(i - 1))) {
-                i = readAttributeName(source, i, names);
+                i = readAttributeName(source, i, names)
             } else {
-                i++;
+                i++
             }
         }
-        return length;
+        return length
     }
 
     /**
@@ -97,36 +98,36 @@ final class PageScopeVariableScanner {
      * leaving the value to be stepped over as any other quoted value is.
      */
     private static int readAttributeName(String source, int from, Set<String> names) {
-        int length = source.length();
-        int end = from;
+        int length = source.length()
+        int end = from
         while (end < length && isWordChar(source.charAt(end))) {
-            end++;
+            end++
         }
-        String name = source.substring(from, end);
-        if (!name.equals("var") && !name.equals("status")) {
-            return end;
+        String name = source.substring(from, end)
+        if (!name.equals('var') && !name.equals('status')) {
+            return end
         }
-        int i = skipWhitespace(source, end);
+        int i = skipWhitespace(source, end)
         if (i >= length || source.charAt(i) != '=') {
-            return end;
+            return end
         }
-        i = skipWhitespace(source, i + 1);
+        i = skipWhitespace(source, i + 1)
         if (i >= length || (source.charAt(i) != '"' && source.charAt(i) != '\'')) {
-            return end;
+            return end
         }
-        int identifierStart = i + 1;
-        int identifierEnd = identifierStart;
+        int identifierStart = i + 1
+        int identifierEnd = identifierStart
         if (identifierEnd < length && isIdentifierStart(source.charAt(identifierEnd))) {
-            identifierEnd++;
+            identifierEnd++
             while (identifierEnd < length && isIdentifierPart(source.charAt(identifierEnd))) {
-                identifierEnd++;
+                identifierEnd++
             }
-            char closing = identifierEnd < length ? source.charAt(identifierEnd) : 0;
+            char closing = identifierEnd < length ? source.charAt(identifierEnd) : (char) 0
             if (closing == '"' || closing == '\'') {
-                names.add(source.substring(identifierStart, identifierEnd));
+                names.add(source.substring(identifierStart, identifierEnd))
             }
         }
-        return end;
+        return end
     }
 
     /**
@@ -136,8 +137,8 @@ final class PageScopeVariableScanner {
      * the source.
      */
     private static int skipAttributeValue(String source, int from, char quote) {
-        int end = new GroovyPageExpressionParser(source, from, quote, (char) 0, false).parse();
-        return end < 0 ? source.length() : end + 1;
+        int end = new GroovyPageExpressionParser(source, from, quote, (char) 0, false).parse()
+        return end < 0 ? source.length() : end + 1
     }
 
     /**
@@ -146,32 +147,34 @@ final class PageScopeVariableScanner {
      * past the closing brace, or the end of the source.
      */
     private static int skipExpression(String source, int from) {
-        int end = new GroovyPageExpressionParser(source, from, '}', (char) 0, true).parse();
-        return end < 0 ? source.length() : end + 1;
+        int end = new GroovyPageExpressionParser(source, from, (char) '}', (char) 0, true).parse()
+        return end < 0 ? source.length() : end + 1
     }
 
     private static boolean isExpressionStart(String source, int i) {
-        return source.charAt(i) == '$' && i + 1 < source.length() && source.charAt(i + 1) == '{';
+        return source.charAt(i) == '$' && i + 1 < source.length() && source.charAt(i + 1) == '{'
     }
 
     private static int skipWhitespace(String source, int from) {
-        int i = from;
+        int i = from
         while (i < source.length() && Character.isWhitespace(source.charAt(i))) {
-            i++;
+            i++
         }
-        return i;
+        return i
     }
 
     /** {@code \w} as a regular expression reads it: ASCII letters, digits and underscore. */
     private static boolean isWordChar(char c) {
-        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
+        int code = (int) c
+        return (code >= 97 && code <= 122) || (code >= 65 && code <= 90) || (code >= 48 && code <= 57) || c == '_'
     }
 
     private static boolean isIdentifierStart(char c) {
-        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == '$';
+        int code = (int) c
+        return (code >= 97 && code <= 122) || (code >= 65 && code <= 90) || c == '_' || c == '$'
     }
 
     private static boolean isIdentifierPart(char c) {
-        return isWordChar(c) || c == '$';
+        return isWordChar(c) || c == '$'
     }
 }

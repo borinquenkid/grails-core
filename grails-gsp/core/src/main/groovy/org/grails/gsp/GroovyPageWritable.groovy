@@ -16,28 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.gsp;
+package org.grails.gsp
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.Writer;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import groovy.transform.CompileStatic
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-import groovy.lang.Binding;
-import groovy.lang.Writable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import grails.util.Environment;
-import org.grails.taglib.AbstractTemplateVariableBinding;
-import org.grails.taglib.TemplateVariableBinding;
-import org.grails.taglib.encoder.OutputContext;
-import org.grails.taglib.encoder.OutputContextLookup;
+import grails.util.Environment
+import org.grails.taglib.AbstractTemplateVariableBinding
+import org.grails.taglib.TemplateVariableBinding
+import org.grails.taglib.encoder.OutputContext
+import org.grails.taglib.encoder.OutputContextLookup
 
 /**
  * Writes itself to the specified writer, typically the response writer.
@@ -46,22 +35,25 @@ import org.grails.taglib.encoder.OutputContextLookup;
  * @author Lari Hotari
  * @since 0.5
  */
-public class GroovyPageWritable implements Writable {
-    private static final Logger LOG = LoggerFactory.getLogger(GroovyPageWritable.class);
-    private static final String GSP_NONE_CODEC_NAME = "none";
-    private GroovyPageMetaInfo metaInfo;
-    private OutputContextLookup outputContextLookup;
-    private boolean allowSettingContentType;
-    @SuppressWarnings("rawtypes")
-    private Map additionalBinding = new LinkedHashMap();
-    private boolean showSource;
+@CompileStatic
+class GroovyPageWritable implements Writable {
 
-    private static final String GROOVY_SOURCE_CONTENT_TYPE = "text/plain";
+    private static final Logger LOG = LoggerFactory.getLogger(GroovyPageWritable)
+    private static final String GSP_NONE_CODEC_NAME = 'none'
+    private GroovyPageMetaInfo metaInfo
+    private OutputContextLookup outputContextLookup
+    private boolean allowSettingContentType
 
-    public GroovyPageWritable(GroovyPageMetaInfo metaInfo, OutputContextLookup outputContextLookup, boolean allowSettingContentType) {
-        this.metaInfo = metaInfo;
-        this.outputContextLookup = outputContextLookup;
-        this.allowSettingContentType = allowSettingContentType;
+    @SuppressWarnings('rawtypes')
+    private Map additionalBinding = new LinkedHashMap()
+    private boolean showSource
+
+    private static final String GROOVY_SOURCE_CONTENT_TYPE = 'text/plain'
+
+    GroovyPageWritable(GroovyPageMetaInfo metaInfo, OutputContextLookup outputContextLookup, boolean allowSettingContentType) {
+        this.metaInfo = metaInfo
+        this.outputContextLookup = outputContextLookup
+        this.allowSettingContentType = allowSettingContentType
     }
 
     /**
@@ -69,10 +61,10 @@ public class GroovyPageWritable implements Writable {
      *
      * @param binding The additional variables
      */
-    @SuppressWarnings("rawtypes")
-    public void setBinding(Map binding) {
+    @SuppressWarnings('rawtypes')
+    void setBinding(Map binding) {
         if (binding != null) {
-            additionalBinding = binding;
+            additionalBinding = binding
         }
     }
 
@@ -83,130 +75,130 @@ public class GroovyPageWritable implements Writable {
      * @return Returns the passed Writer
      * @throws IOException
      */
-    public Writer writeTo(Writer out) throws IOException {
-        OutputContext outputContext = outputContextLookup.lookupOutputContext();
+    Writer writeTo(Writer out) throws IOException {
+        OutputContext outputContext = outputContextLookup.lookupOutputContext()
         try {
-            return doWriteTo(outputContext, out);
+            return doWriteTo(outputContext, out)
         } finally {
-            doCleanUp(outputContext, out);
+            doCleanUp(outputContext, out)
         }
     }
 
     protected void doCleanUp(OutputContext outputContext, Writer out) {
-        metaInfo.writeToFinished(out);
+        metaInfo.writeToFinished(out)
     }
 
     protected Writer doWriteTo(OutputContext outputContext, Writer out) throws IOException {
         if (shouldShowGroovySource(outputContext)) {
             // Set it to TEXT
-            outputContext.setContentType(GROOVY_SOURCE_CONTENT_TYPE); // must come before response.getOutputStream()
-            writeGroovySourceToResponse(metaInfo, out);
+            outputContext.setContentType(GROOVY_SOURCE_CONTENT_TYPE) // must come before response.getOutputStream()
+            writeGroovySourceToResponse(metaInfo, out)
         } else {
             // Set it to HTML by default
             if (metaInfo.getCompilationException() != null) {
-                throw metaInfo.getCompilationException();
+                throw metaInfo.getCompilationException()
             }
 
             // Set up the script context
-            AbstractTemplateVariableBinding parentBinding = null;
-            boolean hasRequest = outputContext != null;
-            boolean newParentCreated = false;
+            AbstractTemplateVariableBinding parentBinding = null
+            boolean hasRequest = outputContext != null
+            boolean newParentCreated = false
 
             if (hasRequest) {
-                parentBinding = outputContext.getBinding();
+                parentBinding = outputContext.getBinding()
                 if (parentBinding == null) {
-                    parentBinding = outputContext.createAndRegisterRootBinding();
-                    newParentCreated = true;
+                    parentBinding = outputContext.createAndRegisterRootBinding()
+                    newParentCreated = true
                 }
             }
 
             if (allowSettingContentType && hasRequest) {
                 // only try to set content type when evaluating top level GSP
-                boolean contentTypeAlreadySet = outputContext.isContentTypeAlreadySet();
+                boolean contentTypeAlreadySet = outputContext.isContentTypeAlreadySet()
                 if (!contentTypeAlreadySet) {
-                    LOG.debug("Writing output with content type: {}", metaInfo.getContentType());
-                    outputContext.setContentType(metaInfo.getContentType()); // must come before response.getWriter()
+                    LOG.debug('Writing output with content type: {}', metaInfo.getContentType())
+                    outputContext.setContentType(metaInfo.getContentType()) // must come before response.getWriter()
                 }
             }
 
-            GroovyPageBinding binding = createBinding(parentBinding);
+            GroovyPageBinding binding = createBinding(parentBinding)
             if (hasRequest) {
-                outputContext.setBinding(binding);
+                outputContext.setBinding(binding)
             }
-            Binding existingBinding = null;
-            GroovyPage page = null;
+            Binding existingBinding = null
+            GroovyPage page = null
             try {
-                page = metaInfo.getPageClassInstance();
-                existingBinding = page.getBinding();
+                page = metaInfo.getPageClassInstance()
+                existingBinding = page.getBinding()
             } catch (Exception e) {
-                throw new GroovyPagesException("Problem instantiating page class", e);
+                throw new GroovyPagesException('Problem instantiating page class', e)
             }
 
-            page.setBinding(binding);
-            binding.setOwner(page);
+            page.setBinding(binding)
+            binding.setOwner(page)
 
-            page.initRun(out, outputContext, metaInfo);
+            page.initRun(out, outputContext, metaInfo)
 
             try {
-                page.run();
+                page.run()
             } finally {
                 if (existingBinding != null) {
-                    page.setBinding(existingBinding);
+                    page.setBinding(existingBinding)
                 }
-                page.cleanup();
+                page.cleanup()
                 if (hasRequest) {
                     if (newParentCreated) {
-                        outputContext.setBinding(null);
+                        outputContext.setBinding(null)
                     } else {
-                        outputContext.setBinding(parentBinding);
+                        outputContext.setBinding(parentBinding)
                     }
                 }
             }
         }
-        return out;
+        return out
     }
 
     private int incrementAndGetDebugTemplatesIdCounter(OutputContext outputContext) {
         //debugTemplatesIdCounter.incrementAndGet()
-        return 0;
+        return 0
     }
 
     private boolean shouldShowGroovySource(OutputContext outputContext) {
-        return isShowSource() && Environment.getCurrent() == Environment.DEVELOPMENT && metaInfo.getGroovySource() != null;
+        return isShowSource() && Environment.getCurrent() == Environment.DEVELOPMENT && metaInfo.getGroovySource() != null
     }
 
-    private static final GspNoneCodec gspNoneCodeInstance = new GspNoneCodec();
+    private static final GspNoneCodec gspNoneCodeInstance = new GspNoneCodec()
 
-    public boolean isShowSource() {
-        return showSource;
+    boolean isShowSource() {
+        return showSource
     }
 
-    public void setShowSource(boolean showSource) {
-        this.showSource = showSource;
+    void setShowSource(boolean showSource) {
+        this.showSource = showSource
     }
 
     private static final class GspNoneCodec {
-        @SuppressWarnings("unused")
-        public final Object encode(Object object) {
-            return object;
+        @SuppressWarnings('unused')
+        final Object encode(Object object) {
+            return object
         }
     }
 
     private GroovyPageBinding createBinding(Binding parent) {
-        GroovyPageBinding binding = new GroovyPageBinding();
-        binding.setParent(parent);
-        binding.setVariableDirectly("it", null);
+        GroovyPageBinding binding = new GroovyPageBinding()
+        binding.setParent(parent)
+        binding.setVariableDirectly('it', null)
         if (additionalBinding != null) {
-            binding.addMap(additionalBinding);
+            binding.addMap(additionalBinding)
         }
         // set plugin context path for top level rendering, this means actual view + layout
         // view is top level when parent is GroovyPageRequestBinding
         // pluginContextPath is also resetted when a plugin template is overrided by an application view
-        if (parent == null || (parent instanceof TemplateVariableBinding && ((TemplateVariableBinding) parent).isRoot()) || "".equals(metaInfo.getPluginPath())) {
-            binding.setPluginContextPath(metaInfo.getPluginPath());
+        if (parent == null || (parent instanceof TemplateVariableBinding && ((TemplateVariableBinding) parent).isRoot()) || ''.equals(metaInfo.getPluginPath())) {
+            binding.setPluginContextPath(metaInfo.getPluginPath())
         }
-        binding.setPagePlugin(metaInfo.getPagePlugin());
-        return binding;
+        binding.setPagePlugin(metaInfo.getPagePlugin())
+        return binding
     }
 
     /**
@@ -217,18 +209,18 @@ public class GroovyPageWritable implements Writable {
      */
     protected void writeInputStreamToResponse(InputStream in, Writer out) throws IOException {
         try {
-            in.reset();
-            Reader reader = new InputStreamReader(in, "UTF-8");
-            char[] buf = new char[8192];
+            in.reset()
+            Reader reader = new InputStreamReader(in, 'UTF-8')
+            char[] buf = new char[8192]
 
-            for (; ; ) {
-                int read = reader.read(buf);
-                if (read <= 0) break;
-                out.write(buf, 0, read);
+            for (;;) {
+                int read = reader.read(buf)
+                if (read <= 0) break
+                out.write(buf, 0, read)
             }
         } finally {
-            out.close();
-            in.close();
+            out.close()
+            in.close()
         }
     }
 
@@ -244,52 +236,53 @@ public class GroovyPageWritable implements Writable {
      * stream for the Groovy source, or the writer.
      */
     protected void writeGroovySourceToResponse(GroovyPageMetaInfo info, Writer out) throws IOException {
-        InputStream in = info.getGroovySource();
-        if (in == null) return;
+        InputStream in = info.getGroovySource()
+        if (in == null) return
         try {
             try {
-                in.reset();
-            } catch (IOException e) {
+                in.reset()
+            } catch (IOException ignored) {
                 // ignore
             }
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, 'UTF-8'))
 
-            int lineNum = 1;
-            int maxPaddingSize = 3;
+            int lineNum = 1
+            int maxPaddingSize = 3
 
             // Prepare the buffer containing the whitespace padding.
             // The padding is used to right-align the line numbers.
-            StringBuilder paddingBuffer = new StringBuilder(maxPaddingSize);
+            StringBuilder paddingBuffer = new StringBuilder(maxPaddingSize)
             for (int i = 0; i < maxPaddingSize; i++) {
-                paddingBuffer.append(' ');
+                paddingBuffer.append(' ')
             }
 
             // Set the initial padding.
-            String padding = paddingBuffer.toString();
+            String padding = paddingBuffer.toString()
 
             // Read the Groovy source line by line and write it to the
             // response, prefixing each line with the line number.
             for (String line = reader.readLine(); line != null; line = reader.readLine(), lineNum++) {
                 // Get the current line number as a string.
-                String numberText = String.valueOf(lineNum);
+                String numberText = String.valueOf(lineNum)
 
                 // Decrease the padding if the current line number has
                 // more digits than the previous one.
                 if (padding.length() + numberText.length() > 4) {
-                    paddingBuffer.deleteCharAt(padding.length() - 1);
-                    padding = paddingBuffer.toString();
+                    paddingBuffer.deleteCharAt(padding.length() - 1)
+                    padding = paddingBuffer.toString()
                 }
 
                 // Write out this line.
-                out.write(padding);
-                out.write(numberText);
-                out.write(": ");
-                out.write(line);
-                out.write('\n');
+                out.write(padding)
+                out.write(numberText)
+                out.write(': ')
+                out.write(line)
+                out.write('\n')
             }
         } finally {
-            out.close();
-            in.close();
+            out.close()
+            in.close()
         }
     }
+
 }

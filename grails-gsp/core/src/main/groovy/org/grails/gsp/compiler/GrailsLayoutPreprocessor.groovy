@@ -16,10 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.gsp.compiler;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import groovy.transform.CompileStatic;
 
 /**
  * Adds GSP Grails Layout integration directly to compiled GSP.
@@ -30,17 +33,20 @@ import java.util.regex.Pattern;
  *
  * @author <a href="mailto:lari.hotari@sagire.fi">Lari Hotari, Sagire Software Oy</a>
  */
-public class GrailsLayoutPreprocessor {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+@CompileStatic
+class GrailsLayoutPreprocessor {
 
-    Pattern parameterPattern = Pattern.compile("<parameter(\\s+name[^>]+?)(/*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    Pattern metaPattern = Pattern.compile("<meta(\\s[^>]+?)(/*?)>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    Pattern titlePattern = Pattern.compile("<title(\\s[^>]*)?>(.*?)</title>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    Pattern headPattern = Pattern.compile("<head(\\s[^>]*)?>(.*?)</head>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    Pattern bodyPattern = Pattern.compile("<body(\\s[^>]*)?>(.*?)</body>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    Pattern contentPattern = Pattern.compile("<content(\\s+tag[^>]+)>(.*?)</content>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    public static final String XML_CLOSING_FOR_EMPTY_TAG_ATTRIBUTE_NAME = "gsp_sm_xmlClosingForEmptyTag";
+    Pattern parameterPattern = Pattern.compile('<parameter(\\s+name[^>]+?)(/*?)>', Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    Pattern metaPattern = Pattern.compile('<meta(\\s[^>]+?)(/*?)>', Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    Pattern titlePattern = Pattern.compile('<title(\\s[^>]*)?>(.*?)</title>', Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    Pattern headPattern = Pattern.compile('<head(\\s[^>]*)?>(.*?)</head>', Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    Pattern bodyPattern = Pattern.compile('<body(\\s[^>]*)?>(.*?)</body>', Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    Pattern contentPattern = Pattern.compile('<content(\\s+tag[^>]+)>(.*?)</content>', Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    public static final String XML_CLOSING_FOR_EMPTY_TAG_ATTRIBUTE_NAME = 'gsp_sm_xmlClosingForEmptyTag';
 
-    public String addGspGrailsLayoutCapturing(String gspSource) {
+    String addGspGrailsLayoutCapturing(String gspSource) {
         StringBuilder sb = addHeadCapturing(gspSource);
         sb = addBodyCapturing(sb);
         sb = addContentCapturing(sb);
@@ -51,14 +57,14 @@ public class GrailsLayoutPreprocessor {
         StringBuilder sb = new StringBuilder((int) (gspSource.length() * 1.2));
         Matcher m = headPattern.matcher(gspSource);
         if (m.find()) {
-            m.appendReplacement(sb, "");
-            sb.append("<grailsLayout:captureHead");
+            m.appendReplacement(sb, '');
+            sb.append('<grailsLayout:captureHead');
             if (m.group(1) != null) {
                 sb.append(m.group(1));
             }
-            sb.append(">");
+            sb.append('>');
             sb.append(addMetaCapturing(addTitleCapturing(m.group(2))));
-            sb.append("</grailsLayout:captureHead>");
+            sb.append('</grailsLayout:captureHead>');
             m.appendTail(sb);
         } else if (!bodyPattern.matcher(gspSource).find()) {
             // no body either, so replace meta & title in the entire gsp source
@@ -73,23 +79,24 @@ public class GrailsLayoutPreprocessor {
     String addMetaCapturing(String headContent) {
         Matcher m = metaPattern.matcher(headContent);
         final String result = parameterPattern.matcher(
-                m.replaceAll("<grailsLayout:captureMeta " + XML_CLOSING_FOR_EMPTY_TAG_ATTRIBUTE_NAME + "=\"$2\"$1/>")
-        ).replaceAll("<grailsLayout:parameter$1/>");
+                m.replaceAll('<grailsLayout:captureMeta ' + XML_CLOSING_FOR_EMPTY_TAG_ATTRIBUTE_NAME + '="\$2"\$1/>')
+        ).replaceAll('<grailsLayout:parameter\$1/>');
         return result;
     }
 
     String addTitleCapturing(String headContent) {
         Matcher m = titlePattern.matcher(headContent);
-        return m.replaceAll("<grailsLayout:wrapTitleTag><grailsLayout:captureTitle$1>$2</grailsLayout:captureTitle></grailsLayout:wrapTitleTag>");
+        return m.replaceAll('<grailsLayout:wrapTitleTag><grailsLayout:captureTitle\$1>\$2</grailsLayout:captureTitle></grailsLayout:wrapTitleTag>');
     }
 
     StringBuilder addBodyCapturing(StringBuilder sb) {
         Matcher m = bodyPattern.matcher(sb);
-        return new StringBuilder(m.replaceAll("<grailsLayout:captureBody$1>$2</grailsLayout:captureBody>"));
+        return new StringBuilder(m.replaceAll('<grailsLayout:captureBody\$1>\$2</grailsLayout:captureBody>'));
     }
 
     StringBuilder addContentCapturing(StringBuilder sb) {
         Matcher m = contentPattern.matcher(sb);
-        return new StringBuilder(m.replaceAll("<grailsLayout:captureContent$1>$2</grailsLayout:captureContent>"));
+        return new StringBuilder(m.replaceAll('<grailsLayout:captureContent\$1>\$2</grailsLayout:captureContent>'));
     }
+
 }

@@ -16,14 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.gsp.io;
+package org.grails.gsp.io
 
-import java.io.IOException;
-import java.security.PrivilegedAction;
+import java.security.PrivilegedAction
 
-import org.springframework.core.io.Resource;
+import groovy.transform.CompileStatic
+import org.springframework.core.io.Resource
 
-import org.grails.gsp.GroovyPageMetaInfo;
+import org.grails.gsp.GroovyPageMetaInfo
 
 /**
  * Represents a pre-compiled GSP.
@@ -31,22 +31,24 @@ import org.grails.gsp.GroovyPageMetaInfo;
  * @author Graeme Rocher
  * @since 2.0
  */
-public class GroovyPageCompiledScriptSource implements GroovyPageScriptSource {
-    private String uri;
-    private Class<?> compiledClass;
-    private GroovyPageMetaInfo groovyPageMetaInfo;
-    private PrivilegedAction<Resource> resourceCallable;
-    private boolean isPublic;
+@CompileStatic
+class GroovyPageCompiledScriptSource implements GroovyPageScriptSource {
 
-    public GroovyPageCompiledScriptSource(String uri, String fullPath, Class<?> compiledClass) {
-        this.uri = uri;
-        this.isPublic = GroovyPageResourceScriptSource.isPublicPath(fullPath);
-        this.compiledClass = compiledClass;
-        this.groovyPageMetaInfo = new GroovyPageMetaInfo(compiledClass);
+    private String uri
+    private Class<?> compiledClass
+    private GroovyPageMetaInfo groovyPageMetaInfo
+    private PrivilegedAction<Resource> resourceCallable
+    private boolean isPublic
+
+    GroovyPageCompiledScriptSource(String uri, String fullPath, Class<?> compiledClass) {
+        this.uri = uri
+        this.isPublic = GroovyPageResourceScriptSource.isPublicPath(fullPath)
+        this.compiledClass = compiledClass
+        this.groovyPageMetaInfo = new GroovyPageMetaInfo(compiledClass)
     }
 
-    public String getURI() {
-        return uri;
+    String getURI() {
+        return uri
     }
 
     /**
@@ -54,43 +56,44 @@ public class GroovyPageCompiledScriptSource implements GroovyPageScriptSource {
      *
      * @return true if it can be rendered publicly
      */
-    public boolean isPublic() {
-        return isPublic;
+    boolean isPublic() {
+        return isPublic
     }
 
     /**
      * @return The compiled class
      */
-    public Class<?> getCompiledClass() {
-        return compiledClass;
+    Class<?> getCompiledClass() {
+        return compiledClass
     }
 
-    public String getScriptAsString() throws IOException {
-        throw new UnsupportedOperationException("You cannot retrieve the source of a pre-compiled GSP script: " + uri);
+    String getScriptAsString() throws IOException {
+        throw new UnsupportedOperationException('You cannot retrieve the source of a pre-compiled GSP script: ' + uri)
     }
 
-    public boolean isModified() {
+    boolean isModified() {
         if (resourceCallable == null) {
-            return false;
+            return false
         }
-        return groovyPageMetaInfo.shouldReload(resourceCallable);
+        return groovyPageMetaInfo.shouldReload(resourceCallable)
     }
 
-    public GroovyPageResourceScriptSource getReloadableScriptSource() {
-        if (resourceCallable == null) return null;
-        Resource resource = groovyPageMetaInfo.checkIfReloadableResourceHasChanged(resourceCallable);
-        return resource == null ? null : new GroovyPageResourceScriptSource(uri, resource);
+    GroovyPageResourceScriptSource getReloadableScriptSource() {
+        if (resourceCallable == null) return null
+        Resource resource = groovyPageMetaInfo.checkIfReloadableResourceHasChanged(resourceCallable)
+        return resource == null ? null : new GroovyPageResourceScriptSource(uri, resource)
     }
 
-    public String suggestedClassName() {
-        return compiledClass.getName();
+    String suggestedClassName() {
+        return compiledClass.getName()
     }
 
-    public GroovyPageMetaInfo getGroovyPageMetaInfo() {
-        return groovyPageMetaInfo;
+    GroovyPageMetaInfo getGroovyPageMetaInfo() {
+        return groovyPageMetaInfo
     }
 
-    public void setResourceCallable(PrivilegedAction<Resource> resourceCallable) {
-        this.resourceCallable = resourceCallable;
+    void setResourceCallable(PrivilegedAction<Resource> resourceCallable) {
+        this.resourceCallable = resourceCallable
     }
+
 }

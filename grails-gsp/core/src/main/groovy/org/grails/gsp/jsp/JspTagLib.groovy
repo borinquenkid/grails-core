@@ -16,19 +16,19 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.gsp.jsp;
+package org.grails.gsp.jsp
 
 /**
  * An interface that represents a Jsp taglib
  *
  * @author Graeme Rocher
  */
-public interface JspTagLib {
+interface JspTagLib {
 
     /**
      * @return The URI of the tag library
      */
-    String getURI();
+    String getURI()
 
     /**
      * Obtains a reference to a JspTag instance contained within the library
@@ -36,6 +36,6 @@ public interface JspTagLib {
      * @param name The name of the tag
      * @return A JspTag instance or null if it doesn't exist
      */
-    JspTag getTag(String name);
+    JspTag getTag(String name)
 
 }
