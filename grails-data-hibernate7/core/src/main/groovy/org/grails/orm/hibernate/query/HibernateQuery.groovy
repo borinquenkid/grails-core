@@ -52,6 +52,7 @@ import org.grails.datastore.mapping.query.Query.Negation
 import org.grails.datastore.mapping.query.Query.Order
 import org.grails.datastore.mapping.query.Query.Projection
 import org.grails.datastore.mapping.query.Query.ProjectionList
+import org.grails.datastore.mapping.query.api.QueryArgumentsAware
 import org.grails.datastore.mapping.query.api.QueryableCriteria
 import org.grails.datastore.mapping.query.event.PostQueryEvent
 import org.grails.datastore.mapping.query.event.PreQueryEvent
@@ -68,7 +69,7 @@ import org.grails.orm.hibernate.proxy.HibernateProxyHandler
  */
 @CompileStatic
 @SuppressWarnings('rawtypes')
-class HibernateQuery extends Query {
+class HibernateQuery extends Query implements QueryArgumentsAware {
 
     protected static final String ALIAS = '_alias'
     private final Map<String, CriteriaAndAlias> createdAssociationPaths = [:]
@@ -515,6 +516,17 @@ class HibernateQuery extends Query {
         return firePostQueryEvent(result)
     }
 
+    /**
+     * Runs the query for a criteria {@code get}: the one row that matches, {@code null} for none,
+     * and a {@link org.hibernate.NonUniqueResultException} when several match.
+     */
+    Object uniqueResult() {
+        firePreQueryEvent()
+        JpaCriteriaQueryCreator<?> creator = createJpaCriteriaQueryCreator()
+        Object result = hibernateQueryExecutor.uniqueResult(currentSession, creator.createQuery(), creator.parameterValues)
+        return firePostQueryEvent(result)
+    }
+
     private Object executeSingleResult() {
         return singleResult(currentSession)
     }
@@ -632,6 +644,46 @@ class HibernateQuery extends Query {
 
     void setReadOnly(Boolean readOnly) {
         this.readOnly = readOnly
+    }
+
+    /**
+     * Applies the Hibernate settings of a GORM query arguments map: {@code fetchSize}, {@code timeout},
+     * {@code readOnly} and {@code flushMode}. Settings absent from the map keep their current value.
+     *
+     * @param arguments the query arguments, may be {@code null}
+     * @throws IllegalArgumentException when a numeric argument cannot be converted
+     */
+    @Override
+    void setArguments(Map arguments) {
+        HibernateQuerySettings settings = HibernateQuerySettings.from(arguments)
+        if (settings.fetchSize() != null) {
+            this.fetchSize = settings.fetchSize()
+        }
+        if (settings.timeout() != null) {
+            this.timeout = settings.timeout()
+        }
+        if (settings.readOnly() != null) {
+            this.readOnly = settings.readOnly()
+        }
+        if (settings.flushMode() != null) {
+            this.flushMode = settings.flushMode()
+        }
+    }
+
+    Integer getFetchSize() {
+        return fetchSize
+    }
+
+    Integer getTimeout() {
+        return timeout
+    }
+
+    Boolean getReadOnly() {
+        return readOnly
+    }
+
+    QueryFlushMode getFlushMode() {
+        return flushMode
     }
 
     DetachedCriteria<?> getHibernateCriteria() {

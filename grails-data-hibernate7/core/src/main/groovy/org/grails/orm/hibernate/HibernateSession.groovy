@@ -32,6 +32,7 @@ import org.hibernate.query.MutationQuery
 
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.convert.ConversionService
+import org.springframework.dao.InvalidDataAccessResourceUsageException
 import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.support.TransactionSynchronizationManager
 
@@ -59,6 +60,8 @@ import org.grails.orm.hibernate.query.HibernateHqlQueryCreator
 import org.grails.orm.hibernate.query.HibernateQuery
 import org.grails.orm.hibernate.query.HqlQueryContext
 import org.grails.orm.hibernate.query.MutationHqlQuery
+import org.grails.orm.hibernate.query.SqlRestriction
+import org.grails.orm.hibernate.query.SqlRestrictionHqlRenderer
 
 /**
  * Session implementation that wraps a Hibernate {@link org.hibernate.Session}.
@@ -68,6 +71,11 @@ import org.grails.orm.hibernate.query.MutationHqlQuery
 @CompileStatic
 @SuppressWarnings('rawtypes')
 class HibernateSession extends AbstractAttributeStoringSession implements QueryAliasAwareSession {
+
+    static {
+        // A bulk delete or update is written as HQL by JpaQueryBuilder, which does not know SqlRestriction.
+        JpaQueryBuilder.registerHqlRenderer(SqlRestriction, new SqlRestrictionHqlRenderer())
+    }
 
     /** The datastore. */
     protected HibernateDatastore datastore
@@ -305,6 +313,7 @@ class HibernateSession extends AbstractAttributeStoringSession implements QueryA
      */
     @Override
     long deleteAll(QueryableCriteria criteria) {
+        rejectPagination(criteria, 'deleteAll()')
         return getHibernateTemplate().execute({ Session session ->
             JpaQueryBuilder builder = new JpaQueryBuilder(criteria)
             builder.conversionService = mappingContext.conversionService
@@ -322,6 +331,30 @@ class HibernateSession extends AbstractAttributeStoringSession implements QueryA
                     new PostQueryEvent(datastore, hqlQuery, Collections.singletonList(result)))
             return result
         } as GrailsHibernateTemplate.HibernateCallback<Integer>)
+    }
+
+    /**
+     * A bulk {@code delete} or {@code update} statement has no {@code LIMIT} or {@code OFFSET}, so a
+     * criteria that carries {@code max} or {@code offset} would write to every matching row. Refuse it.
+     */
+    private static void rejectPagination(QueryableCriteria<?> criteria, String operation) {
+        Integer max = criteria.getDefaultMax()
+        Integer offset = criteria.getDefaultOffset()
+        if (max == null && offset == null) {
+            return
+        }
+        StringBuilder unsupported = new StringBuilder()
+        if (max != null) {
+            unsupported.append('max(').append(max).append(')')
+        }
+        if (offset != null) {
+            if (!unsupported.isEmpty()) {
+                unsupported.append(', ')
+            }
+            unsupported.append('offset(').append(offset).append(')')
+        }
+        throw new InvalidDataAccessResourceUsageException(operation + ' cannot limit the rows it writes to, ' +
+                'so it does not support ' + unsupported + '; remove it or select the ids first')
     }
 
     private MutationQuery createMutationQuery(Session session, JpaQueryInfo jpaQueryInfo) {
@@ -345,6 +378,7 @@ class HibernateSession extends AbstractAttributeStoringSession implements QueryA
      */
     @Override
     long updateAll(QueryableCriteria criteria, Map<String, Object> properties) {
+        rejectPagination(criteria, 'updateAll()')
         return getHibernateTemplate().execute({ Session session ->
             JpaQueryBuilder builder = new JpaQueryBuilder(criteria)
             builder.conversionService = mappingContext.conversionService

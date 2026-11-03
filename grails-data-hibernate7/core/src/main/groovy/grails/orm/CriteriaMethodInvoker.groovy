@@ -113,6 +113,7 @@ class CriteriaMethodInvoker {
             builder.setPaginationEnabledList(true)
             if (args[0] instanceof Map) {
                 Map map = (Map) args[0]
+                hibernateQuery.setArguments(map)
                 Object maxValue = map.get('max')
                 if (maxValue instanceof Number) {
                     hibernateQuery.maxResults(maxValue.intValue())
@@ -168,7 +169,7 @@ class CriteriaMethodInvoker {
             }
         }
         else {
-            result = hibernateQuery.singleResult()
+            result = hibernateQuery.uniqueResult()
         }
         if (!builder.isParticipate()) {
             builder.closeSession()

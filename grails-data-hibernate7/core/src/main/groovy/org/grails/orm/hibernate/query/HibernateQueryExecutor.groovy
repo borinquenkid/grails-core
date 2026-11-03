@@ -25,6 +25,7 @@ import jakarta.persistence.LockModeType
 import jakarta.persistence.Parameter
 import jakarta.persistence.Tuple
 import jakarta.persistence.criteria.ParameterExpression
+import org.hibernate.NonUniqueResultException
 import org.hibernate.Session
 import org.hibernate.query.Query
 import org.hibernate.query.QueryFlushMode
@@ -65,6 +66,24 @@ record HibernateQueryExecutor(
         } catch (jakarta.persistence.NoResultException e) {
             return null
         }
+    }
+
+    /**
+     * Returns the one row the query matches, {@code null} when none match, and fails when several
+     * match, as the criteria {@code get} of Hibernate 5 does. {@link #singleResult} returns the
+     * first of several rows instead.
+     *
+     * @throws NonUniqueResultException when more than one row matches
+     */
+    Object uniqueResult(Session session, JpaCriteriaQuery jpaCq, Map<ParameterExpression<?>, Object> parameterValues) {
+        List<?> results = configureQuery(session, jpaCq, parameterValues).resultList
+        if (results.isEmpty()) {
+            return null
+        }
+        if (results.size() > 1) {
+            throw new NonUniqueResultException(results.size())
+        }
+        return proxyHandler.unwrap(results.get(0))
     }
 
     @SuppressWarnings('unchecked')
