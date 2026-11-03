@@ -27,34 +27,28 @@ import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Expression
 import jakarta.persistence.criteria.From
-import jakarta.persistence.criteria.Join
-import jakarta.persistence.criteria.JoinType
-import jakarta.persistence.criteria.ParameterExpression
 import jakarta.persistence.criteria.Path
 import jakarta.persistence.criteria.Predicate
-import jakarta.persistence.criteria.Subquery
 import org.hibernate.query.criteria.HibernateCriteriaBuilder
-import org.hibernate.query.criteria.JpaSubQuery
 
 import org.springframework.core.convert.ConversionService
 
-import grails.gorm.DetachedCriteria
 import org.grails.datastore.gorm.query.criteria.DetachedAssociationCriteria
 import org.grails.datastore.mapping.core.exceptions.ConfigurationException
 import org.grails.datastore.mapping.model.PersistentEntity
 import org.grails.datastore.mapping.model.PersistentProperty
 import org.grails.datastore.mapping.model.types.Association
-import org.grails.datastore.mapping.query.Projections
 import org.grails.datastore.mapping.query.Query
-import org.grails.datastore.mapping.query.api.QueryableCriteria
+import org.grails.datastore.mapping.query.criteria.FunctionCallingCriterion
 import org.grails.orm.hibernate.cfg.domainbinding.hibernate.GrailsHibernatePersistentEntity
-import org.grails.orm.hibernate.cfg.domainbinding.hibernate.HibernatePersistentProperty
-import org.grails.orm.hibernate.cfg.domainbinding.hibernate.HibernateToManyProperty
 
 /**
- * A class that generates predicates for a given list of criteria.
+ * Converts Grails Datastore query criteria into JPA {@link Predicate} instances.
+ * Dispatches criteria to dedicated {@link InternalCriterionHandler} implementations
+ * while supporting custom criterion extension via {@link CriterionHandler}.
  *
- * @since 8.0
+ * @author Graeme Rocher
+ * @since 6.0
  */
 @CompileStatic
 class PredicateGenerator {
@@ -231,6 +225,82 @@ class PredicateGenerator {
     public static final Map<Class<? extends Query.Criterion>, CriterionHandler> CUSTOM_HANDLERS =
         new ConcurrentHashMap<>()
 
+    private static final Map<Class<? extends Query.QueryElement>, InternalCriterionHandler<?>> BUILTIN_HANDLERS =
+        new ConcurrentHashMap<>()
+
+    static {
+        registerBuiltinHandlers()
+    }
+
+    private static void registerBuiltinHandlers() {
+        registerHandler(Query.IdEquals, { CriterionContext context, Query.IdEquals idEquals ->
+            String propertyName = context.entity.identity.name
+            Expression<?> propertyPath = context.resolvePath(propertyName)
+            return context.criteriaBuilder.equal(propertyPath, context.convertValue(propertyName, idEquals.value, propertyPath))
+        } as InternalCriterionHandler<Query.IdEquals>)
+        registerHandler(SqlRestriction, new SqlRestrictionCriterionHandler())
+        registerHandler(Query.DistinctProjection, { CriterionContext context, Query.DistinctProjection criterion ->
+            context.criteriaBuilder.conjunction()
+        } as InternalCriterionHandler<Query.DistinctProjection>)
+        registerHandler(HibernateAlias, { CriterionContext context, HibernateAlias criterion -> null } as InternalCriterionHandler<HibernateAlias>)
+        registerHandler(DetachedAssociationCriteria, { CriterionContext context, DetachedAssociationCriteria criterion ->
+            AssociationCriterionHandler.handleDetachedAssociationCriteria(context, criterion)
+        } as InternalCriterionHandler<DetachedAssociationCriteria>)
+        registerHandler(HibernateAssociationQuery, { CriterionContext context, HibernateAssociationQuery criterion ->
+            AssociationCriterionHandler.handleHibernateAssociationQuery(context, criterion)
+        } as InternalCriterionHandler<HibernateAssociationQuery>)
+        registerHandler(FunctionCallingCriterion, new FunctionCallingCriterionHandler())
+        registerHandler(Query.Exists, new ExistsCriterionHandler())
+        registerHandler(Query.NotExists, new NotExistsCriterionHandler())
+        for (Class<? extends Query.QueryElement> type : [Query.Junction, Query.Conjunction, Query.Disjunction, Query.Negation]) {
+            registerHandler(type, new JunctionCriterionHandler())
+        }
+        for (Class<? extends Query.QueryElement> type : [
+                Query.SubqueryCriterion, Query.EqualsAll, Query.NotEqualsAll, Query.GreaterThanAll,
+                Query.GreaterThanSome, Query.GreaterThanEqualsAll, Query.GreaterThanEqualsSome,
+                Query.LessThanAll, Query.LessThanSome, Query.LessThanEqualsAll, Query.LessThanEqualsSome,
+                Query.NotIn]) {
+            registerHandler(type, new SubqueryCriterionHandler())
+        }
+        for (Class<? extends Query.QueryElement> type : [
+                Query.PropertyNameCriterion, Query.IsNull, Query.IsNotNull, Query.IsEmpty, Query.IsNotEmpty]) {
+            registerHandler(type, new PropertyNameCriterionHandler())
+        }
+        for (Class<? extends Query.QueryElement> type : [
+                Query.PropertyComparisonCriterion, Query.EqualsProperty, Query.NotEqualsProperty,
+                Query.GreaterThanProperty, Query.GreaterThanEqualsProperty, Query.LessThanProperty,
+                Query.LessThanEqualsProperty]) {
+            registerHandler(type, new PropertyComparisonCriterionHandler())
+        }
+        for (Class<? extends Query.QueryElement> type : [
+                Query.PropertyCriterion, Query.Equals, Query.NotEquals, Query.Like, Query.ILike, Query.RLike,
+                Query.GreaterThan, Query.GreaterThanEquals, Query.LessThan, Query.LessThanEquals, Query.Between,
+                Query.In, Query.SizeEquals, Query.SizeNotEquals, Query.SizeGreaterThan,
+                Query.SizeGreaterThanEquals, Query.SizeLessThan, Query.SizeLessThanEquals, EqualsIgnoreCase]) {
+            registerHandler(type, new PropertyCriterionHandler())
+        }
+    }
+
+    private static void registerHandler(Class<? extends Query.QueryElement> type, InternalCriterionHandler<?> handler) {
+        BUILTIN_HANDLERS.put(type, handler)
+    }
+
+    @SuppressWarnings('unchecked')
+    private static InternalCriterionHandler<Query.QueryElement> findHandler(Class<?> criterionClass) {
+        InternalCriterionHandler<?> handler = BUILTIN_HANDLERS.get(criterionClass)
+        if (handler != null) {
+            return (InternalCriterionHandler<Query.QueryElement>) handler
+        }
+
+        for (Class<?> current = criterionClass.superclass; current != null && Query.QueryElement.isAssignableFrom(current); current = current.superclass) {
+            InternalCriterionHandler<?> matched = BUILTIN_HANDLERS.get(current)
+            if (matched != null) {
+                return (InternalCriterionHandler<Query.QueryElement>) matched
+            }
+        }
+        return null
+    }
+
     private static final Map<Class<? extends Query.Order>, OrderHandler> CUSTOM_ORDER_HANDLERS =
         new ConcurrentHashMap<>()
 
@@ -369,14 +439,6 @@ class PredicateGenerator {
         return result.toArray(new Predicate[0])
     }
 
-    private boolean isCollectionPath(Expression<?> expression) {
-        if (expression instanceof jakarta.persistence.criteria.Path) {
-            jakarta.persistence.criteria.Path path = (jakarta.persistence.criteria.Path) expression
-            return Collection.isAssignableFrom(path.javaType)
-        }
-        return false
-    }
-
     Predicate handleCriterion(
             AbstractQuery<?> criteriaQuery,
             From<?, ?> root,
@@ -394,274 +456,20 @@ class PredicateGenerator {
             }
         }
 
-        if (criterion instanceof SqlRestriction) {
-            return handleSqlRestriction(root, fromsByProvider, entity, (SqlRestriction) criterion)
-        } else if (criterion instanceof Query.Junction) {
-            return handleJunction(criteriaQuery, root, fromsByProvider, entity, (Query.Junction) criterion)
-        } else if (criterion instanceof Query.DistinctProjection) {
-            return criteriaBuilder.conjunction()
-        } else if (criterion instanceof DetachedAssociationCriteria) {
-            return handleAssociationCriteria(criteriaQuery, fromsByProvider, (DetachedAssociationCriteria) criterion)
-        } else if (criterion instanceof HibernateAssociationQuery) {
-            return handleHibernateAssociationQuery(criteriaQuery, fromsByProvider, (HibernateAssociationQuery) criterion)
-        } else if (criterion instanceof Query.SubqueryCriterion) {
-            return handleSubqueryCriterion(criteriaQuery, root, fromsByProvider, entity, (Query.SubqueryCriterion) criterion)
-        } else if (criterion instanceof Query.IdEquals) {
-            Query.IdEquals idEquals = (Query.IdEquals) criterion
-            String propertyName = entity.identity.name
-            Expression<?> propertyPath = fromsByProvider.getFullyQualifiedExpression(propertyName)
-            return criteriaBuilder.equal(propertyPath, convertValue(entity, propertyName, idEquals.value, propertyPath))
-        } else if (criterion instanceof Query.PropertyCriterion) {
-            return handlePropertyCriterion(criteriaQuery, root, fromsByProvider, entity, (Query.PropertyCriterion) criterion)
-        } else if (criterion instanceof Query.PropertyComparisonCriterion) {
-            return handlePropertyComparisonCriterion(fromsByProvider, (Query.PropertyComparisonCriterion) criterion)
-        } else if (criterion instanceof Query.PropertyNameCriterion) {
-            return handlePropertyNameCriterion(fromsByProvider, (Query.PropertyNameCriterion) criterion)
-        } else if (criterion instanceof Query.Exists) {
-            return handleExists(criteriaQuery, fromsByProvider, (Query.Exists) criterion)
-        } else if (criterion instanceof Query.NotExists) {
-            Query.NotExists c = (Query.NotExists) criterion
-            return criteriaBuilder.not(handleExists(criteriaQuery, fromsByProvider, new Query.Exists(c.subquery)))
-        } else if (criterion instanceof HibernateAlias) {
-            return null // Metadata only, handled by JpaQueryContext
+        InternalCriterionHandler<Query.QueryElement> handler = findHandler(criterion.getClass())
+        if (handler != null) {
+            CriterionContext context = new CriterionContext(
+                    criteriaQuery, root, fromsByProvider, entity, criteriaBuilder, conversionService, this)
+            return handler.handle(context, criterion)
         }
+
         throw new IllegalArgumentException("Unsupported criterion: ${criterion}".toString())
     }
 
-    @SuppressWarnings(['unchecked', 'rawtypes'])
-    private Predicate handleSubqueryCriterion(AbstractQuery<?> criteriaQuery, From<?, ?> root, JpaQueryContext fromsByProvider, GrailsHibernatePersistentEntity entity, Query.SubqueryCriterion c) {
-        Expression<?> propertyPath = fromsByProvider.getFullyQualifiedExpression(c.property)
-        QueryableCriteria<?> qc = c.value
-
-        // If it's a comparison criterion, we expect the subquery to return the same type as the property
-        Class<?> expectedType = propertyPath != null ? propertyPath.javaType : qc.persistentEntity.javaClass
-
-        // If the subquery has no projections, we default to projecting the SAME property name if available on the subquery entity
-        if (qc.projections.isEmpty()) {
-            PersistentProperty prop = qc.persistentEntity.getPropertyByName(c.property)
-            if (prop != null) {
-                ((QueryableCriteria) qc).projections.add(Projections.property(c.property))
-            }
-        }
-
-        Query.ProjectionList projectionList = new Query.ProjectionList()
-        for (Query.Projection p : qc.projections) {
-            projectionList.add(p)
-        }
-
-        Subquery<?> subquery = criteriaQuery.subquery(expectedType)
-        JpaCriteriaQueryCreator creator = new JpaCriteriaQueryCreator(projectionList, criteriaBuilder, (GrailsHibernatePersistentEntity) qc.persistentEntity, (DetachedCriteria) qc, conversionService)
-        creator.setParentContext(fromsByProvider)
-
-        creator.populateSubquery((JpaSubQuery) subquery)
-
-        if (c instanceof Query.EqualsAll) {
-            return criteriaBuilder.equal(propertyPath, (Expression) criteriaBuilder.all(subquery))
-        } else if (c instanceof Query.NotEqualsAll) {
-            return criteriaBuilder.notEqual(propertyPath, (Expression) criteriaBuilder.all(subquery))
-        } else if (c instanceof Query.GreaterThanAll) {
-            return criteriaBuilder.greaterThan((Expression<? extends Comparable>) propertyPath, (Expression) criteriaBuilder.all(subquery))
-        } else if (c instanceof Query.GreaterThanSome) {
-            return criteriaBuilder.greaterThan((Expression<? extends Comparable>) propertyPath, (Expression) criteriaBuilder.some(subquery))
-        } else if (c instanceof Query.GreaterThanEqualsAll) {
-            return criteriaBuilder.greaterThanOrEqualTo((Expression<? extends Comparable>) propertyPath, (Expression) criteriaBuilder.all(subquery))
-        } else if (c instanceof Query.GreaterThanEqualsSome) {
-            return criteriaBuilder.greaterThanOrEqualTo((Expression<? extends Comparable>) propertyPath, (Expression) criteriaBuilder.some(subquery))
-        } else if (c instanceof Query.LessThanAll) {
-            return criteriaBuilder.lessThan((Expression<? extends Comparable>) propertyPath, (Expression) criteriaBuilder.all(subquery))
-        } else if (c instanceof Query.LessThanSome) {
-            return criteriaBuilder.lessThan((Expression<? extends Comparable>) propertyPath, (Expression) criteriaBuilder.some(subquery))
-        } else if (c instanceof Query.LessThanEqualsAll) {
-            return criteriaBuilder.lessThanOrEqualTo((Expression<? extends Comparable>) propertyPath, (Expression) criteriaBuilder.all(subquery))
-        } else if (c instanceof Query.LessThanEqualsSome) {
-            return criteriaBuilder.lessThanOrEqualTo((Expression<? extends Comparable>) propertyPath, (Expression) criteriaBuilder.some(subquery))
-        } else if (c instanceof Query.NotIn) {
-            return criteriaBuilder.not(propertyPath.in((Expression) subquery))
-        }
-
-        throw new UnsupportedOperationException("Unsupported subquery criterion: ${c.class.name}".toString())
-    }
-
-    private Predicate handleJunction(
-            AbstractQuery<?> criteriaQuery,
-            From<?, ?> rootFrom,
-            JpaQueryContext fromsByProvider,
-            GrailsHibernatePersistentEntity entity,
-            Query.Junction junction) {
-        List<Query.Criterion> criteriaList = junction.criteria
-        Predicate[] predicates = getPredicates(criteriaQuery, rootFrom, criteriaList, fromsByProvider, entity)
-        if (junction instanceof Query.Conjunction) {
-            return criteriaBuilder.and(predicates)
-        } else if (junction instanceof Query.Disjunction) {
-            return criteriaBuilder.or(predicates)
-        } else if (junction instanceof Query.Negation) {
-            return criteriaBuilder.not(criteriaBuilder.or(predicates))
-        }
-        throw new IllegalArgumentException("Unsupported junction: ${junction}".toString())
-    }
-
-    private Predicate handleAssociationCriteria(
-            AbstractQuery<?> criteriaQuery,
-            JpaQueryContext fromsByProvider,
-            DetachedAssociationCriteria<?> associationCriteria) {
-        String associationName = associationCriteria.associationPath
-        From<?, ?> associationRoot = fromsByProvider.getFrom(associationName)
-        if (associationRoot == null) {
-            // Check if we already have it in our parent or alias map
-            Expression<?> expr = fromsByProvider.getFullyQualifiedExpression(associationName)
-            if (expr instanceof From) {
-                associationRoot = (From<?, ?>) expr
-            } else {
-                associationRoot = fromsByProvider.root.join(associationName)
-                fromsByProvider.addFrom(associationName, associationRoot)
-            }
-        }
-
-        // Create a nested context for this association
-        JpaQueryContext nestedContext = new JpaQueryContext(fromsByProvider, null, associationRoot)
-
-        GrailsHibernatePersistentEntity associatedEntity = (GrailsHibernatePersistentEntity) associationCriteria.association.associatedEntity
-        List<Query.Criterion> criteriaList = associationCriteria.criteria
-        return criteriaBuilder.and(getPredicates(criteriaQuery, associationRoot, criteriaList, nestedContext, associatedEntity))
-    }
-
-    private Predicate handleHibernateAssociationQuery(
-            AbstractQuery<?> criteriaQuery,
-            JpaQueryContext fromsByProvider,
-            HibernateAssociationQuery associationQuery) {
-        String associationName = associationQuery.associationPath
-        From<?, ?> associationRoot = fromsByProvider.getFrom(associationName)
-        if (associationRoot == null) {
-            Expression<?> expr = fromsByProvider.getFullyQualifiedExpression(associationName)
-            if (expr instanceof From) {
-                associationRoot = (From<?, ?>) expr
-            } else {
-                associationRoot = fromsByProvider.root.join(associationName, JoinType.INNER)
-                fromsByProvider.addFrom(associationName, associationRoot)
-            }
-        }
-
-        // Create a nested context for this association
-        JpaQueryContext nestedContext = new JpaQueryContext(fromsByProvider, null, associationRoot)
-
-        GrailsHibernatePersistentEntity associatedEntity = associationQuery.entity
-        List<Query.Criterion> criteriaList = associationQuery.associationCriteria
-        return criteriaBuilder.and(getPredicates(criteriaQuery, associationRoot, criteriaList, nestedContext, associatedEntity))
-    }
-
-    @SuppressWarnings(['unchecked', 'rawtypes'])
-    private Predicate handlePropertyCriterion(
-            AbstractQuery<?> criteriaQuery,
-            From<?, ?> root,
-            JpaQueryContext fromsByProvider,
-            GrailsHibernatePersistentEntity entity,
-            Query.PropertyCriterion pc) {
-        String propertyName = pc.property
-        Expression<?> propertyPath = fromsByProvider.getFullyQualifiedExpression(propertyName)
-        if (propertyPath == null) {
-            throw new ConfigurationException("Cannot use comparison criteria on non-existent property [${propertyName}] of class [${entity.javaClass.name}]".toString())
-        }
-
-        if (pc instanceof EqualsIgnoreCase) {
-            return handleEqualsIgnoreCase(criteriaQuery, pc, propertyPath, fromsByProvider, entity)
-        } else if (pc instanceof Query.Equals) {
-            return handleEquals(criteriaQuery, pc, propertyPath, fromsByProvider, entity)
-        } else if (pc instanceof Query.NotEquals) {
-            return handleNotEquals(criteriaQuery, pc, propertyPath, fromsByProvider, entity)
-        } else if (pc instanceof Query.ILike) {
-            return criteriaBuilder.ilike((Expression<String>) propertyPath, (String) convertValue(entity, propertyName, pc.value, propertyPath))
-        } else if (pc instanceof Query.RLike) {
-            return handleRLike((Expression<String>) propertyPath, (Query.RLike) pc)
-        } else if (pc instanceof Query.Like) {
-            return criteriaBuilder.like((Expression<String>) propertyPath, (String) convertValue(entity, propertyName, pc.value, propertyPath))
-        } else if (pc instanceof Query.GreaterThan) {
-            Object value = convertComparisonValue(entity, propertyName, pc.value, fromsByProvider, propertyPath)
-            return value instanceof Comparable ?
-                criteriaBuilder.greaterThan((Expression<? extends Comparable>) propertyPath, (Comparable) value) :
-                criteriaBuilder.greaterThan((Expression<? extends Comparable>) propertyPath, (Expression) asExpression(value, propertyPath, fromsByProvider))
-        } else if (pc instanceof Query.GreaterThanEquals) {
-            Object value = convertComparisonValue(entity, propertyName, pc.value, fromsByProvider, propertyPath)
-            return value instanceof Comparable ?
-                criteriaBuilder.greaterThanOrEqualTo((Expression<? extends Comparable>) propertyPath, (Comparable) value) :
-                criteriaBuilder.greaterThanOrEqualTo((Expression<? extends Comparable>) propertyPath, (Expression) asExpression(value, propertyPath, fromsByProvider))
-        } else if (pc instanceof Query.LessThan) {
-            Object value = convertComparisonValue(entity, propertyName, pc.value, fromsByProvider, propertyPath)
-            return value instanceof Comparable ?
-                criteriaBuilder.lessThan((Expression<? extends Comparable>) propertyPath, (Comparable) value) :
-                criteriaBuilder.lessThan((Expression<? extends Comparable>) propertyPath, (Expression) asExpression(value, propertyPath, fromsByProvider))
-        } else if (pc instanceof Query.LessThanEquals) {
-            Object value = convertComparisonValue(entity, propertyName, pc.value, fromsByProvider, propertyPath)
-            return value instanceof Comparable ?
-                criteriaBuilder.lessThanOrEqualTo((Expression<? extends Comparable>) propertyPath, (Comparable) value) :
-                criteriaBuilder.lessThanOrEqualTo((Expression<? extends Comparable>) propertyPath, (Expression) asExpression(value, propertyPath, fromsByProvider))
-        } else if (pc instanceof Query.In) {
-            Object value = pc.value
-            if (value instanceof QueryableCriteria) {
-                QueryableCriteria qc = (QueryableCriteria) value
-                Class<?> expectedType = propertyPath != null ? propertyPath.javaType : qc.persistentEntity.javaClass
-
-                // If the subquery has no projections, we default to projecting the SAME property name if available on the subquery entity
-                if (qc.projections.isEmpty() && propertyPath != null) {
-                    PersistentProperty prop = qc.persistentEntity.getPropertyByName(propertyName)
-                    if (prop != null) {
-                        ((QueryableCriteria) qc).projections.add(Projections.property(propertyName))
-                    }
-                }
-
-                Query.ProjectionList projectionList = new Query.ProjectionList()
-                for (Object p : qc.projections) {
-                    projectionList.add((Query.Projection) p)
-                }
-
-                Subquery<?> subquery = criteriaQuery.subquery(expectedType)
-                JpaCriteriaQueryCreator creator = new JpaCriteriaQueryCreator(projectionList, criteriaBuilder, (GrailsHibernatePersistentEntity) qc.persistentEntity, (DetachedCriteria) qc, conversionService)
-                creator.setParentContext(fromsByProvider)
-
-                creator.populateSubquery((JpaSubQuery) subquery)
-                return propertyPath.in((Expression) subquery)
-            }
-
-            Collection<?> collection = value instanceof Collection ? (Collection<?>) value : Collections.singletonList(value)
-            List<Object> converted = []
-            for (Object v : collection) {
-                converted.add(convertValue(entity, propertyName, v, propertyPath))
-            }
-
-            if (isCollectionPath(propertyPath)) {
-                // For collection properties, we use "member of" for each value joined with OR
-                if (converted.isEmpty()) {
-                    return criteriaBuilder.disjunction() // Always false for empty IN on collection
-                }
-                List<Predicate> memberOfPredicates = []
-                for (Object v : converted) {
-                    memberOfPredicates.add(criteriaBuilder.isMember((Object) v, (Expression) resolveCollectionPath(propertyPath)))
-                }
-                return criteriaBuilder.or(memberOfPredicates.toArray(new Predicate[0]))
-            }
-
-            return propertyPath.in(converted)
-        } else if (pc instanceof Query.Between) {
-            Query.Between between = (Query.Between) pc
-            return criteriaBuilder.between((Expression<? extends Comparable>) propertyPath, (Comparable) convertValue(entity, propertyName, between.from, propertyPath), (Comparable) convertValue(entity, propertyName, between.to, propertyPath))
-        } else if (pc instanceof Query.SizeEquals) {
-            return criteriaBuilder.equal(criteriaBuilder.size(resolveCollectionPath(propertyPath)), (Integer) pc.value)
-        } else if (pc instanceof Query.SizeNotEquals) {
-            return criteriaBuilder.notEqual(criteriaBuilder.size(resolveCollectionPath(propertyPath)), (Integer) pc.value)
-        } else if (pc instanceof Query.SizeGreaterThan) {
-            Expression sizeExpr = criteriaBuilder.size(resolveCollectionPath(propertyPath))
-            return criteriaBuilder.greaterThan(sizeExpr, (Comparable) pc.value)
-        } else if (pc instanceof Query.SizeGreaterThanEquals) {
-            Expression sizeExpr = criteriaBuilder.size(resolveCollectionPath(propertyPath))
-            return criteriaBuilder.greaterThanOrEqualTo(sizeExpr, (Comparable) pc.value)
-        } else if (pc instanceof Query.SizeLessThan) {
-            Expression sizeExpr = criteriaBuilder.size(resolveCollectionPath(propertyPath))
-            return criteriaBuilder.lessThan(sizeExpr, (Comparable) pc.value)
-        } else if (pc instanceof Query.SizeLessThanEquals) {
-            Expression sizeExpr = criteriaBuilder.size(resolveCollectionPath(propertyPath))
-            return criteriaBuilder.lessThanOrEqualTo(sizeExpr, (Comparable) pc.value)
-        }
-
-        throw new UnsupportedOperationException("Unsupported criterion: ${pc.class.name}".toString())
+    Predicate generate(
+            AbstractQuery<?> cq, From<?, ?> root, List<Query.Criterion> criteriaList, JpaQueryContext tablesByName, GrailsHibernatePersistentEntity entity) {
+        Predicate[] predicates = getPredicates(cq, root, criteriaList, tablesByName, entity)
+        return criteriaBuilder.and(predicates)
     }
 
     /**
@@ -706,251 +514,4 @@ class PredicateGenerator {
         }
         return arguments
     }
-
-    private Predicate handleSqlRestriction(From<?, ?> root, JpaQueryContext context, GrailsHibernatePersistentEntity entity, SqlRestriction restriction) {
-        List<Expression<?>> arguments = nativeSqlArguments(criteriaBuilder, restriction.sql(), root, entity)
-        for (Object value : restriction.values()) {
-            ParameterExpression<?> parameter = criteriaBuilder.parameter(value.getClass())
-            context.bindParameter(parameter, value)
-            arguments.add(parameter)
-        }
-        return criteriaBuilder.isTrue(criteriaBuilder.function(
-                GrailsSqlRestrictionFunction.NAME, Boolean, arguments.toArray(new Expression<?>[0])))
-    }
-
-    private Predicate handleRLike(Expression<String> propertyPath, Query.RLike c) {
-        String pattern = c.value.toString().replaceAll('^/|/$', '')
-        return criteriaBuilder.equal(
-            criteriaBuilder.function(
-                GrailsRLikeFunctionContributor.RLIKE,
-                Boolean,
-                propertyPath,
-                criteriaBuilder.literal(pattern)),
-            true)
-    }
-
-    @SuppressWarnings('unchecked')
-    private Predicate handlePropertyComparisonCriterion(JpaQueryContext fromsByProvider, Query.PropertyComparisonCriterion c) {
-        Expression<?> propertyPath = fromsByProvider.getFullyQualifiedExpression(c.property)
-        Expression<?> otherPropertyPath = fromsByProvider.getFullyQualifiedExpression(c.otherProperty)
-
-        if (propertyPath == null || otherPropertyPath == null) {
-            return null
-        }
-
-        if (c instanceof Query.EqualsProperty) {
-            return criteriaBuilder.equal(propertyPath, otherPropertyPath)
-        } else if (c instanceof Query.NotEqualsProperty) {
-            return criteriaBuilder.notEqual(propertyPath, otherPropertyPath)
-        } else if (c instanceof Query.GreaterThanProperty) {
-            return criteriaBuilder.greaterThan((Expression<? extends Comparable>) propertyPath, (Expression<? extends Comparable>) otherPropertyPath)
-        } else if (c instanceof Query.GreaterThanEqualsProperty) {
-            return criteriaBuilder.greaterThanOrEqualTo((Expression<? extends Comparable>) propertyPath, (Expression<? extends Comparable>) otherPropertyPath)
-        } else if (c instanceof Query.LessThanProperty) {
-            return criteriaBuilder.lessThan((Expression<? extends Comparable>) propertyPath, (Expression<? extends Comparable>) otherPropertyPath)
-        } else if (c instanceof Query.LessThanEqualsProperty) {
-            return criteriaBuilder.lessThanOrEqualTo((Expression<? extends Comparable>) propertyPath, (Expression<? extends Comparable>) otherPropertyPath)
-        }
-
-        throw new UnsupportedOperationException("Unsupported property comparison criterion: ${c.class.name}".toString())
-    }
-
-    private Predicate handlePropertyNameCriterion(JpaQueryContext fromsByProvider, Query.PropertyNameCriterion c) {
-        Expression<?> propertyPath = fromsByProvider.getFullyQualifiedExpression(c.property)
-        if (c instanceof Query.IsNull) {
-            return criteriaBuilder.isNull(propertyPath)
-        } else if (c instanceof Query.IsNotNull) {
-            return criteriaBuilder.isNotNull(propertyPath)
-        } else if (c instanceof Query.IsEmpty) {
-            return criteriaBuilder.isEmpty(resolveCollectionPath(propertyPath))
-        } else if (c instanceof Query.IsNotEmpty) {
-            return criteriaBuilder.isNotEmpty(resolveCollectionPath(propertyPath))
-        }
-        throw new UnsupportedOperationException("Unsupported property name criterion: ${c.class.name}".toString())
-    }
-
-    @SuppressWarnings('unchecked')
-    private Expression<Collection<?>> resolveCollectionPath(Expression<?> expression) {
-        if (expression instanceof Join<?, ?>) {
-            Join<?, ?> join = (Join<?, ?>) expression
-            if (join.parent != null && join.attribute != null) {
-                return (Expression<Collection<?>>) (Expression<?>) join.parent.get(join.attribute.name)
-            }
-        }
-        return (Expression<Collection<?>>) expression
-    }
-
-    @SuppressWarnings(['unchecked', 'rawtypes'])
-    private Predicate handleEquals(AbstractQuery<?> criteriaQuery, Query.PropertyCriterion pc, Expression<?> propertyPath, JpaQueryContext fromsByProvider, GrailsHibernatePersistentEntity entity) {
-        if (pc.value instanceof QueryableCriteria) {
-            QueryableCriteria qc = (QueryableCriteria) pc.value
-            Class<?> expectedType = propertyPath != null ? propertyPath.javaType : qc.persistentEntity.javaClass
-            Subquery<?> subquery = criteriaQuery.subquery(expectedType)
-            JpaCriteriaQueryCreator creator = new JpaCriteriaQueryCreator(new Query.ProjectionList(), criteriaBuilder, (GrailsHibernatePersistentEntity) qc.persistentEntity, (DetachedCriteria) qc, conversionService)
-            creator.setParentContext(fromsByProvider)
-
-            if (qc.projections.isEmpty() && propertyPath != null) {
-                String propertyName = pc.property
-                if (propertyName.contains(grails.orm.HibernateCriteriaBuilder.ALIAS_SEPARATOR)) {
-                    propertyName = propertyName.split(grails.orm.HibernateCriteriaBuilder.ALIAS_SEPARATOR)[1]
-                }
-                PersistentProperty prop = qc.persistentEntity.getPropertyByName(propertyName)
-                if (prop != null) {
-                    qc.projections.add(Projections.property(propertyName))
-                }
-            }
-
-            creator.populateSubquery((JpaSubQuery) subquery)
-            return criteriaBuilder.equal(propertyPath, subquery)
-        } else {
-            return criteriaBuilder.equal(propertyPath, convertComparisonValue(entity, pc.property, pc.value, fromsByProvider, propertyPath))
-        }
-    }
-
-    /**
-     * Compares a {@link String} property with the value in lower case, as Hibernate 5's
-     * {@code Restrictions.eq(...).ignoreCase()} did. Any other property is compared with plain equality.
-     */
-    @SuppressWarnings('unchecked')
-    private Predicate handleEqualsIgnoreCase(AbstractQuery<?> criteriaQuery, Query.PropertyCriterion pc, Expression<?> propertyPath, JpaQueryContext fromsByProvider, GrailsHibernatePersistentEntity entity) {
-        Object value = pc.value
-        if (String != propertyPath.javaType || !(value instanceof CharSequence)) {
-            return handleEquals(criteriaQuery, pc, propertyPath, fromsByProvider, entity)
-        }
-        return criteriaBuilder.equal(
-                criteriaBuilder.lower((Expression<String>) propertyPath),
-                value.toString().toLowerCase(Locale.ROOT))
-    }
-
-    @SuppressWarnings(['unchecked', 'rawtypes'])
-    private Predicate handleNotEquals(
-            AbstractQuery<?> criteriaQuery,
-            Query.PropertyCriterion pc,
-            Expression<?> propertyPath,
-            JpaQueryContext fromsByProvider,
-            GrailsHibernatePersistentEntity entity) {
-        Object value = pc.value
-        if (value == null) {
-            return criteriaBuilder.isNotNull(propertyPath)
-        }
-        if (value instanceof QueryableCriteria) {
-            QueryableCriteria qc = (QueryableCriteria) value
-            Class<?> expectedType = propertyPath != null ? propertyPath.javaType : qc.persistentEntity.javaClass
-            Subquery<?> subquery = criteriaQuery.subquery(expectedType)
-            JpaCriteriaQueryCreator creator = new JpaCriteriaQueryCreator(new Query.ProjectionList(), criteriaBuilder, (GrailsHibernatePersistentEntity) qc.persistentEntity, (DetachedCriteria) qc, conversionService)
-            creator.setParentContext(fromsByProvider)
-
-            if (qc.projections.isEmpty() && propertyPath != null) {
-                String propertyName = pc.property
-                if (propertyName.contains(grails.orm.HibernateCriteriaBuilder.ALIAS_SEPARATOR)) {
-                    propertyName = propertyName.split(grails.orm.HibernateCriteriaBuilder.ALIAS_SEPARATOR)[1]
-                }
-                PersistentProperty prop = qc.persistentEntity.getPropertyByName(propertyName)
-                if (prop != null) {
-                    qc.projections.add(Projections.property(propertyName))
-                }
-            }
-
-            creator.populateSubquery((JpaSubQuery) subquery)
-            return criteriaBuilder.or(criteriaBuilder.notEqual(propertyPath, subquery), criteriaBuilder.isNull(propertyPath))
-        }
-        return criteriaBuilder.or(
-            criteriaBuilder.notEqual(propertyPath, convertComparisonValue(entity, pc.property, value, fromsByProvider, propertyPath)),
-            criteriaBuilder.isNull(propertyPath))
-    }
-
-    @SuppressWarnings(['unchecked', 'rawtypes'])
-    private Predicate handleExists(
-            AbstractQuery<?> criteriaQuery,
-            JpaQueryContext fromsByProvider,
-            Query.Exists exists) {
-        QueryableCriteria subqueryCriteria = exists.subquery
-        GrailsHibernatePersistentEntity subqueryEntity = (GrailsHibernatePersistentEntity) subqueryCriteria.persistentEntity
-        Subquery<?> subquery = criteriaQuery.subquery(subqueryEntity.javaClass)
-        JpaCriteriaQueryCreator creator = new JpaCriteriaQueryCreator(new Query.ProjectionList(), criteriaBuilder, subqueryEntity, (DetachedCriteria) subqueryCriteria, conversionService)
-        creator.setParentContext(fromsByProvider)
-        creator.populateSubquery((JpaSubQuery) subquery)
-        return criteriaBuilder.exists(subquery)
-    }
-
-    private Object convertValue(GrailsHibernatePersistentEntity entity, String propertyName, Object value, Expression<?> propertyPath) {
-        if (value == null) {
-            throw new ConfigurationException("Null value for property [${propertyName}] is not allowed in comparison criteria.".toString())
-        }
-
-        Class<?> targetType = propertyPath != null ? propertyPath.javaType : null
-
-        if (targetType == null && entity != null) {
-            HibernatePersistentProperty prop = (HibernatePersistentProperty) entity.getPropertyByName(propertyName)
-            if (prop != null) {
-                targetType = prop.type
-            }
-        }
-
-        if (targetType != null && Collection.isAssignableFrom(targetType) && entity != null) {
-            HibernatePersistentProperty prop = (HibernatePersistentProperty) entity.getPropertyByName(propertyName)
-            if (prop instanceof HibernateToManyProperty) {
-                targetType = ((HibernateToManyProperty) prop).componentType
-            }
-        }
-
-        if (targetType != null && conversionService.canConvert(value.class, targetType)) {
-            if (!Collection.isAssignableFrom(targetType) || Collection.isAssignableFrom(value.class)) {
-                return conversionService.convert(value, targetType)
-            }
-        }
-        return value
-    }
-
-    /**
-     * Returns an arithmetic expression for a {@link PropertyArithmetic}, otherwise the converted value itself.
-     * A plain value is not wrapped in a literal, so the comparison overload that takes it infers its type from
-     * the property path, as HQL does for a parameter. A literal is typed from the value's class instead, which a
-     * property mapped with a custom {@code UserType} cannot be compared with when that class is
-     * {@link java.io.Serializable}.
-     */
-    @SuppressWarnings('unchecked')
-    private Object convertComparisonValue(GrailsHibernatePersistentEntity entity, String propertyName, Object value, JpaQueryContext context, Expression<?> propertyPath) {
-        if (value instanceof PropertyArithmetic) {
-            PropertyArithmetic pa = (PropertyArithmetic) value
-            Expression<Number> left = (Expression<Number>) context.getFullyQualifiedExpression(pa.propertyName())
-            Expression<Number> right = (Expression<Number>) criteriaBuilder.literal(pa.operand())
-
-            switch (pa.operator()) {
-                case PropertyArithmetic.Operator.MULTIPLY:
-                    return criteriaBuilder.prod(left, right)
-                case PropertyArithmetic.Operator.DIVIDE:
-                    return criteriaBuilder.quot(left, right)
-                case PropertyArithmetic.Operator.ADD:
-                    return criteriaBuilder.sum(left, right)
-                case PropertyArithmetic.Operator.SUBTRACT:
-                    return criteriaBuilder.diff(left, right)
-                default:
-                    throw new IllegalStateException("Unexpected operator: ${pa.operator()}".toString())
-            }
-        }
-        return convertValue(entity, propertyName, value, propertyPath)
-    }
-
-    /**
-     * Returns the value as an expression for a comparison overload that takes an expression, which the JPA ordering
-     * overloads need for a value that is not {@link Comparable}. The value becomes a criteria parameter of the
-     * property's Java type, bound once the query is created, so Hibernate types it from the property it is compared
-     * with, as it does for an HQL parameter.
-     */
-    private Expression<?> asExpression(Object value, Expression<?> propertyPath, JpaQueryContext context) {
-        if (value instanceof Expression) {
-            return (Expression<?>) value
-        }
-        ParameterExpression<?> parameter = criteriaBuilder.parameter(propertyPath.javaType)
-        context.bindParameter(parameter, value)
-        return parameter
-    }
-
-    Predicate generate(
-            AbstractQuery<?> cq, From<?, ?> root, List<Query.Criterion> criteriaList, JpaQueryContext tablesByName, GrailsHibernatePersistentEntity entity) {
-        Predicate[] predicates = getPredicates(cq, root, criteriaList, tablesByName, entity)
-        return criteriaBuilder.and(predicates)
-    }
-
 }
