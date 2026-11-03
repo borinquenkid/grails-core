@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
@@ -41,6 +42,7 @@ import org.grails.datastore.mapping.query.AssociationQuery;
 import org.grails.datastore.mapping.query.Query;
 import org.grails.datastore.mapping.query.api.AssociationCriteria;
 import org.grails.datastore.mapping.query.api.QueryableCriteria;
+import org.grails.datastore.mapping.query.criteria.FunctionCallingCriterion;
 
 /**
  * Builds JPA 1.0 String-based queries from the Query model
@@ -69,6 +71,7 @@ public class JpaQueryBuilder {
 
     public static final String LOGICAL_OR = " OR ";
     private static final Map<Class, QueryHandler> queryHandlers = new HashMap<>();
+    private static final Map<Class<? extends Query.Criterion>, HqlCriterionRenderer> HQL_RENDERERS = new ConcurrentHashMap<>();
     public static final String PARAMETER_NAME_PREFIX = "p";
     private static final String PARAMETER_PREFIX = ":p";
     private PersistentEntity entity;
@@ -80,7 +83,11 @@ public class JpaQueryBuilder {
     private boolean hibernateCompatible;
 
     public JpaQueryBuilder(QueryableCriteria criteria) {
-        this(criteria.getPersistentEntity(), criteria.getCriteria());
+        this(criteria.getPersistentEntity(), materializedCriteria(criteria));
+    }
+
+    private static List<Query.Criterion> materializedCriteria(QueryableCriteria criteria) {
+        return criteria.materializeLazyCriteria().getCriteria();
     }
 
     public JpaQueryBuilder(PersistentEntity entity, List<Query.Criterion> criteria) {
@@ -112,6 +119,39 @@ public class JpaQueryBuilder {
     public JpaQueryBuilder(PersistentEntity entity, Query.Junction criteria, Query.ProjectionList projectionList, List<Query.Order> orders) {
         this(entity, criteria, projectionList);
         this.orders = orders;
+    }
+
+    /**
+     * Teaches the builder to write a criterion it does not know into the HQL of a DELETE or UPDATE statement, for
+     * a criterion type a datastore adds. A renderer registered again for the same type replaces the earlier one.
+     *
+     * @param type the criterion type
+     * @param renderer writes the criterion
+     * @since 8.0.1
+     */
+    public static void registerHqlRenderer(Class<? extends Query.Criterion> type, HqlCriterionRenderer renderer) {
+        HQL_RENDERERS.put(type, renderer);
+    }
+
+    /**
+     * Writes one criterion into the where clause of an HQL statement.
+     *
+     * @since 8.0.1
+     */
+    @FunctionalInterface
+    public interface HqlCriterionRenderer {
+
+        /**
+         * @param criterion the criterion to write
+         * @param entity the entity the statement is on
+         * @param logicalName the alias of that entity in the statement
+         * @param whereClause the where clause to append the condition to
+         * @param position the number of the last named parameter used so far
+         * @param parameters the values of the named parameters; each value added is bound to the next number
+         * @return the number of the last named parameter used
+         */
+        int render(Query.Criterion criterion, PersistentEntity entity, String logicalName, StringBuilder whereClause,
+                   int position, List parameters);
     }
 
     public void setHibernateCompatible(boolean hibernateCompatible) {
@@ -272,13 +312,13 @@ public class JpaQueryBuilder {
                               StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters,
                               ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
 
-                if (!allowJoins) {
-                    throw new InvalidDataAccessResourceUsageException("Joins cannot be used in a DELETE or UPDATE operation");
-                }
                 AssociationQuery aq = (AssociationQuery) criterion;
                 final Association<?> association = aq.getAssociation();
                 Query.Junction associationCriteria = aq.getCriteria();
                 List<Query.Criterion> associationCriteriaList = associationCriteria.getCriteria();
+                if (!allowJoins) {
+                    return handleToOneAsSubquery(q, whereClause, logicalName, position, parameters, conversionService, association, associationCriteria, associationCriteriaList, hibernateCompatible);
+                }
 
                 return handleAssociationCriteria(q, whereClause, logicalName, position, parameters, conversionService, allowJoins, association, associationCriteria, associationCriteriaList, hibernateCompatible);
             }
@@ -605,6 +645,73 @@ public class JpaQueryBuilder {
             }
         });
 
+        queryHandlers.put(FunctionCallingCriterion.class, new QueryHandler() {
+            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+                FunctionCallingCriterion functionCriterion = (FunctionCallingCriterion) criterion;
+                String name = functionCriterion.getProperty();
+                validateProperty(entity, name, FunctionCallingCriterion.class);
+                if (functionCriterion.isOnValue()) {
+                    throw new InvalidDataAccessResourceUsageException("A function on the value of a comparison is not supported: " + functionCriterion.getFunctionName());
+                }
+                Query.PropertyCriterion wrapped = functionCriterion.getPropertyCriterion();
+                if (wrapped instanceof Query.ILike) {
+                    whereClause.append("lower(")
+                               .append(functionCriterion.getFunctionName())
+                               .append(OPEN_BRACKET)
+                               .append(logicalName)
+                               .append(DOT)
+                               .append(name)
+                               .append(CLOSE_BRACKET)
+                               .append(") like lower(")
+                               .append(PARAMETER_PREFIX)
+                               .append(++position)
+                               .append(CLOSE_BRACKET);
+                    parameters.add(wrapped.getValue());
+                    return position;
+                }
+                whereClause.append(functionCriterion.getFunctionName())
+                           .append(OPEN_BRACKET)
+                           .append(logicalName)
+                           .append(DOT)
+                           .append(name)
+                           .append(CLOSE_BRACKET);
+                if (wrapped instanceof Query.In in) {
+                    whereClause.append(" IN (");
+                    QueryableCriteria subquery = in.getSubquery();
+                    if (subquery != null) {
+                        buildSubQuery(q, whereClause, position, parameters, conversionService, allowJoins, hibernateCompatible, subquery);
+                        position = parameters.size();
+                    }
+                    else {
+                        for (Iterator i = in.getValues().iterator(); i.hasNext();) {
+                            Object val = i.next();
+                            whereClause.append(PARAMETER_PREFIX).append(++position);
+                            if (i.hasNext()) {
+                                whereClause.append(COMMA);
+                            }
+                            parameters.add(val);
+                        }
+                    }
+                    whereClause.append(CLOSE_BRACKET);
+                }
+                else if (wrapped instanceof Query.Equals && wrapped.getValue() == null) {
+                    whereClause.append(" IS NULL");
+                }
+                else if (wrapped instanceof Query.NotEquals && wrapped.getValue() == null) {
+                    whereClause.append(" IS NOT NULL");
+                }
+                else {
+                    String operator = functionOperator(wrapped);
+                    if (operator == null) {
+                        throw new InvalidDataAccessResourceUsageException("Unsupported criterion in a function call: " + wrapped.getClass().getSimpleName());
+                    }
+                    whereClause.append(operator).append(PARAMETER_PREFIX).append(++position);
+                    parameters.add(wrapped.getValue());
+                }
+                return position;
+            }
+        });
+
         queryHandlers.put(Query.In.class, new QueryHandler() {
             public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 Query.In inQuery = (Query.In) criterion;
@@ -618,6 +725,7 @@ public class JpaQueryBuilder {
                 QueryableCriteria subquery = inQuery.getSubquery();
                 if (subquery != null) {
                     buildSubQuery(q, whereClause, position, parameters, conversionService, allowJoins, hibernateCompatible, subquery);
+                    position = parameters.size();
                 }
                 else {
                     for (Iterator i = inQuery.getValues().iterator(); i.hasNext();) {
@@ -724,6 +832,18 @@ public class JpaQueryBuilder {
             }
         });
 
+        queryHandlers.put(Query.Exists.class, new QueryHandler() {
+            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+                return handleExists(q, whereClause, position, parameters, conversionService, allowJoins, hibernateCompatible, ((Query.Exists) criterion).getSubquery(), "EXISTS (");
+            }
+        });
+
+        queryHandlers.put(Query.NotExists.class, new QueryHandler() {
+            public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+                return handleExists(q, whereClause, position, parameters, conversionService, allowJoins, hibernateCompatible, ((Query.NotExists) criterion).getSubquery(), "NOT EXISTS (");
+            }
+        });
+
         queryHandlers.put(Query.SizeEquals.class, new QueryHandler() {
             public int handle(PersistentEntity entity, Query.Criterion criterion, StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
                 return handleSizeComparison(entity, (Query.PropertyCriterion) criterion, whereClause, logicalName, position, parameters, conversionService, "=", hibernateCompatible);
@@ -771,8 +891,88 @@ public class JpaQueryBuilder {
                 .append(name)
                 .append(comparisonExpression);
         buildSubQuery(q, whereClause, position, parameters, conversionService, allowJoins, hibernateCompatible, subquery);
+        position = parameters.size();
         whereClause.append(CLOSE_BRACKET);
         return position;
+    }
+
+    private static int handleExists(StringBuilder q, StringBuilder whereClause, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible, QueryableCriteria subquery, String prefix) {
+        whereClause.append(prefix);
+        buildSubQuery(q, whereClause, position, parameters, conversionService, allowJoins, hibernateCompatible, subquery);
+        whereClause.append(CLOSE_BRACKET);
+        return parameters.size();
+    }
+
+    /**
+     * A DELETE or UPDATE statement cannot join, so a to-one association is matched by its identifier:
+     * {@code pet.owner.id IN (SELECT owner1.id FROM Owner owner1 WHERE ...)}.
+     */
+    private static int handleToOneAsSubquery(StringBuilder q, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, Association<?> association, Query.Junction associationCriteria, List<Query.Criterion> associationCriteriaList, boolean hibernateCompatible) {
+        if (!(association instanceof ToOne) || association.getAssociatedEntity() == null ||
+                association.getAssociatedEntity().getIdentity() == null) {
+            throw new InvalidDataAccessResourceUsageException("Joins cannot be used in a DELETE or UPDATE operation");
+        }
+        PersistentEntity associated = association.getAssociatedEntity();
+        String identity = associated.getIdentity().getName();
+        String subqueryName = associated.getDecapitalizedName() + position;
+        whereClause.append(logicalName).append(DOT).append(association.getName()).append(DOT).append(identity)
+                .append(" IN (SELECT ").append(subqueryName).append(DOT).append(identity)
+                .append(FROM_CLAUSE).append(associated.getName()).append(' ').append(subqueryName);
+        if (!associationCriteriaList.isEmpty()) {
+            whereClause.append(" WHERE ");
+            position = buildWhereClauseForCriterion(associated, associationCriteria, q, whereClause, subqueryName,
+                    associationCriteriaList, position, parameters, conversionService, false, hibernateCompatible);
+        }
+        whereClause.append(CLOSE_BRACKET);
+        return position;
+    }
+
+    /**
+     * Reads a dotted path through a to-one association of a DELETE or UPDATE criterion as that association's own
+     * criterion, so {@code owner.name} becomes {@code name} on the owner.
+     */
+    private static Query.Criterion splitToOnePath(PersistentEntity entity, Query.Criterion criterion, Map<String, Association<?>> aliases) {
+        if (!(criterion instanceof Query.PropertyNameCriterion named)) {
+            return criterion;
+        }
+        String path = named.getProperty();
+        int dot = path == null ? -1 : path.indexOf('.');
+        if (dot <= 0) {
+            return criterion;
+        }
+        String headName = path.substring(0, dot);
+        Association<?> head = aliases.get(headName);
+        if (head == null) {
+            PersistentProperty property = entity.getPropertyByName(headName);
+            head = property instanceof ToOne ? (Association<?>) property : null;
+        }
+        if (head == null) {
+            return criterion;
+        }
+        return new ToOnePathCriterion(head, named.withProperty(path.substring(dot + 1)));
+    }
+
+    /** The to-one associations of a DELETE or UPDATE criteria list that were given an alias with createAlias. */
+    private static Map<String, Association<?>> toOneAliases(List<Query.Criterion> criterionList) {
+        Map<String, Association<?>> aliases = new HashMap<>();
+        for (Query.Criterion criterion : criterionList) {
+            if (criterion instanceof AssociationCriteria associationCriteria && criterion instanceof QueryableCriteria<?> queryable &&
+                    queryable.getAlias() != null && associationCriteria.getAssociation() instanceof ToOne) {
+                aliases.put(queryable.getAlias(), associationCriteria.getAssociation());
+            }
+        }
+        return aliases;
+    }
+
+    /** A criterion on the property of a to-one association, read from a dotted path. */
+    private static final class ToOnePathCriterion implements Query.Criterion {
+        private final Association<?> association;
+        private final Query.Criterion criterion;
+
+        private ToOnePathCriterion(Association<?> association, Query.Criterion criterion) {
+            this.association = association;
+            this.criterion = criterion;
+        }
     }
 
     protected static int handleSizeComparison(PersistentEntity entity, Query.PropertyCriterion criterion, StringBuilder whereClause, String logicalName, int position, List parameters, ConversionService conversionService, String operator, boolean hibernateCompatible) {
@@ -793,6 +993,7 @@ public class JpaQueryBuilder {
     }
 
     protected static void buildSubQuery(StringBuilder q, StringBuilder whereClause, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible, QueryableCriteria subquery) {
+        subquery = subquery.materializeLazyCriteria();
         PersistentEntity associatedEntity = subquery.getPersistentEntity();
         String associatedEntityName = associatedEntity.getName();
         String associatedEntityLogicalName = associatedEntity.getDecapitalizedName() + position;
@@ -801,12 +1002,12 @@ public class JpaQueryBuilder {
         whereClause.append(" FROM ")
                 .append(associatedEntityName)
                 .append(' ')
-                .append(associatedEntityLogicalName)
-                .append(" WHERE ");
+                .append(associatedEntityLogicalName);
         List<Query.Criterion> criteria = subquery.getCriteria();
-        for (Query.Criterion subCriteria : criteria) {
-            QueryHandler queryHandler = queryHandlers.get(subCriteria.getClass());
-            queryHandler.handle(associatedEntity, subCriteria, q, whereClause, associatedEntityLogicalName, position, parameters, conversionService, allowJoins, hibernateCompatible);
+        if (!criteria.isEmpty()) {
+            whereClause.append(" WHERE ");
+            buildWhereClauseForCriterion(associatedEntity, new Query.Conjunction(), q, whereClause, associatedEntityLogicalName,
+                    criteria, position, parameters, conversionService, allowJoins, hibernateCompatible);
         }
     }
 
@@ -930,25 +1131,37 @@ public class JpaQueryBuilder {
     static int buildWhereClauseForCriterion(PersistentEntity entity,
                                             Query.Junction criteria, StringBuilder q, StringBuilder whereClause, String logicalName,
                                             final List<Query.Criterion> criterionList, int position, List parameters, ConversionService conversionService, boolean allowJoins, boolean hibernateCompatible) {
+        Map<String, Association<?>> aliases = allowJoins ? Collections.emptyMap() : toOneAliases(criterionList);
         for (Iterator<Query.Criterion> iterator = criterionList.iterator(); iterator.hasNext();) {
             Query.Criterion criterion = iterator.next();
+            if (!allowJoins) {
+                criterion = splitToOnePath(entity, criterion, aliases);
+            }
 
             final String operator = criteria instanceof Query.Conjunction ? LOGICAL_AND : LOGICAL_OR;
             QueryHandler qh = queryHandlers.get(criterion.getClass());
-            if (qh != null) {
+            if (criterion instanceof ToOnePathCriterion path) {
+                position = handleToOneAsSubquery(q, whereClause, logicalName, position, parameters, conversionService,
+                        path.association, new Query.Conjunction(), Collections.singletonList(path.criterion), hibernateCompatible);
+            }
+            else if (qh != null) {
 
                 position = qh.handle(entity, criterion, q, whereClause, logicalName,
                         position, parameters, conversionService, allowJoins, hibernateCompatible);
             }
             else if (criterion instanceof AssociationCriteria) {
-
-                if (!allowJoins) {
-                    throw new InvalidDataAccessResourceUsageException("Joins cannot be used in a DELETE or UPDATE operation");
-                }
                 AssociationCriteria ac = (AssociationCriteria) criterion;
                 Association association = ac.getAssociation();
                 List<Query.Criterion> associationCriteriaList = ac.getCriteria();
-                handleAssociationCriteria(q, whereClause, logicalName, position, parameters, conversionService, allowJoins, association, new Query.Conjunction(), associationCriteriaList, hibernateCompatible);
+                if (!allowJoins) {
+                    position = handleToOneAsSubquery(q, whereClause, logicalName, position, parameters, conversionService, association, new Query.Conjunction(), associationCriteriaList, hibernateCompatible);
+                }
+                else {
+                    position = handleAssociationCriteria(q, whereClause, logicalName, position, parameters, conversionService, allowJoins, association, new Query.Conjunction(), associationCriteriaList, hibernateCompatible);
+                }
+            }
+            else if (HQL_RENDERERS.containsKey(criterion.getClass())) {
+                position = HQL_RENDERERS.get(criterion.getClass()).render(criterion, entity, logicalName, whereClause, position, parameters);
             }
             else {
                 throw new InvalidDataAccessResourceUsageException("Queries of type " + criterion.getClass().getSimpleName() + " are not supported by this implementation");
@@ -960,5 +1173,30 @@ public class JpaQueryBuilder {
         }
 
         return position;
+    }
+
+    private static String functionOperator(Query.PropertyCriterion wrapped) {
+        if (wrapped instanceof Query.Equals) {
+            return " = ";
+        }
+        if (wrapped instanceof Query.NotEquals) {
+            return " != ";
+        }
+        if (wrapped instanceof Query.GreaterThan) {
+            return " > ";
+        }
+        if (wrapped instanceof Query.GreaterThanEquals) {
+            return " >= ";
+        }
+        if (wrapped instanceof Query.LessThan) {
+            return " < ";
+        }
+        if (wrapped instanceof Query.LessThanEquals) {
+            return " <= ";
+        }
+        if (wrapped instanceof Query.Like) {
+            return " LIKE ";
+        }
+        return null;
     }
 }

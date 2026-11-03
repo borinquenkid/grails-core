@@ -871,24 +871,58 @@ abstract class AbstractDetachedCriteria<T> implements Criteria, Cloneable {
     @Override
     @CompileStatic
     AbstractDetachedCriteria<T> clone() {
-        AbstractDetachedCriteria cloned = newInstance()
-        cloned.@criteria = new ArrayList(this.criteria)
+        AbstractDetachedCriteria criteria = newInstance()
+        Map<DetachedAssociationCriteria, DetachedAssociationCriteria> associationCopies = new IdentityHashMap<>()
+        List<Query.Criterion> clonedCriteria = new ArrayList<>(this.criteria.size())
+        for (Query.Criterion criterion : this.criteria) {
+            clonedCriteria.add(criterion instanceof DetachedAssociationCriteria ?
+                    copyAssociationCriteria((DetachedAssociationCriteria) criterion, associationCopies) : criterion)
+        }
+        criteria.@criteria = clonedCriteria
+        criteria.@alias = this.alias
         final projections = new ArrayList(this.projections)
-        cloned.@projections = projections
-        cloned.projectionList = new DetachedProjections(projections)
-        cloned.@orders = new ArrayList(this.orders)
-        cloned.defaultMax = defaultMax
-        cloned.defaultOffset = defaultOffset
-        cloned.@fetchStrategies = new HashMap<>(this.fetchStrategies)
-        cloned.@joinTypes = new HashMap<>(this.joinTypes)
-        cloned.@junctions = new ArrayList(this.junctions)
-        cloned.@connectionName = this.connectionName
-        cloned.@lazyQuery = this.lazyQuery
-        cloned.@associationCriteriaMap = new LinkedHashMap<>(this.associationCriteriaMap)
-        return cloned
+        criteria.@projections = projections
+        criteria.projectionList = new DetachedProjections(projections)
+        criteria.@orders = new ArrayList(this.orders)
+        criteria.defaultMax = defaultMax
+        criteria.defaultOffset = defaultOffset
+        criteria.@fetchStrategies = new HashMap<>(this.fetchStrategies)
+        criteria.@joinTypes = new HashMap<>(this.joinTypes)
+        criteria.@junctions = new ArrayList(this.junctions)
+        criteria.@connectionName = this.connectionName
+        criteria.@lazyQuery = this.lazyQuery
+        Map<String, DetachedAssociationCriteria> clonedAssociations = new LinkedHashMap<>()
+        for (Map.Entry<String, DetachedAssociationCriteria> entry : this.associationCriteriaMap.entrySet()) {
+            clonedAssociations.put(entry.key, copyAssociationCriteria(entry.value, associationCopies))
+        }
+        criteria.@associationCriteriaMap = clonedAssociations
+        return criteria
+    }
+
+    /**
+     * Copies an association node once per clone, so the criteria list and the association map of the copy
+     * refer to the same node and a change to that node never reaches the original.
+     */
+    @CompileStatic
+    private static DetachedAssociationCriteria copyAssociationCriteria(DetachedAssociationCriteria source,
+            Map<DetachedAssociationCriteria, DetachedAssociationCriteria> copies) {
+        DetachedAssociationCriteria copy = copies.get(source)
+        if (copy == null) {
+            copy = (DetachedAssociationCriteria) source.clone()
+            copies.put(source, copy)
+        }
+        return copy
     }
 
     protected abstract AbstractDetachedCriteria newInstance()
+
+    Integer getDefaultMax() {
+        defaultMax
+    }
+
+    Integer getDefaultOffset() {
+        defaultOffset
+    }
 
     /**
      * Sets the default max to use and returns a new criteria instance. This method does not mutate the original criteria!
@@ -1044,8 +1078,7 @@ abstract class AbstractDetachedCriteria<T> implements Criteria, Cloneable {
         initialiseIfNecessary(targetClass)
         def method = dynamicFinders.find { FinderMethod f -> f.isMethodMatch(methodName) }
         if (method != null) {
-            applyLazyCriteria()
-            return method.invoke(targetClass, methodName, this, args)
+            return method.invoke(targetClass, methodName, materializeLazyCriteria(), args)
         }
 
         if (!args) {
@@ -1109,7 +1142,14 @@ abstract class AbstractDetachedCriteria<T> implements Criteria, Cloneable {
 
     protected abstract QueryableCriteria buildQueryableCriteria(Closure queryClosure)
 
-    protected void applyLazyCriteria() {
+    /**
+     * Applies a pending {@code buildLazy} closure, if any, so the criteria can be read by a query
+     * implementation. Query implementations call this before they translate a criteria that only
+     * appears as a subquery value; the executed root criteria is materialized by
+     * {@link grails.gorm.DetachedCriteria}. Idempotent: once applied, the deferred closure is
+     * cleared. The public contract is declared by {@code QueryableCriteria}.
+     */
+    void applyLazyCriteria() {
         if (lazyQuery == null) {
             return
         }
@@ -1117,6 +1157,22 @@ abstract class AbstractDetachedCriteria<T> implements Criteria, Cloneable {
         def criteria = lazyQuery
         lazyQuery = null
         this.with(criteria)
+    }
+
+    /**
+     * Returns this criteria with its deferred query applied, without mutating it: the original keeps the
+     * deferred query, so a criteria shared between threads materializes a copy each time and no deferred
+     * definition is applied twice.
+     */
+    AbstractDetachedCriteria<T> materializeLazyCriteria() {
+        Closure pending = lazyQuery
+        if (pending == null) {
+            return this
+        }
+        AbstractDetachedCriteria<T> materialized = clone()
+        materialized.lazyQuery = null
+        materialized.with(pending)
+        return materialized
     }
 
     @Override

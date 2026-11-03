@@ -57,4 +57,36 @@ public interface QueryableCriteria<T> extends Criteria {
      */
     String getAlias();
 
+    /**
+     * Applies a deferred criteria definition, if any, so that {@link #getCriteria()} and
+     * {@link #getProjections()} can be read. Implementations without deferred criteria do nothing.
+     */
+    default void applyLazyCriteria() {
+    }
+
+    /**
+     * Returns this criteria with its deferred criteria applied, without mutating it. A criteria shared
+     * between threads materializes a copy each time, so no deferred definition is applied twice.
+     * Implementations without deferred criteria return themselves.
+     *
+     * @return The criteria to read the query from
+     */
+    default QueryableCriteria<T> materializeLazyCriteria() {
+        return this;
+    }
+
+    /**
+     * @return The default maximum number of results set with {@code max(int)}, or null when none was set
+     */
+    default Integer getDefaultMax() {
+        return null;
+    }
+
+    /**
+     * @return The default offset set with {@code offset(int)}, or null when none was set
+     */
+    default Integer getDefaultOffset() {
+        return null;
+    }
+
 }

@@ -1278,10 +1278,17 @@ public class DetachedCriteriaTransformer extends ClassCodeVisitorSupport {
 
                                 addProjectionToCurrentBody(currentBody, aggregateFunctionName, aggregatePropertyName, variableScope);
 
-                                rightExpression = closureAndArguments.getClosureExpression();
-
                                 if ("property".equals(aggregateFunctionName) && METHOD_TO_SUBQUERY_MAP.containsKey(methodToCall)) {
+                                    rightExpression = closureAndArguments.getClosureExpression();
                                     methodToCall = methodToCall + "All";
+                                } else {
+                                    // Built explicitly so the subquery's own criteria receives the projection: a bare
+                                    // closure resolves its calls against the enclosing criteria when the query is
+                                    // declared in a service (@Where), and the aggregate then lands on the outer query.
+                                    rightExpression = new MethodCallExpression(
+                                            new ConstructorCallExpression(getParameterizedDetachedCriteriaClassNode(null),
+                                                    new ArgumentListExpression(new ClassExpression(this.currentClassNode))),
+                                            "build", new ArgumentListExpression(closureAndArguments.getClosureExpression()));
                                 }
                             } else {
                                 sourceUnit.getErrorCollector().addError(new LocatedMessage("Cannot use aggregate function " + aggregateFunctionName + " on property \"" + aggregatePropertyName + "\" - no such property on class " + this.currentClassNode.getName() + " exists.", Token.newString(propertyName, aggregateMethodCall.getLineNumber(), aggregateMethodCall.getColumnNumber()), sourceUnit));
@@ -1364,15 +1371,15 @@ public class DetachedCriteriaTransformer extends ClassCodeVisitorSupport {
             }
         } else if (rightExpression instanceof PropertyExpression) {
             PropertyExpression pe = (PropertyExpression) rightExpression;
-            String property = pe.getObjectExpression().getText();
-            if ((leftExpression instanceof PropertyExpression) && aliases.containsKey(property)) {
+            String property = aliasRootName(pe);
+            if ((leftExpression instanceof PropertyExpression) && property != null && aliases.containsKey(property)) {
                 aliasExpressions.add(pe);
                 arguments = new ArgumentListExpression();
                 arguments.addExpression(new ConstantExpression(((PropertyExpression) leftExpression).getPropertyAsString()));
                 arguments.addExpression(new ConstantExpression(pe.getText()));
                 methodToCall = PROPERTY_COMPARISON_OPERATOR_TO_CRITERIA_METHOD_MAP.get(operator);
             }
-            else if ((leftExpression instanceof VariableExpression) && aliases.containsKey(property)) {
+            else if ((leftExpression instanceof VariableExpression) && property != null && aliases.containsKey(property)) {
                 aliasExpressions.add(pe);
                 arguments = new ArgumentListExpression();
                 arguments.addExpression(new ConstantExpression(((VariableExpression) leftExpression).getName()));
@@ -1390,6 +1397,19 @@ public class DetachedCriteriaTransformer extends ClassCodeVisitorSupport {
                     .addExpression(rightExpression);
         }
         newCode.addStatement(new ExpressionStatement(new MethodCallExpression(new VariableExpression("this"), methodToCall, arguments)));
+    }
+
+    /**
+     * The name of the alias a property expression refers to, the root of the chain: the alias itself
+     * for {@code alias.property} and for {@code alias.association.property} alike, or {@code null} when
+     * the chain does not start at a variable.
+     */
+    private String aliasRootName(Expression expression) {
+        Expression current = expression;
+        while (current instanceof PropertyExpression) {
+            current = ((PropertyExpression) current).getObjectExpression();
+        }
+        return current instanceof VariableExpression ? ((VariableExpression) current).getName() : null;
     }
 
     private void addProjectionToCurrentBody(BlockStatement currentBody, String functionName, String aggregatePropertyName, VariableScope variableScope) {
