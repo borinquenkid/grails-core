@@ -16,32 +16,34 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller.json;
+package org.grails.web.converters.marshaller.json
 
-import java.util.Collection;
+import groovy.transform.CompileStatic
 
-import grails.converters.JSON;
-import org.grails.web.converters.exceptions.ConverterException;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
-import org.grails.web.json.JSONWriter;
+import grails.converters.JSON
+import org.grails.web.converters.exceptions.ConverterException
+import org.grails.web.converters.marshaller.ObjectMarshaller
+import org.grails.web.json.JSONWriter
 
 /**
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-@SuppressWarnings("rawtypes")
-public class CollectionMarshaller implements ObjectMarshaller<JSON> {
+@SuppressWarnings('rawtypes')
+@CompileStatic
+class CollectionMarshaller implements ObjectMarshaller<JSON> {
 
-    public boolean supports(Object object) {
-        return object instanceof Collection;
+    boolean supports(Object object) {
+        return object instanceof Collection
     }
 
-    public void marshalObject(Object o, JSON converter) throws ConverterException {
-        JSONWriter writer = converter.getWriter();
-        writer.array();
+    void marshalObject(Object o, JSON converter) throws ConverterException {
+        JSONWriter writer = converter.getWriter()
+        writer.array()
         for (Object o1 : ((Collection) o)) {
-            converter.convertAnother(o1);
+            converter.convertAnother(o1)
         }
-        writer.endArray();
+        writer.endArray()
     }
+
 }

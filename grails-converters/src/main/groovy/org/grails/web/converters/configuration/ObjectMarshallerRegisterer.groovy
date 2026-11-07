@@ -16,10 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.configuration;
+package org.grails.web.converters.configuration
 
-import org.grails.web.converters.Converter;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
+import groovy.transform.CompileStatic
+
+import org.grails.web.converters.Converter
+import org.grails.web.converters.marshaller.ObjectMarshaller
 
 /**
  * A Spring Bean that can be used to register an ObjectMarshaller.
@@ -27,34 +29,36 @@ import org.grails.web.converters.marshaller.ObjectMarshaller;
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-@SuppressWarnings("rawtypes")
-public class ObjectMarshallerRegisterer {
+@SuppressWarnings('rawtypes')
+@CompileStatic
+class ObjectMarshallerRegisterer {
 
-    private ObjectMarshaller marshaller;
-    private Class<? extends Converter> converterClass;
-    private int priority = DefaultConverterConfiguration.DEFAULT_PRIORITY;
+    private ObjectMarshaller marshaller
+    private Class<? extends Converter> converterClass
+    private int priority = DefaultConverterConfiguration.DEFAULT_PRIORITY
 
-    public ObjectMarshaller getMarshaller() {
-        return marshaller;
+    ObjectMarshaller getMarshaller() {
+        return marshaller
     }
 
-    public void setMarshaller(ObjectMarshaller marshaller) {
-        this.marshaller = marshaller;
+    void setMarshaller(ObjectMarshaller marshaller) {
+        this.marshaller = marshaller
     }
 
-    public Class<? extends Converter> getConverterClass() {
-        return converterClass;
+    Class<? extends Converter> getConverterClass() {
+        return converterClass
     }
 
-    public void setConverterClass(Class<? extends Converter> converterClass) {
-        this.converterClass = converterClass;
+    void setConverterClass(Class<? extends Converter> converterClass) {
+        this.converterClass = converterClass
     }
 
-    public int getPriority() {
-        return priority;
+    int getPriority() {
+        return priority
     }
 
-    public void setPriority(int priority) {
-        this.priority = priority;
+    void setPriority(int priority) {
+        this.priority = priority
     }
+
 }

@@ -17,10 +17,12 @@
  *  under the License.
  */
 
-package org.grails.web.converters.marshaller;
+package org.grails.web.converters.marshaller
 
-import org.grails.datastore.mapping.model.PersistentEntity;
+import org.grails.datastore.mapping.model.PersistentEntity
 
-public interface DomainClassFetcher {
-    PersistentEntity findDomainClass(Object instance);
+interface DomainClassFetcher {
+
+    PersistentEntity findDomainClass(Object instance)
+
 }

@@ -16,14 +16,16 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.plugins.converters.api;
+package org.grails.plugins.converters.api
 
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import groovy.transform.CompileStatic
 
-import org.grails.web.converters.ConverterUtil;
-import org.grails.web.servlet.mvc.GrailsWebRequest;
+import org.springframework.beans.BeansException
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
+
+import org.grails.web.converters.ConverterUtil
+import org.grails.web.servlet.mvc.GrailsWebRequest
 
 /**
  * The API for converting objects to target types such as XML.
@@ -31,9 +33,10 @@ import org.grails.web.servlet.mvc.GrailsWebRequest;
  * @since 2.0
  * @author Graeme Rocher
  */
-public class ConvertersApi implements ApplicationContextAware {
+@CompileStatic
+class ConvertersApi implements ApplicationContextAware {
 
-    private ApplicationContext applicationContext;
+    private ApplicationContext applicationContext
 
     /**
      * Converter an instance from one format to another
@@ -42,24 +45,25 @@ public class ConvertersApi implements ApplicationContextAware {
      * @param clazz The type to convert to
      * @return the converted object
      */
-    public Object asType(Object instance, Class<?> clazz) {
+    Object asType(Object instance, Class<?> clazz) {
         if (ConverterUtil.isConverterClass(clazz)) {
-            return ConverterUtil.createConverter(clazz, instance, getApplicationContext());
+            return ConverterUtil.createConverter(clazz, instance, getApplicationContext())
         }
-        return ConverterUtil.invokeOriginalAsTypeMethod(instance, clazz);
+        return ConverterUtil.invokeOriginalAsTypeMethod(instance, clazz)
     }
 
-    public ApplicationContext getApplicationContext() {
+    ApplicationContext getApplicationContext() {
         if (applicationContext == null) {
-            GrailsWebRequest webRequest = GrailsWebRequest.lookup();
+            GrailsWebRequest webRequest = GrailsWebRequest.lookup()
             if (webRequest != null) {
-                applicationContext = webRequest.getApplicationContext();
+                applicationContext = webRequest.getApplicationContext()
             }
         }
-        return applicationContext;
+        return applicationContext
     }
 
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+    void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext
     }
+
 }

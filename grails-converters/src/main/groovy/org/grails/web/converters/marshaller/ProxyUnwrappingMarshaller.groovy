@@ -16,16 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller;
+package org.grails.web.converters.marshaller
 
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaClass;
-import groovy.lang.MetaClassRegistry;
+import groovy.transform.CompileStatic
 
-import grails.converters.JSON;
-import grails.util.GrailsNameUtils;
-import org.grails.web.converters.Converter;
-import org.grails.web.converters.exceptions.ConverterException;
+import grails.util.GrailsNameUtils
+import org.grails.web.converters.Converter
+import org.grails.web.converters.exceptions.ConverterException
 
 /**
  * Unwraps Hibernate proxies with no direct references to the Hibernate APIs
@@ -35,38 +32,37 @@ import org.grails.web.converters.exceptions.ConverterException;
  *
  * @since 1.1
  */
-@SuppressWarnings({ "unchecked", "rawtypes" })
-public class ProxyUnwrappingMarshaller<C extends Converter> implements ObjectMarshaller<C>, NameAwareMarshaller {
+@SuppressWarnings(['unchecked', 'rawtypes'])
+@CompileStatic
+class ProxyUnwrappingMarshaller<C extends Converter> implements ObjectMarshaller<C>, NameAwareMarshaller {
 
-    private static final String HIBERNATE_LAZY_INITIALIZER_PROP = "hibernateLazyInitializer";
-    private static final String IMPLEMENTATION_PROP = "implementation";
+    private static final String HIBERNATE_LAZY_INITIALIZER_PROP = 'hibernateLazyInitializer'
+    private static final String IMPLEMENTATION_PROP = 'implementation'
 
-    public boolean supports(Object object) {
-        if (object == null) return false;
-        MetaClass mc = GroovySystem.getMetaClassRegistry().getMetaClass(object.getClass());
-        return mc.hasProperty(object, HIBERNATE_LAZY_INITIALIZER_PROP) != null;
+    boolean supports(Object object) {
+        if (object == null) return false
+        MetaClass mc = GroovySystem.getMetaClassRegistry().getMetaClass(object.getClass())
+        return mc.hasProperty(object, HIBERNATE_LAZY_INITIALIZER_PROP) != null
     }
 
-    public void marshalObject(Object object, C converter) throws ConverterException {
-        Object unwrapped = unwrap(object);
-        if (converter instanceof JSON json && unwrapped != null) {
-            json.standIn(object, unwrapped);
-        }
-        converter.lookupObjectMarshaller(unwrapped).marshalObject(unwrapped, converter);
+    void marshalObject(Object object, C converter) throws ConverterException {
+        Object unwrapped = unwrap(object)
+        converter.lookupObjectMarshaller(unwrapped).marshalObject(unwrapped, converter)
     }
 
     private Object unwrap(Object o) {
-        if (o == null) return o;
+        if (o == null) return o
 
-        final MetaClassRegistry registry = GroovySystem.getMetaClassRegistry();
-        MetaClass mc = registry.getMetaClass(o.getClass());
+        final MetaClassRegistry registry = GroovySystem.getMetaClassRegistry()
+        MetaClass mc = registry.getMetaClass(o.getClass())
 
-        final Object hibernateLazyInitializer = mc.getProperty(o, HIBERNATE_LAZY_INITIALIZER_PROP);
+        final Object hibernateLazyInitializer = mc.getProperty(o, HIBERNATE_LAZY_INITIALIZER_PROP)
         return registry.getMetaClass(hibernateLazyInitializer.getClass()).getProperty(
-                hibernateLazyInitializer, IMPLEMENTATION_PROP);
+                hibernateLazyInitializer, IMPLEMENTATION_PROP)
     }
 
-    public String getElementName(Object o) {
-        return GrailsNameUtils.getPropertyName(unwrap(o).getClass().getName());
+    String getElementName(Object o) {
+        return GrailsNameUtils.getPropertyName(unwrap(o).getClass().getName())
     }
+
 }

@@ -16,37 +16,39 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller.json;
+package org.grails.web.converters.marshaller.json
 
-import java.util.Map;
+import groovy.transform.CompileStatic
 
-import grails.converters.JSON;
-import org.grails.web.converters.exceptions.ConverterException;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
-import org.grails.web.json.JSONWriter;
+import grails.converters.JSON
+import org.grails.web.converters.exceptions.ConverterException
+import org.grails.web.converters.marshaller.ObjectMarshaller
+import org.grails.web.json.JSONWriter
 
 /**
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-@SuppressWarnings("unchecked")
-public class MapMarshaller implements ObjectMarshaller<JSON> {
+@SuppressWarnings('unchecked')
+@CompileStatic
+class MapMarshaller implements ObjectMarshaller<JSON> {
 
-    public boolean supports(Object object) {
-        return object instanceof Map;
+    boolean supports(Object object) {
+        return object instanceof Map
     }
 
-    public void marshalObject(Object o, JSON converter) throws ConverterException {
-        JSONWriter writer = converter.getWriter();
-        writer.object();
-        Map<Object, Object> map = (Map<Object, Object>) o;
+    void marshalObject(Object o, JSON converter) throws ConverterException {
+        JSONWriter writer = converter.getWriter()
+        writer.object()
+        Map<Object, Object> map = (Map<Object, Object>) o
         for (Map.Entry<Object, Object> entry : map.entrySet()) {
-            Object key = entry.getKey();
+            Object key = entry.getKey()
             if (key != null) {
-                writer.key(converter.formatKey(key));
-                converter.convertAnother(entry.getValue());
+                writer.key(converter.formatKey(key))
+                converter.convertAnother(entry.getValue())
             }
         }
-        writer.endObject();
+        writer.endObject()
     }
+
 }

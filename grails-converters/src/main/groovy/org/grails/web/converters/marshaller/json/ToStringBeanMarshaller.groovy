@@ -16,16 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.converters.marshaller.json;
 
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Currency;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-import java.util.TimeZone;
+import groovy.transform.CompileStatic;
 
 import grails.converters.JSON;
 import org.grails.web.converters.exceptions.ConverterException;
@@ -34,30 +28,33 @@ import org.grails.web.converters.marshaller.ObjectMarshaller;
 /**
  * @author Siegfried Puchbauer
  * @since 1.1
- * @deprecated with {@code grails.converters.json.legacy} set to {@code false}, as Grails 10 does by default,
+ * @deprecated with {@code grails.converters.json.legacy} set to {@code false}, as a later release does by default,
  *     the converter writes URL, Locale and other values with the application's {@code JsonMapper}; this marshaller is registered while
  *     it is {@code true}, the default in Grails 9, to render JSON as Grails 8 did.
  */
-@Deprecated(since = "9.0")
-public class ToStringBeanMarshaller implements ObjectMarshaller<JSON> {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+@Deprecated(since = '9.0')
+@CompileStatic
+class ToStringBeanMarshaller implements ObjectMarshaller<JSON> {
 
     private final Set<Class<?>> classes;
 
-    public ToStringBeanMarshaller(Set<Class<?>> classes) {
+    ToStringBeanMarshaller(Set<Class<?>> classes) {
         this.classes = classes;
     }
 
-    @SuppressWarnings("unchecked")
-    public ToStringBeanMarshaller() {
+    @SuppressWarnings('unchecked')
+    ToStringBeanMarshaller() {
         classes = Collections.unmodifiableSet(new HashSet<Class<?>>(Arrays.asList(
-                Currency.class, TimeZone.class, Locale.class, URL.class)));
+                Currency, TimeZone, Locale, URL)));
     }
 
-    public boolean supports(Object object) {
+    boolean supports(Object object) {
         return classes.contains(object.getClass());
     }
 
-    public void marshalObject(Object object, JSON converter) throws ConverterException {
+    void marshalObject(Object object, JSON converter) throws ConverterException {
         converter.convertAnother(object.toString());
     }
 }

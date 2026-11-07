@@ -17,20 +17,25 @@
  *  under the License.
  */
 
-package org.grails.web.converters.marshaller;
+package org.grails.web.converters.marshaller
 
-import grails.core.GrailsApplication;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import groovy.transform.CompileStatic
 
-public class ByGrailsApplicationDomainClassFetcher implements DomainClassFetcher {
-    GrailsApplication grailsApplication;
+import grails.core.GrailsApplication
+import org.grails.datastore.mapping.model.PersistentEntity
 
-    public ByGrailsApplicationDomainClassFetcher(GrailsApplication grailsApplication) {
-        this.grailsApplication = grailsApplication;
+@CompileStatic
+class ByGrailsApplicationDomainClassFetcher implements DomainClassFetcher {
+
+    GrailsApplication grailsApplication
+
+    ByGrailsApplicationDomainClassFetcher(GrailsApplication grailsApplication) {
+        this.grailsApplication = grailsApplication
     }
 
     @Override
-    public PersistentEntity findDomainClass(Object instance) {
-        return grailsApplication.getMappingContext().getPersistentEntity(instance.getClass().getName());
+    PersistentEntity findDomainClass(Object instance) {
+        return grailsApplication.getMappingContext().getPersistentEntity(instance.getClass().getName())
     }
+
 }

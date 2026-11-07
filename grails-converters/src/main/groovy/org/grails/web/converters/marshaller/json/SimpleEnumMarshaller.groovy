@@ -16,15 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller.json;
+package org.grails.web.converters.marshaller.json
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Method
 
-import org.springframework.beans.BeanUtils;
+import groovy.transform.CompileStatic
 
-import grails.converters.JSON;
-import org.grails.web.converters.exceptions.ConverterException;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
+import org.springframework.beans.BeanUtils
+
+import grails.converters.JSON
+import org.grails.web.converters.exceptions.ConverterException
+import org.grails.web.converters.marshaller.ObjectMarshaller
 
 /**
  * Marshals enums as simple string values (just the enum name) for symmetric serialization/deserialization.
@@ -32,27 +34,44 @@ import org.grails.web.converters.marshaller.ObjectMarshaller;
  *
  * @since 7.0.2
  */
-public class SimpleEnumMarshaller implements ObjectMarshaller<JSON> {
+@CompileStatic
+class SimpleEnumMarshaller implements ObjectMarshaller<JSON> {
 
-    public boolean supports(Object object) {
-        return object.getClass().isEnum();
+    private final boolean constantsWithBodies
+
+    SimpleEnumMarshaller() {
+        this(false)
     }
 
-    public void marshalObject(Object en, JSON json) throws ConverterException {
+    /**
+     * @param constantsWithBodies whether to marshal an enum constant with a body as well, whose class is an anonymous
+     *        subclass of its enum; without, as in Grails 8, such a constant is left to the bean marshallers
+     * @since 9.0
+     */
+    SimpleEnumMarshaller(boolean constantsWithBodies) {
+        this.constantsWithBodies = constantsWithBodies
+    }
+
+    boolean supports(Object object) {
+        return constantsWithBodies ? object instanceof Enum : object.getClass().isEnum()
+    }
+
+    void marshalObject(Object en, JSON json) throws ConverterException {
         try {
-            Method nameMethod = BeanUtils.findDeclaredMethod(en.getClass(), "name");
+            Method nameMethod = BeanUtils.findDeclaredMethod(en.getClass(), 'name')
             try {
-                json.convertAnother(nameMethod.invoke(en));
+                json.convertAnother(nameMethod.invoke(en))
             }
             catch (Exception e) {
-                json.convertAnother("");
+                json.convertAnother('')
             }
         }
         catch (ConverterException ce) {
-            throw ce;
+            throw ce
         }
         catch (Exception e) {
-            throw new ConverterException("Error converting Enum with class " + en.getClass().getName(), e);
+            throw new ConverterException('Error converting Enum with class ' + en.getClass().getName(), e)
         }
     }
+
 }

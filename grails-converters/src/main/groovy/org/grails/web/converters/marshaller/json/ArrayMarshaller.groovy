@@ -16,32 +16,36 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller.json;
+package org.grails.web.converters.marshaller.json
 
-import java.lang.reflect.Array;
+import java.lang.reflect.Array
 
-import grails.converters.JSON;
-import org.grails.web.converters.exceptions.ConverterException;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
-import org.grails.web.json.JSONWriter;
+import groovy.transform.CompileStatic
+
+import grails.converters.JSON
+import org.grails.web.converters.exceptions.ConverterException
+import org.grails.web.converters.marshaller.ObjectMarshaller
+import org.grails.web.json.JSONWriter
 
 /**
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-public class ArrayMarshaller implements ObjectMarshaller<JSON> {
+@CompileStatic
+class ArrayMarshaller implements ObjectMarshaller<JSON> {
 
-    public boolean supports(Object object) {
-        return object.getClass().isArray();
+    boolean supports(Object object) {
+        return object.getClass().isArray()
     }
 
-    public void marshalObject(Object o, JSON converter) throws ConverterException {
-        JSONWriter writer = converter.getWriter();
-        int len = Array.getLength(o);
-        writer.array();
+    void marshalObject(Object o, JSON converter) throws ConverterException {
+        JSONWriter writer = converter.getWriter()
+        int len = Array.getLength(o)
+        writer.array()
         for (int i = 0; i < len; i++) {
-            converter.convertAnother(Array.get(o, i));
+            converter.convertAnother(Array.get(o, i))
         }
-        writer.endArray();
+        writer.endArray()
     }
+
 }

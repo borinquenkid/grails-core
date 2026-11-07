@@ -16,31 +16,35 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller.json;
+package org.grails.web.converters.marshaller.json
 
-import grails.core.GrailsApplication;
-import grails.core.support.proxy.ProxyHandler;
+import groovy.transform.CompileStatic
+
+import grails.core.GrailsApplication
+import grails.core.support.proxy.ProxyHandler
 
 /**
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-public class DeepDomainClassMarshaller extends DomainClassMarshaller {
+@CompileStatic
+class DeepDomainClassMarshaller extends DomainClassMarshaller {
 
-    public DeepDomainClassMarshaller(boolean includeVersion, GrailsApplication application) {
-        super(includeVersion, application);
+    DeepDomainClassMarshaller(boolean includeVersion, GrailsApplication application) {
+        super(includeVersion, application)
     }
 
-    public DeepDomainClassMarshaller(boolean includeVersion, ProxyHandler proxyHandler, GrailsApplication application) {
-        super(includeVersion, proxyHandler, application);
+    DeepDomainClassMarshaller(boolean includeVersion, ProxyHandler proxyHandler, GrailsApplication application) {
+        super(includeVersion, proxyHandler, application)
     }
 
-    public DeepDomainClassMarshaller(boolean includeVersion, boolean includeClass, ProxyHandler proxyHandler, GrailsApplication application) {
-        super(includeVersion, includeClass, proxyHandler, application);
+    DeepDomainClassMarshaller(boolean includeVersion, boolean includeClass, ProxyHandler proxyHandler, GrailsApplication application) {
+        super(includeVersion, includeClass, proxyHandler, application)
     }
 
     @Override
     protected boolean isRenderDomainClassRelations() {
-        return true;
+        return true
     }
+
 }

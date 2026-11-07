@@ -16,13 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.configuration;
+package org.grails.web.converters.configuration
 
-import java.util.List;
-
-import grails.core.support.proxy.ProxyHandler;
-import org.grails.web.converters.Converter;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
+import grails.core.support.proxy.ProxyHandler
+import org.grails.web.converters.Converter
+import org.grails.web.converters.marshaller.ObjectMarshaller
 
 /**
  * @author Siegfried Puchbauer
@@ -30,50 +28,51 @@ import org.grails.web.converters.marshaller.ObjectMarshaller;
  *
  * @since 1.1
  */
-@SuppressWarnings("rawtypes")
-public interface ConverterConfiguration<C extends Converter> {
+@SuppressWarnings('rawtypes')
+interface ConverterConfiguration<C extends Converter> {
 
     /**
      * Lookup the ProxyHandler used to deal with proxies instances.
      * @return The proxy handler
      */
-    ProxyHandler getProxyHandler();
+    ProxyHandler getProxyHandler()
 
     /**
      * Lookup the ObjectMarshaller with the highest priority that support to marshall the given object
      * @param o the object which is about to be converted
      * @return the ObjectMarshaller instance
      */
-    ObjectMarshaller<C> getMarshaller(Object o);
+    ObjectMarshaller<C> getMarshaller(Object o)
 
     /**
      * Lookup the configured default Character encoding for the Converter
      * @return the Charset name
      */
-    String getEncoding();
+    String getEncoding()
 
     /**
      * Lookup the configured CircularReferenceBehaviour (how the converter should behave when a circular reference is detected)
      * @see org.grails.web.converters.Converter.CircularReferenceBehaviour
      * @return an instance of CircularReferenceBehaviour
      */
-    Converter.CircularReferenceBehaviour getCircularReferenceBehaviour();
+    Converter.CircularReferenceBehaviour getCircularReferenceBehaviour()
 
     /**
      * Lookup method whether the converter should default to pretty printed output
      * @return a boolean
      */
-    boolean isPrettyPrint();
+    boolean isPrettyPrint()
 
     /**
      * Retrieve the ordered list of ObjectMarshallers
      * @return the List of ObjectMarshallers ordered by priority
      */
-    List<ObjectMarshaller<C>> getOrderedObjectMarshallers();
+    List<ObjectMarshaller<C>> getOrderedObjectMarshallers()
 
     /**
      * Enables caching object marshaller selection by class.
      * @return a boolean
      */
-    boolean isCacheObjectMarshallerByClass();
+    boolean isCacheObjectMarshallerByClass()
+
 }

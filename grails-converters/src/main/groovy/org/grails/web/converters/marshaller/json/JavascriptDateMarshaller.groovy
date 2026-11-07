@@ -16,32 +16,34 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller.json;
+package org.grails.web.converters.marshaller.json
 
-import java.util.Date;
+import groovy.transform.CompileStatic
 
-import grails.converters.JSON;
-import org.grails.web.converters.exceptions.ConverterException;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
-import org.grails.web.json.JSONException;
+import grails.converters.JSON
+import org.grails.web.converters.exceptions.ConverterException
+import org.grails.web.converters.marshaller.ObjectMarshaller
+import org.grails.web.json.JSONException
 
 /**
  * @author Siegfried Puchbauer
  *
  * @since 1.1
  */
-public class JavascriptDateMarshaller implements ObjectMarshaller<JSON> {
+@CompileStatic
+class JavascriptDateMarshaller implements ObjectMarshaller<JSON> {
 
-    public boolean supports(Object object) {
-        return object instanceof Date;
+    boolean supports(Object object) {
+        return object instanceof Date
     }
 
-    public void marshalObject(Object object, JSON converter) throws ConverterException {
+    void marshalObject(Object object, JSON converter) throws ConverterException {
         try {
-            converter.getWriter().value(object);
+            converter.getWriter().value(object)
         }
         catch (JSONException e) {
-            throw new ConverterException(e);
+            throw new ConverterException(e)
         }
     }
+
 }

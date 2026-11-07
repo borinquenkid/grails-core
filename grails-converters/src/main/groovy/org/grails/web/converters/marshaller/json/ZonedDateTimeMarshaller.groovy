@@ -16,38 +16,42 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller.json;
+package org.grails.web.converters.marshaller.json
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
-import grails.converters.JSON;
-import org.grails.web.converters.exceptions.ConverterException;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
-import org.grails.web.json.JSONException;
+import groovy.transform.CompileStatic
+
+import grails.converters.JSON
+import org.grails.web.converters.exceptions.ConverterException
+import org.grails.web.converters.marshaller.ObjectMarshaller
+import org.grails.web.json.JSONException
 
 /**
  * JSON ObjectMarshaller which converts a ZonedDateTime to ISO-8601 format with timezone offset.
  *
  * @since 7.0
- * @deprecated with {@code grails.converters.json.legacy} set to {@code false}, as Grails 10 does by default,
+ * @deprecated with {@code grails.converters.json.legacy} set to {@code false}, as a later release does by default,
  *     the converter writes {@code ZonedDateTime} values with the application's {@code JsonMapper}; this marshaller is registered while
  *     it is {@code true}, the default in Grails 9, to render JSON as Grails 8 did.
  */
-@Deprecated(since = "9.0")
-public class ZonedDateTimeMarshaller implements ObjectMarshaller<JSON> {
+@Deprecated(since = '9.0')
+@CompileStatic
+class ZonedDateTimeMarshaller implements ObjectMarshaller<JSON> {
 
-    public boolean supports(Object object) {
-        return object instanceof ZonedDateTime;
+    boolean supports(Object object) {
+        return object instanceof ZonedDateTime
     }
 
-    public void marshalObject(Object object, JSON converter) throws ConverterException {
+    void marshalObject(Object object, JSON converter) throws ConverterException {
         try {
-            ZonedDateTime zonedDateTime = (ZonedDateTime) object;
-            converter.getWriter().value(DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(zonedDateTime));
+            ZonedDateTime zonedDateTime = (ZonedDateTime) object
+            converter.getWriter().value(DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(zonedDateTime))
         }
         catch (JSONException e) {
-            throw new ConverterException(e);
+            throw new ConverterException(e)
         }
     }
+
 }

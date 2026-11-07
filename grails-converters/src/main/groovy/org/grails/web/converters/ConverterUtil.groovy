@@ -16,15 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.converters;
 
-import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
-import java.util.Collection;
-import java.util.Map;
 
-import groovy.lang.Closure;
+import groovy.transform.CompileStatic;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.NullObject;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
@@ -44,22 +42,25 @@ import org.grails.web.converters.exceptions.ConverterException;
  * @author Siegfried Puchbauer
  * @since 0.6
  */
-public class ConverterUtil {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+@CompileStatic
+class ConverterUtil {
 
-    private static final String PERSISTENCE_BEAN_WRAPPER_CLASS = "org.codehaus.groovy.grails.orm.hibernate.support.HibernateBeanWrapper";
+    private static final String PERSISTENCE_BEAN_WRAPPER_CLASS = 'org.codehaus.groovy.grails.orm.hibernate.support.HibernateBeanWrapper';
 
-    private static final Object[] EMPTY_OBJECT_ARRAY = {};
+    private static final Object[] EMPTY_OBJECT_ARRAY = [];
 
     private ConverterUtil() {
-       // static only
+        // static only
     }
 
-    public static BeanWrapper createBeanWrapper(Object o) {
+    static BeanWrapper createBeanWrapper(Object o) {
         BeanWrapper beanWrapper;
         try {
             Class<?> c = Class.forName(PERSISTENCE_BEAN_WRAPPER_CLASS, true, Thread.currentThread().getContextClassLoader());
-            Constructor<?> init = c.getConstructor(new Class[]{Object.class});
-            beanWrapper = (BeanWrapper) init.newInstance(new Object[]{o});
+            Constructor<?> init = c.getConstructor([Object] as Class[]);
+            beanWrapper = (BeanWrapper) init.newInstance([o] as Object[]);
         }
         catch (Exception e) {
             beanWrapper = new BeanWrapperImpl(o);
@@ -67,11 +68,11 @@ public class ConverterUtil {
         return beanWrapper;
     }
 
-    public static Object createConverter(Class<?> converterClass, Object target) throws ConverterException {
+    static Object createConverter(Class<?> converterClass, Object target) throws ConverterException {
         return createConverter(converterClass, target, null);
     }
 
-    public static <T> T createConverter(Class<T> converterClass, Object target, ApplicationContext applicationContext) throws ConverterException {
+    static <T> T createConverter(Class<T> converterClass, Object target, ApplicationContext applicationContext) throws ConverterException {
         try {
             T converter = converterClass.getDeclaredConstructor().newInstance();
             if (converter instanceof ApplicationContextAware && applicationContext != null) {
@@ -81,28 +82,28 @@ public class ConverterUtil {
             return converter;
         }
         catch (Exception e) {
-            throw new ConverterException("Initialization of Converter Object " + converterClass.getName() +
-                    " failed for target " + target.getClass().getName(), e);
+            throw new ConverterException('Initialization of Converter Object ' + converterClass.getName() +
+                    ' failed for target ' + target.getClass().getName(), e);
         }
     }
 
-    public static String trimProxySuffix(String name) {
-        int i = name.indexOf("$$");
+    static String trimProxySuffix(String name) {
+        int i = name.indexOf('$$');
         if (i > -1) {
             name = name.substring(0, i);
-            while (name.endsWith("_")) {
+            while (name.endsWith('_')) {
                 name = name.substring(0, name.length() - 1);
             }
         }
         return name;
     }
 
-    public static boolean isConverterClass(Class<?> clazz) {
-        return Converter.class.isAssignableFrom(clazz);
+    static boolean isConverterClass(Class<?> clazz) {
+        return Converter.isAssignableFrom(clazz);
     }
 
-    @SuppressWarnings("rawtypes")
-    public static Object invokeOriginalAsTypeMethod(Object delegate, Class<?> clazz) {
+    @SuppressWarnings('rawtypes')
+    static Object invokeOriginalAsTypeMethod(Object delegate, Class<?> clazz) {
         if (clazz.isInstance(delegate)) {
             return delegate;
         }
@@ -112,7 +113,7 @@ public class ConverterUtil {
         }
         if (delegate instanceof Collection<?> && clazz.isArray()) {
             int size = ((Collection<?>) delegate).size();
-            if (clazz.getComponentType() == Object.class) {
+            if (clazz.getComponentType() == Object) {
                 if (size == 0) {
                     return EMPTY_OBJECT_ARRAY;
                 }
@@ -151,11 +152,11 @@ public class ConverterUtil {
         return DefaultGroovyMethods.asType(delegate, clazz);
     }
 
-    public static ConverterException resolveConverterException(Throwable t) {
+    static ConverterException resolveConverterException(Throwable t) {
         return t instanceof ConverterException ? (ConverterException) t : new ConverterException(t);
     }
 
-    public static Converter.CircularReferenceBehaviour resolveCircularReferenceBehaviour(String str) {
+    static Converter.CircularReferenceBehaviour resolveCircularReferenceBehaviour(String str) {
         return Converter.CircularReferenceBehaviour.valueOf(str);
     }
 }

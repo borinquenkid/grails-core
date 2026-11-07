@@ -16,46 +16,46 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller.json;
+package org.grails.web.converters.marshaller.json
 
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaClass;
-import groovy.lang.MetaMethod;
+import groovy.transform.CompileStatic
 
-import grails.converters.JSON;
-import org.grails.web.converters.exceptions.ConverterException;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
-import org.grails.web.json.JSONWriter;
+import grails.converters.JSON
+import org.grails.web.converters.exceptions.ConverterException
+import org.grails.web.converters.marshaller.ObjectMarshaller
+import org.grails.web.json.JSONWriter
 
 /**
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-public class InstanceMethodBasedMarshaller implements ObjectMarshaller<JSON> {
+@CompileStatic
+class InstanceMethodBasedMarshaller implements ObjectMarshaller<JSON> {
 
-    public boolean supports(Object object) {
-        return getToJSONMethod(object) != null;
+    boolean supports(Object object) {
+        return getToJSONMethod(object) != null
     }
 
-    public void marshalObject(Object object, JSON converter) throws ConverterException {
-        MetaMethod method = getToJSONMethod(object);
+    void marshalObject(Object object, JSON converter) throws ConverterException {
+        MetaMethod method = getToJSONMethod(object)
         try {
-            Object result = method.invoke(object, new Object[]{ converter });
+            Object result = method.invoke(object, [converter] as Object[])
             if (result != null && !(result instanceof JSON) && !(result instanceof JSONWriter)) {
-                converter.convertAnother(result);
+                converter.convertAnother(result)
             }
         }
         catch (Throwable e) {
             throw e instanceof ConverterException ? (ConverterException) e :
-                new ConverterException("Error invoking toJSON method of object with class " + object.getClass().getName(), e);
+                    new ConverterException('Error invoking toJSON method of object with class ' + object.getClass().getName(), e)
         }
     }
 
     protected MetaMethod getToJSONMethod(Object object) {
-        MetaClass mc = GroovySystem.getMetaClassRegistry().getMetaClass(object.getClass());
+        MetaClass mc = GroovySystem.getMetaClassRegistry().getMetaClass(object.getClass())
         if (mc != null) {
-            return mc.getMetaMethod("toJSON", new Object[] { JSON.class });
+            return mc.getMetaMethod('toJSON', [JSON] as Object[])
         }
-        return null;
+        return null
     }
+
 }

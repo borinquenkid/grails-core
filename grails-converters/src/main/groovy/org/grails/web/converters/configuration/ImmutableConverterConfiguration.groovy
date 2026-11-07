@@ -16,15 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.configuration;
+package org.grails.web.converters.configuration
 
-import java.util.Collections;
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import grails.core.support.proxy.DefaultProxyHandler;
-import grails.core.support.proxy.ProxyHandler;
-import org.grails.web.converters.Converter;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
+import grails.core.support.proxy.DefaultProxyHandler
+import grails.core.support.proxy.ProxyHandler
+import org.grails.web.converters.Converter
+import org.grails.web.converters.marshaller.ObjectMarshaller
 
 /**
  * Immutable Converter Configuration.
@@ -32,76 +31,78 @@ import org.grails.web.converters.marshaller.ObjectMarshaller;
  * @author Siegfried Puchbauer
  * @see org.grails.web.converters.configuration.ChainedConverterConfiguration
  */
-@SuppressWarnings("rawtypes")
-public class ImmutableConverterConfiguration<C extends Converter> implements ConverterConfiguration<C> {
+@SuppressWarnings('rawtypes')
+@CompileStatic
+class ImmutableConverterConfiguration<C extends Converter> implements ConverterConfiguration<C> {
 
-    protected final List<ObjectMarshaller<C>> marshallers;
+    protected final List<ObjectMarshaller<C>> marshallers
 
-    private final String encoding;
+    private final String encoding
 
-    private final Converter.CircularReferenceBehaviour circularReferenceBehaviour;
+    private final Converter.CircularReferenceBehaviour circularReferenceBehaviour
 
-    private final boolean prettyPrint;
+    private final boolean prettyPrint
 
-    private ProxyHandler proxyHandler;
+    private ProxyHandler proxyHandler
 
-    private final boolean cacheObjectMarshallerByClass;
+    private final boolean cacheObjectMarshallerByClass
 
-    public ImmutableConverterConfiguration(ConverterConfiguration<C> cfg) {
-        this(cfg, new DefaultProxyHandler());
+    ImmutableConverterConfiguration(ConverterConfiguration<C> cfg) {
+        this(cfg, new DefaultProxyHandler())
     }
 
-    public ImmutableConverterConfiguration(ConverterConfiguration<C> cfg, ProxyHandler proxyHandler) {
-        marshallers = Collections.unmodifiableList(cfg.getOrderedObjectMarshallers());
-        encoding = cfg.getEncoding();
-        prettyPrint = cfg.isPrettyPrint();
-        cacheObjectMarshallerByClass = cfg.isCacheObjectMarshallerByClass();
-        circularReferenceBehaviour = cfg.getCircularReferenceBehaviour();
-        this.proxyHandler = proxyHandler;
+    ImmutableConverterConfiguration(ConverterConfiguration<C> cfg, ProxyHandler proxyHandler) {
+        marshallers = Collections.unmodifiableList(cfg.getOrderedObjectMarshallers())
+        encoding = cfg.getEncoding()
+        prettyPrint = cfg.isPrettyPrint()
+        cacheObjectMarshallerByClass = cfg.isCacheObjectMarshallerByClass()
+        circularReferenceBehaviour = cfg.getCircularReferenceBehaviour()
+        this.proxyHandler = proxyHandler
     }
 
     /**
      * @see ConverterConfiguration#getMarshaller(Object)
      */
-    public ObjectMarshaller<C> getMarshaller(Object o) {
+    ObjectMarshaller<C> getMarshaller(Object o) {
         for (ObjectMarshaller<C> om : marshallers) {
             if (om.supports(o)) {
-                return om;
+                return om
             }
         }
-        return null;
+        return null
     }
 
     /**
      * @see ConverterConfiguration#getEncoding()
      */
-    public String getEncoding() {
-        return encoding;
+    String getEncoding() {
+        return encoding
     }
 
     /**
      * @see ConverterConfiguration#getCircularReferenceBehaviour()
      */
-    public Converter.CircularReferenceBehaviour getCircularReferenceBehaviour() {
-        return circularReferenceBehaviour;
+    Converter.CircularReferenceBehaviour getCircularReferenceBehaviour() {
+        return circularReferenceBehaviour
     }
 
     /**
      * @see ConverterConfiguration#isPrettyPrint()
      */
-    public boolean isPrettyPrint() {
-        return prettyPrint;
+    boolean isPrettyPrint() {
+        return prettyPrint
     }
 
-    public List<ObjectMarshaller<C>> getOrderedObjectMarshallers() {
-        return marshallers;
+    List<ObjectMarshaller<C>> getOrderedObjectMarshallers() {
+        return marshallers
     }
 
-    public ProxyHandler getProxyHandler() {
-        return proxyHandler;
+    ProxyHandler getProxyHandler() {
+        return proxyHandler
     }
 
-    public boolean isCacheObjectMarshallerByClass() {
-        return cacheObjectMarshallerByClass;
+    boolean isCacheObjectMarshallerByClass() {
+        return cacheObjectMarshallerByClass
     }
+
 }

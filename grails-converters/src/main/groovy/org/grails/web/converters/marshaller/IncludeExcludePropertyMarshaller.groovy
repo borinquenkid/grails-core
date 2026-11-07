@@ -16,9 +16,11 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller;
+package org.grails.web.converters.marshaller
 
-import org.grails.web.converters.Converter;
+import groovy.transform.CompileStatic
+
+import org.grails.web.converters.Converter
 
 /**
  * A marshaller capable of including or excluding properties
@@ -26,10 +28,11 @@ import org.grails.web.converters.Converter;
  * @author Graeme Rocher
  * @since 2.3
  */
-public abstract class IncludeExcludePropertyMarshaller<T extends Converter> implements ObjectMarshaller<T> {
+@CompileStatic
+abstract class IncludeExcludePropertyMarshaller<T extends Converter> implements ObjectMarshaller<T> {
 
     protected boolean shouldInclude(Object object, String propertyName) {
-        return includesProperty(object, propertyName) && !excludesProperty(object, propertyName);
+        return includesProperty(object, propertyName) && !excludesProperty(object, propertyName)
     }
 
     /**
@@ -40,7 +43,7 @@ public abstract class IncludeExcludePropertyMarshaller<T extends Converter> impl
      * @return True if it is excluded
      */
     protected boolean excludesProperty(Object object, String property) {
-        return false;
+        return false
     }
 
     /**
@@ -51,6 +54,7 @@ public abstract class IncludeExcludePropertyMarshaller<T extends Converter> impl
      * @return True if it is included
      */
     protected boolean includesProperty(Object object, String property) {
-        return true;
+        return true
     }
+
 }

@@ -16,20 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters;
+package org.grails.web.converters
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import groovy.transform.CompileStatic
 
-import groovy.lang.Writable;
+import org.springframework.beans.BeanWrapper
+import org.springframework.beans.BeanWrapperImpl
 
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
-
-import org.grails.buffer.FastStringWriter;
+import org.grails.buffer.FastStringWriter
 
 /**
  * Abstract base implementation of the Converter interface that provides a default toString() implementation.
@@ -37,14 +31,15 @@ import org.grails.buffer.FastStringWriter;
  * @author Siegfried Puchbauer
  * @author Graeme Rocher
  */
-public abstract class AbstractConverter<W> implements ConfigurableConverter<W>, Writable {
+@CompileStatic
+abstract class AbstractConverter<W> implements ConfigurableConverter<W>, Writable {
 
-    protected String contentType;
-    protected String encoding = "UTF-8";
-    protected Map<Class, List<String>> includes = new LinkedHashMap<>();
-    protected Map<Class, List<String>> excludes = new LinkedHashMap<>();
+    protected String contentType
+    protected String encoding = 'UTF-8'
+    protected Map<Class, List<String>> includes = new LinkedHashMap<>()
+    protected Map<Class, List<String>> excludes = new LinkedHashMap<>()
 
-    public abstract void setTarget(Object target);
+    abstract void setTarget(Object target)
 
     /**
      * Sets the content type of the converter
@@ -52,8 +47,8 @@ public abstract class AbstractConverter<W> implements ConfigurableConverter<W>, 
      * @param contentType The content type
      */
     @Override
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
+    void setContentType(String contentType) {
+        this.contentType = contentType
     }
 
     /**
@@ -62,8 +57,8 @@ public abstract class AbstractConverter<W> implements ConfigurableConverter<W>, 
      * @param encoding The encoding
      */
     @Override
-    public void setEncoding(String encoding) {
-        this.encoding = encoding;
+    void setEncoding(String encoding) {
+        this.encoding = encoding
     }
 
     /**
@@ -73,8 +68,8 @@ public abstract class AbstractConverter<W> implements ConfigurableConverter<W>, 
      * @param properties The properties
      */
     @Override
-    public void setIncludes(Class type, List<String> properties) {
-        includes.put(type, properties);
+    void setIncludes(Class type, List<String> properties) {
+        includes.put(type, properties)
     }
 
     /**
@@ -84,8 +79,8 @@ public abstract class AbstractConverter<W> implements ConfigurableConverter<W>, 
      * @param properties The properties
      */
     @Override
-    public void setExcludes(Class type, List<String> properties) {
-        excludes.put(type, properties);
+    void setExcludes(Class type, List<String> properties) {
+        excludes.put(type, properties)
     }
 
     /**
@@ -95,8 +90,8 @@ public abstract class AbstractConverter<W> implements ConfigurableConverter<W>, 
      * @return The excludes
      */
     @Override
-    public List<String> getExcludes(Class type) {
-        return excludes.get(type);
+    List<String> getExcludes(Class type) {
+        return excludes.get(type)
     }
 
     /**
@@ -106,28 +101,30 @@ public abstract class AbstractConverter<W> implements ConfigurableConverter<W>, 
      * @return The includes
      */
     @Override
-    public List<String> getIncludes(Class type) {
-        return includes.get(type);
+    List<String> getIncludes(Class type) {
+        return includes.get(type)
     }
 
     @Override
-    public Writer writeTo(Writer out) throws IOException {
-        render(out);
-        return out;
+    Writer writeTo(Writer out) throws IOException {
+        render(out)
+        return out
     }
 
     @Override
-    public String toString() {
-        FastStringWriter writer = new FastStringWriter();
+    String toString() {
+        FastStringWriter writer = new FastStringWriter()
         try {
-            render(writer);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            render(writer)
         }
-        return writer.toString();
+        catch (Exception e) {
+            throw new RuntimeException(e)
+        }
+        return writer.toString()
     }
 
     protected BeanWrapper createBeanWrapper(Object o) {
-        return new BeanWrapperImpl(o);
+        return new BeanWrapperImpl(o)
     }
+
 }

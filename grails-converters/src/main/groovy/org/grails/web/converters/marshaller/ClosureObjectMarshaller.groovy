@@ -16,12 +16,12 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller;
+package org.grails.web.converters.marshaller
 
-import groovy.lang.Closure;
+import groovy.transform.CompileStatic
 
-import org.grails.web.converters.Converter;
-import org.grails.web.converters.exceptions.ConverterException;
+import org.grails.web.converters.Converter
+import org.grails.web.converters.exceptions.ConverterException
 
 /**
  * ObjectMarshaller that delegates the conversion logic to the supplied closure
@@ -29,43 +29,45 @@ import org.grails.web.converters.exceptions.ConverterException;
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-@SuppressWarnings("rawtypes")
-public class ClosureObjectMarshaller<T extends Converter> implements ObjectMarshaller<T> {
+@SuppressWarnings('rawtypes')
+@CompileStatic
+class ClosureObjectMarshaller<T extends Converter> implements ObjectMarshaller<T> {
 
-    private Class<?> clazz;
+    private Class<?> clazz
 
-    private Closure closure;
+    private Closure closure
 
-    public ClosureObjectMarshaller(Class<?> clazz, Closure closure) {
-        this.clazz = clazz;
-        this.closure = closure;
+    ClosureObjectMarshaller(Class<?> clazz, Closure closure) {
+        this.clazz = clazz
+        this.closure = closure
     }
 
-    public boolean supports(Object object) {
-        return clazz.isAssignableFrom(object.getClass());
+    boolean supports(Object object) {
+        return clazz.isAssignableFrom(object.getClass())
     }
 
-    public void marshalObject(Object object, T converter) throws ConverterException {
+    void marshalObject(Object object, T converter) throws ConverterException {
         try {
-            int argCount = closure.getParameterTypes().length;
-            Object result = null;
+            int argCount = closure.getParameterTypes().length
+            Object result = null
             if (argCount <= 1) {
-                result = closure.call(object);
+                result = closure.call(object)
             }
             else if (argCount == 2) {
-                result = closure.call(new Object[]{object, converter});
+                result = closure.call(object, converter)
             }
             else {
                 throw new ConverterException(
-                        "Invalid Parameter count for registered Object Marshaller for class " + clazz.getName());
+                        'Invalid Parameter count for registered Object Marshaller for class ' + clazz.getName())
             }
 
-            if (result != null && result != object && result != converter) {
-                converter.convertAnother(result);
+            if (result != null && !result.is(object) && !result.is(converter)) {
+                converter.convertAnother(result)
             }
         }
         catch (Exception e) {
-            throw e instanceof ConverterException ? (ConverterException) e : new ConverterException(e);
+            throw e instanceof ConverterException ? (ConverterException) e : new ConverterException(e)
         }
     }
+
 }

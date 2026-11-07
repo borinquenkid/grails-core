@@ -16,9 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.converters.marshaller.json;
 
-import java.util.Locale;
+import groovy.transform.CompileStatic;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -36,48 +37,52 @@ import org.grails.web.json.JSONWriter;
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-public class ValidationErrorsMarshaller implements ObjectMarshaller<JSON>, ApplicationContextAware {
+// TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon'])
+@CompileStatic
+class ValidationErrorsMarshaller implements ObjectMarshaller<JSON>, ApplicationContextAware {
 
     private ApplicationContext applicationContext;
 
-    public boolean supports(Object object) {
+    boolean supports(Object object) {
         return object instanceof Errors;
     }
 
-    public void marshalObject(Object object, JSON json) throws ConverterException {
+    void marshalObject(Object object, JSON json) throws ConverterException {
         Errors errors = (Errors) object;
         JSONWriter writer = json.getWriter();
 
         try {
             writer.object();
-            writer.key("errors");
+            writer.key('errors');
             writer.array();
 
             for (Object o : errors.getAllErrors()) {
                 if (o instanceof FieldError) {
                     FieldError fe = (FieldError) o;
                     writer.object();
-                    json.property("object", fe.getObjectName());
-                    json.property("field", fe.getField());
-                    json.property("rejected-value", fe.getRejectedValue());
+                    json.property('object', fe.getObjectName());
+                    json.property('field', fe.getField());
+                    json.property('rejected-value', fe.getRejectedValue());
                     Locale locale = LocaleContextHolder.getLocale();
                     if (applicationContext != null) {
-                        json.property("message", applicationContext.getMessage(fe, locale));
+                        json.property('message', applicationContext.getMessage(fe, locale));
                     }
                     else {
-                        json.property("message", fe.getDefaultMessage());
+                        json.property('message', fe.getDefaultMessage());
                     }
                     writer.endObject();
-                } else if (o instanceof ObjectError) {
+                }
+                else if (o instanceof ObjectError) {
                     ObjectError fe = (ObjectError) o;
                     writer.object();
-                    json.property("object", fe.getObjectName());
+                    json.property('object', fe.getObjectName());
                     Locale locale = LocaleContextHolder.getLocale();
                     if (applicationContext != null) {
-                        json.property("message", applicationContext.getMessage(fe, locale));
+                        json.property('message', applicationContext.getMessage(fe, locale));
                     }
                     else {
-                        json.property("message", fe.getDefaultMessage());
+                        json.property('message', fe.getDefaultMessage());
                     }
                     writer.endObject();
                 }
@@ -89,11 +94,11 @@ public class ValidationErrorsMarshaller implements ObjectMarshaller<JSON>, Appli
             throw ce;
         }
         catch (Exception e) {
-            throw new ConverterException("Error converting Bean with class " + object.getClass().getName(), e);
+            throw new ConverterException('Error converting Bean with class ' + object.getClass().getName(), e);
         }
     }
 
-    public void setApplicationContext(ApplicationContext applicationContext) {
+    void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 }

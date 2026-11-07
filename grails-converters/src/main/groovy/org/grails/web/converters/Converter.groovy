@@ -16,18 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters;
+package org.grails.web.converters
 
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import groovy.lang.Closure;
+import jakarta.servlet.http.HttpServletResponse
 
-import jakarta.servlet.http.HttpServletResponse;
-
-import org.grails.web.converters.exceptions.ConverterException;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
+import org.grails.web.converters.exceptions.ConverterException
+import org.grails.web.converters.marshaller.ObjectMarshaller
 
 /**
  * Defines an Object that can convert an instance and render it to the
@@ -35,9 +31,10 @@ import org.grails.web.converters.marshaller.ObjectMarshaller;
  *
  * @author Siegfried Puchbauer
  */
-public interface Converter<W> {
+@SuppressWarnings('rawtypes')
+interface Converter<W> {
 
-    String DEFAULT_REQUEST_ENCODING = "UTF-8";
+    String DEFAULT_REQUEST_ENCODING = 'UTF-8'
 
     /**
      * Marshalls the target and writes it to a java.io.Writer
@@ -45,7 +42,7 @@ public interface Converter<W> {
      * @param out The Writer to write to
      * @throws ConverterException
      */
-    public void render(Writer out) throws ConverterException;
+    void render(Writer out) throws ConverterException
 
     /**
      * Marshalls the target and writes it a HttpServletResponse
@@ -54,30 +51,30 @@ public interface Converter<W> {
      * @param response The response to write to
      * @throws ConverterException
      */
-    public void render(HttpServletResponse response) throws ConverterException;
+    void render(HttpServletResponse response) throws ConverterException
 
-    W getWriter() throws ConverterException;
+    W getWriter() throws ConverterException
 
-    void convertAnother(Object o) throws ConverterException;
+    void convertAnother(Object o) throws ConverterException
 
-    void build(@SuppressWarnings("rawtypes") Closure c) throws ConverterException;
+    void build(Closure c) throws ConverterException
 
-    @SuppressWarnings("rawtypes")
-    ObjectMarshaller<? extends Converter> lookupObjectMarshaller(Object target);
+    ObjectMarshaller<? extends Converter> lookupObjectMarshaller(Object target)
 
+    @CompileStatic
     enum CircularReferenceBehaviour {
         DEFAULT,
         EXCEPTION,
         INSERT_NULL,
         IGNORE,
-        PATH;
+        PATH
 
-        public static List<String> allowedValues() {
-            List<String> v = new ArrayList<>();
+        static List<String> allowedValues() {
+            List<String> v = new ArrayList<>()
             for (CircularReferenceBehaviour crb : values()) {
-                v.add(crb.name());
+                v.add(crb.name())
             }
-            return v;
+            return v
         }
     }
 }

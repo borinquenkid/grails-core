@@ -17,25 +17,29 @@
  *  under the License.
  */
 
-package org.grails.web.converters.marshaller;
+package org.grails.web.converters.marshaller
 
-import org.grails.datastore.gorm.GormEnhancer;
-import org.grails.datastore.mapping.core.Datastore;
-import org.grails.datastore.mapping.model.MappingContext;
-import org.grails.datastore.mapping.model.PersistentEntity;
+import groovy.transform.CompileStatic
 
-public class ByDatasourceDomainClassFetcher implements DomainClassFetcher {
+import org.grails.datastore.gorm.GormEnhancer
+import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.model.MappingContext
+import org.grails.datastore.mapping.model.PersistentEntity
+
+@CompileStatic
+class ByDatasourceDomainClassFetcher implements DomainClassFetcher {
 
     @Override
-    public PersistentEntity findDomainClass(Object instance) {
-        Class clazz = instance.getClass();
-        Datastore datastore = GormEnhancer.findDatastore(clazz);
+    PersistentEntity findDomainClass(Object instance) {
+        Class clazz = instance.getClass()
+        Datastore datastore = GormEnhancer.findDatastore(clazz)
         if (datastore != null) {
-            MappingContext mappingContext = datastore.getMappingContext();
+            MappingContext mappingContext = datastore.getMappingContext()
             if (mappingContext != null) {
-                return mappingContext.getPersistentEntity(clazz.getName());
+                return mappingContext.getPersistentEntity(clazz.getName())
             }
         }
-        return null;
+        return null
     }
+
 }

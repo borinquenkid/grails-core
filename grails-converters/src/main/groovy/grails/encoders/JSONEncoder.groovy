@@ -17,18 +17,24 @@
  *  under the License.
  */
 
-package grails.encoders;
+package grails.encoders
 
-import grails.converters.JSON;
-import org.grails.encoder.impl.BasicJSONEncoder;
+import groovy.transform.CompileStatic
 
-public class JSONEncoder extends BasicJSONEncoder {
+import grails.converters.JSON
+import org.grails.encoder.impl.BasicJSONEncoder
+
+@CompileStatic
+class JSONEncoder extends BasicJSONEncoder {
+
     @Override
     protected Object encodeAsJsonObject(Object o) {
         if (o instanceof JSON) {
-            return o;
-        } else {
-            return new JSON(o);
+            return o
+        }
+        else {
+            return new JSON(o)
         }
     }
+
 }

@@ -16,7 +16,9 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.exceptions;
+package org.grails.web.converters.exceptions
+
+import groovy.transform.CompileStatic
 
 /**
  * Thrown when an error occurs originating from a Converter instance.
@@ -25,23 +27,24 @@ package org.grails.web.converters.exceptions;
  *
  * @since 0.6
  */
-public class ConverterException extends RuntimeException {
+@CompileStatic
+class ConverterException extends RuntimeException {
 
-    private static final long serialVersionUID = -4211512662882252140L;
+    private static final long serialVersionUID = -4211512662882252140L
 
-    public ConverterException(String message, Throwable cause) {
-        super(message, cause);
+    ConverterException(String message, Throwable cause) {
+        super(message, cause)
     }
 
-    public ConverterException(String message) {
-        super(message);
+    ConverterException(String message) {
+        super(message)
     }
 
-    public ConverterException(Throwable cause) {
-        super(cause);
+    ConverterException(Throwable cause) {
+        super(cause)
     }
 
-    public ConverterException() {
-        // default
+    ConverterException() {
+        super()
     }
 }

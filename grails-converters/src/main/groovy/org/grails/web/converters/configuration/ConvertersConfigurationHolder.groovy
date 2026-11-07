@@ -16,14 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
+@SuppressWarnings('UnnecessarySemicolon')
 package org.grails.web.converters.configuration;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import groovy.transform.CompileStatic;
 
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
@@ -41,7 +40,9 @@ import org.grails.web.json.JsonMapperSupport;
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+// TODO(groovyism-cleanup): semicolons + double-quoted strings kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
+@SuppressWarnings(['UnnecessarySemicolon', 'UnnecessaryGString', 'UnnecessaryPublicModifier', 'unchecked', 'rawtypes'])
+@CompileStatic
 public class ConvertersConfigurationHolder {
 
     public static final String CONVERTERS_DEFAULT_ENCODING = "UTF-8";
@@ -94,14 +95,10 @@ public class ConvertersConfigurationHolder {
     }
 
     /**
-     * Sets the Jackson mapper that {@link grails.converters.JSON} writes through, as it is given. Without
-     * {@code grails.converters.json.legacy}, the converters' initializer sets a copy of the application's
-     * {@code JsonMapper} with the converter's modules, which write enums by name and apply the converter's includes and
-     * excludes; a mapper without them writes enums and beans as Jackson does.
+     * Sets the Jackson mapper that {@link grails.converters.JSON} writes through, normally Spring Boot's
+     * auto-configured {@code JsonMapper}.
      *
-     * @param mapper the mapper, or null for {@link JsonMapperSupport#DEFAULT}, which writes JSON as Grails 8 wrote it
-     *        where {@link #setLegacyJson(boolean)} is {@code true}, as the converters' initializer sets them with
-     *        {@code grails.converters.json.legacy}
+     * @param mapper the mapper, or null for a default mapper
      * @since 9.0
      */
     public static void setJsonMapper(JsonMapper mapper) {
@@ -144,18 +141,18 @@ public class ConvertersConfigurationHolder {
         Objects.requireNonNull(format, "format cannot be null");
         Objects.requireNonNull(action, "action cannot be null");
 
-        var registry = observationRegistry;
+        ObservationRegistry registry = observationRegistry;
         if (registry == null || registry.isNoop()) {
             action.run();
             return;
         }
 
-        var observation = Observation.createNotStarted("grails.convert", registry)
+        Observation observation = Observation.createNotStarted("grails.convert", registry)
                 .contextualName("grails.convert " + format)
                 .lowCardinalityKeyValue("grails.convert.format", format)
                 .start();
 
-        var scope = observation.openScope();
+        Observation.Scope scope = observation.openScope();
         try {
             action.run();
         }

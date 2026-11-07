@@ -16,10 +16,10 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller;
+package org.grails.web.converters.marshaller
 
-import org.grails.web.converters.Converter;
-import org.grails.web.converters.exceptions.ConverterException;
+import org.grails.web.converters.Converter
+import org.grails.web.converters.exceptions.ConverterException
 
 /**
  * An ObjectMarshaller is responsible for converting a Java/Groovy Object graph to a serialized form (JSON,XML).
@@ -30,8 +30,8 @@ import org.grails.web.converters.exceptions.ConverterException;
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-@SuppressWarnings("rawtypes")
-public interface ObjectMarshaller<T extends Converter> {
+@SuppressWarnings('rawtypes')
+interface ObjectMarshaller<T extends Converter> {
 
     /**
      * Checks wheter the ObjectMarshaller is able/intended to support the given Object
@@ -39,7 +39,7 @@ public interface ObjectMarshaller<T extends Converter> {
      * @param object the object which is about getting converted
      * @return <code>true</code> if the marshaller can/should perform the marshalling, <code>false</code> otherwise
      */
-    boolean supports(Object object);
+    boolean supports(Object object)
 
     /**
      * Performs the conversion
@@ -47,5 +47,5 @@ public interface ObjectMarshaller<T extends Converter> {
      * @param converter the Converter to use
      * @throws ConverterException on failure
      */
-    void marshalObject(Object object, T converter) throws ConverterException;
+    void marshalObject(Object object, T converter) throws ConverterException
 }

@@ -17,10 +17,12 @@
  *  under the License.
  */
 
-package org.grails.plugins.codecs;
+package org.grails.plugins.codecs
 
-import grails.encoders.XMLEncoder;
-import org.grails.encoder.impl.XMLCodecFactory;
+import groovy.transform.CompileStatic
+
+import grails.encoders.XMLEncoder
+import org.grails.encoder.impl.XMLCodecFactory
 
 /**
  * Escapes some characters for inclusion in XML documents. The decoder part can
@@ -29,9 +31,12 @@ import org.grails.encoder.impl.XMLCodecFactory;
  * @author Lari Hotari
  * @since 2.3
  */
-public class XMLCodec extends XMLCodecFactory {
-    public XMLCodec() {
-        super();
-        this.encoder = new XMLEncoder();
+@CompileStatic
+class XMLCodec extends XMLCodecFactory {
+
+    XMLCodec() {
+        super()
+        this.@encoder = new XMLEncoder()
     }
+
 }

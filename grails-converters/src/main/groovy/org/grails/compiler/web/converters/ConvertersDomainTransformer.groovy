@@ -16,15 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.compiler.web.converters;
+package org.grails.compiler.web.converters
 
-import java.net.URL;
+import groovy.transform.CompileStatic
 
-import grails.compiler.ast.AstTransformer;
-import org.grails.compiler.injection.AbstractGrailsArtefactTransformer;
-import org.grails.core.artefact.DomainClassArtefactHandler;
-import org.grails.io.support.GrailsResourceUtils;
-import org.grails.plugins.converters.api.ConvertersApi;
+import grails.compiler.ast.AstTransformer
+import org.grails.compiler.injection.AbstractGrailsArtefactTransformer
+import org.grails.core.artefact.DomainClassArtefactHandler
+import org.grails.io.support.GrailsResourceUtils
+import org.grails.plugins.converters.api.ConvertersApi
 
 /**
  * Adds the asType method to domain classes.
@@ -33,29 +33,31 @@ import org.grails.plugins.converters.api.ConvertersApi;
  * @since 2.0
  */
 @AstTransformer
-public class ConvertersDomainTransformer extends AbstractGrailsArtefactTransformer {
+@CompileStatic
+class ConvertersDomainTransformer extends AbstractGrailsArtefactTransformer {
 
     @Override
-    public String getArtefactType() {
-        return DomainClassArtefactHandler.TYPE;
+    String getArtefactType() {
+        return DomainClassArtefactHandler.TYPE
     }
 
     @Override
-    public Class<?> getInstanceImplementation() {
-        return ConvertersApi.class;
+    Class<?> getInstanceImplementation() {
+        return ConvertersApi
     }
 
     @Override
-    public Class<?> getStaticImplementation() {
-        return null;
+    Class<?> getStaticImplementation() {
+        return null
     }
 
     @Override
     protected boolean requiresAutowiring() {
-        return false;
+        return false
     }
 
-    public boolean shouldInject(URL url) {
-        return GrailsResourceUtils.isDomainClass(url);
+    boolean shouldInject(URL url) {
+        return GrailsResourceUtils.isDomainClass(url)
     }
+
 }

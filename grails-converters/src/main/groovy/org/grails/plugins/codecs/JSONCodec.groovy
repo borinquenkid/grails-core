@@ -17,10 +17,12 @@
  *  under the License.
  */
 
-package org.grails.plugins.codecs;
+package org.grails.plugins.codecs
 
-import grails.encoders.JSONEncoder;
-import org.grails.encoder.impl.JSONCodecFactory;
+import groovy.transform.CompileStatic
+
+import grails.encoders.JSONEncoder
+import org.grails.encoder.impl.JSONCodecFactory
 
 /**
  * A codec that encodes strings to JSON
@@ -28,9 +30,12 @@ import org.grails.encoder.impl.JSONCodecFactory;
  * @author Lari Hotari
  * @since 2.3.4
  */
-public class JSONCodec extends JSONCodecFactory {
-    public JSONCodec() {
-        super();
-        setEncoder(new JSONEncoder());
+@CompileStatic
+class JSONCodec extends JSONCodecFactory {
+
+    JSONCodec() {
+        super()
+        setEncoder(new JSONEncoder())
     }
+
 }

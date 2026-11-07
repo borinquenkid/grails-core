@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller;
+package org.grails.web.converters.marshaller
 
 /**
  * Specialized ObjectMarshaller which defines the Tag Name for XML Conversion.
@@ -24,12 +24,12 @@ package org.grails.web.converters.marshaller;
  * @author Siegfried Puchbauer
  * @since 1.1
  */
-public interface NameAwareMarshaller {
+interface NameAwareMarshaller {
 
     /**
      * Returns the tag name for the object
      * @param o the object
      * @return the tag name
      */
-    String getElementName(Object o);
+    String getElementName(Object o)
 }

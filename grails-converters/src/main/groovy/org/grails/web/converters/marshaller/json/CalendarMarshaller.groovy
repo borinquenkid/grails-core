@@ -16,16 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller.json;
+package org.grails.web.converters.marshaller.json
 
-import java.text.Format;
-import java.util.Calendar;
+import java.text.Format
 
-import grails.converters.JSON;
-import org.grails.web.converters.exceptions.ConverterException;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
-import org.grails.web.json.JSONException;
-import org.grails.web.json.JsonDateFormat;
+import groovy.transform.CompileStatic
+
+import grails.converters.JSON
+import org.grails.web.converters.exceptions.ConverterException
+import org.grails.web.converters.marshaller.ObjectMarshaller
+import org.grails.web.json.JSONException
+import org.grails.web.json.JsonDateFormat
 
 /**
  * JSON ObjectMarshaller which converts a Calendar Object to an RFC 3339 / ISO 8601
@@ -33,44 +34,46 @@ import org.grails.web.json.JsonDateFormat;
  * the same as Spring Boot's default Jackson rendering. See {@link JsonDateFormat}.
  *
  * @since 7.0
- * @deprecated with {@code grails.converters.json.legacy} set to {@code false}, as Grails 10 does by default,
+ * @deprecated with {@code grails.converters.json.legacy} set to {@code false}, as a later release does by default,
  *     the converter writes {@code Calendar} values with the application's {@code JsonMapper}; this marshaller is registered while
  *     it is {@code true}, the default in Grails 9, to render JSON as Grails 8 did.
  */
-@Deprecated(since = "9.0")
-public class CalendarMarshaller implements ObjectMarshaller<JSON> {
+@Deprecated(since = '9.0')
+@CompileStatic
+class CalendarMarshaller implements ObjectMarshaller<JSON> {
 
-    private final Format legacyFormatter;
+    private final Format legacyFormatter
 
     /**
      * Constructor with a custom formatter.
      * @param formatter the formatter
      */
-    public CalendarMarshaller(Format formatter) {
-        this.legacyFormatter = formatter;
+    CalendarMarshaller(Format formatter) {
+        this.legacyFormatter = formatter
     }
 
     /**
      * Default constructor — uses {@link JsonDateFormat}.
      */
-    public CalendarMarshaller() {
-        this(null);
+    CalendarMarshaller() {
+        this(null)
     }
 
-    public boolean supports(Object object) {
-        return object instanceof Calendar;
+    boolean supports(Object object) {
+        return object instanceof Calendar
     }
 
-    public void marshalObject(Object object, JSON converter) throws ConverterException {
+    void marshalObject(Object object, JSON converter) throws ConverterException {
         try {
-            Calendar calendar = (Calendar) object;
+            Calendar calendar = (Calendar) object
             String formatted = legacyFormatter != null ?
                     legacyFormatter.format(calendar.getTime()) :
-                    JsonDateFormat.format(calendar.getTimeInMillis());
-            converter.getWriter().value(formatted);
+                    JsonDateFormat.format(calendar.getTimeInMillis())
+            converter.getWriter().value(formatted)
         }
         catch (JSONException e) {
-            throw new ConverterException(e);
+            throw new ConverterException(e)
         }
     }
+
 }
