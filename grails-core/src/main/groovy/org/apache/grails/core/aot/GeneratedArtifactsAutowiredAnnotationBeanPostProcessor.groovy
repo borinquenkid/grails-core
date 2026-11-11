@@ -16,16 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import org.jspecify.annotations.Nullable;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.PropertyValues;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
-import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.context.annotation.CommonAnnotationBeanPostProcessor;
+import org.springframework.beans.BeansException
+import org.springframework.beans.PropertyValues
+import org.springframework.beans.factory.BeanFactory
+import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor
+import org.springframework.beans.factory.support.RootBeanDefinition
+import org.springframework.context.annotation.CommonAnnotationBeanPostProcessor
 
 /**
  * Injects through {@code @Autowired}, {@code @Value} and {@code @Inject} what the code generated ahead of time
@@ -38,53 +39,54 @@ import org.springframework.context.annotation.CommonAnnotationBeanPostProcessor;
  * @since 8.0.1
  * @see GeneratedBeanDefinitions
  */
-public class GeneratedArtifactsAutowiredAnnotationBeanPostProcessor extends AutowiredAnnotationBeanPostProcessor {
+@CompileStatic
+class GeneratedArtifactsAutowiredAnnotationBeanPostProcessor extends AutowiredAnnotationBeanPostProcessor {
 
     /**
      * Spring's own, as the code was generated with: it finds the members that code injected, and injects in full
      * another instance of a generated bean.
      */
-    private final AutowiredAnnotationBeanPostProcessor generatingProcessor = new AutowiredAnnotationBeanPostProcessor();
+    private final AutowiredAnnotationBeanPostProcessor generatingProcessor = new AutowiredAnnotationBeanPostProcessor()
 
     /**
      * Spring's common processor, which processes a definition before this kind does: it finds the members it
      * injects itself, which this kind leaves to it, such as a field annotated for both.
      */
-    private final CommonAnnotationBeanPostProcessor commonProcessor = new CommonAnnotationBeanPostProcessor();
+    private final CommonAnnotationBeanPostProcessor commonProcessor = new CommonAnnotationBeanPostProcessor()
 
     @Nullable
-    private BeanFactory beanFactory;
+    private BeanFactory beanFactory
 
     @Override
-    public void setBeanFactory(BeanFactory beanFactory) {
-        super.setBeanFactory(beanFactory);
-        this.generatingProcessor.setBeanFactory(beanFactory);
-        this.beanFactory = beanFactory;
+    void setBeanFactory(BeanFactory beanFactory) {
+        super.setBeanFactory(beanFactory)
+        this.generatingProcessor.setBeanFactory(beanFactory)
+        this.beanFactory = beanFactory
     }
 
     @Override
-    public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
-        GeneratedBeanDefinitions.markMembersInjectedByGeneratedCode(beanDefinition, beanType, generatingProcessor);
-        super.postProcessMergedBeanDefinition(beanDefinition, beanType, beanName);
+    void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+        GeneratedBeanDefinitions.markMembersInjectedByGeneratedCode(beanDefinition, beanType, generatingProcessor)
+        super.postProcessMergedBeanDefinition(beanDefinition, beanType, beanName)
     }
 
     @Override
-    public void resetBeanDefinition(String beanName) {
-        super.resetBeanDefinition(beanName);
-        generatingProcessor.resetBeanDefinition(beanName);
+    void resetBeanDefinition(String beanName) {
+        super.resetBeanDefinition(beanName)
+        generatingProcessor.resetBeanDefinition(beanName)
     }
 
     @Override
-    public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) throws BeansException {
+    PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) throws BeansException {
         if (GeneratedBeanDefinitions.isAnotherInstanceOfGeneratedBean(beanFactory, beanName, bean)) {
             // The class of the instance itself, a CGLIB subclass included: the injection looks the members up by it.
-            Class<?> beanClass = bean.getClass();
-            RootBeanDefinition processedInOrder = new RootBeanDefinition(beanClass);
-            commonProcessor.postProcessMergedBeanDefinition(processedInOrder, beanClass, "");
-            generatingProcessor.postProcessMergedBeanDefinition(processedInOrder, beanClass, beanName);
-            return generatingProcessor.postProcessProperties(pvs, bean, beanName);
+            Class<?> beanClass = bean.getClass()
+            RootBeanDefinition processedInOrder = new RootBeanDefinition(beanClass)
+            commonProcessor.postProcessMergedBeanDefinition(processedInOrder, beanClass, '')
+            generatingProcessor.postProcessMergedBeanDefinition(processedInOrder, beanClass, beanName)
+            return generatingProcessor.postProcessProperties(pvs, bean, beanName)
         }
-        return super.postProcessProperties(pvs, bean, beanName);
+        return super.postProcessProperties(pvs, bean, beanName)
     }
 
 }

@@ -16,16 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import org.springframework.aot.generate.GenerationContext;
-import org.springframework.beans.factory.aot.BeanRegistrationAotContribution;
-import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
-import org.springframework.beans.factory.aot.BeanRegistrationCode;
-import org.springframework.beans.factory.aot.BeanRegistrationCodeFragments;
-import org.springframework.beans.factory.aot.BeanRegistrationCodeFragmentsDecorator;
-import org.springframework.beans.factory.support.RegisteredBean;
-import org.springframework.javapoet.CodeBlock;
+import groovy.transform.CompileStatic
+import org.springframework.aot.generate.GenerationContext
+import org.springframework.beans.factory.aot.BeanRegistrationAotContribution
+import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor
+import org.springframework.beans.factory.aot.BeanRegistrationCode
+import org.springframework.beans.factory.aot.BeanRegistrationCodeFragments
+import org.springframework.beans.factory.aot.BeanRegistrationCodeFragmentsDecorator
+import org.springframework.beans.factory.support.RegisteredBean
+import org.springframework.javapoet.CodeBlock
 
 /**
  * Has the code generated ahead of time for each bean definition, an inner bean's included, mark the definition
@@ -37,33 +38,34 @@ import org.springframework.javapoet.CodeBlock;
  *
  * @since 8.0.1
  */
-public class GeneratedInjectionBeanRegistrationAotProcessor implements BeanRegistrationAotProcessor {
+@CompileStatic
+class GeneratedInjectionBeanRegistrationAotProcessor implements BeanRegistrationAotProcessor {
 
     @Override
-    public BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
-        String declaredType = registeredBean.getBeanClass().getName();
+    BeanRegistrationAotContribution processAheadOfTime(RegisteredBean registeredBean) {
+        String declaredType = registeredBean.getBeanClass().getName()
         return BeanRegistrationAotContribution.withCustomCodeFragments(
-                codeFragments -> new MarkingCodeFragments(codeFragments, declaredType));
+                codeFragments -> new MarkingCodeFragments(codeFragments, declaredType))
     }
 
     /** Marks the definition once its instance supplier is set, as it is returned. */
     private static final class MarkingCodeFragments extends BeanRegistrationCodeFragmentsDecorator {
 
-        private final String declaredType;
+        private final String declaredType
 
         private MarkingCodeFragments(BeanRegistrationCodeFragments delegate, String declaredType) {
-            super(delegate);
-            this.declaredType = declaredType;
+            super(delegate)
+            this.declaredType = declaredType
         }
 
         @Override
-        public CodeBlock generateReturnCode(GenerationContext generationContext,
+        CodeBlock generateReturnCode(GenerationContext generationContext,
                 BeanRegistrationCode beanRegistrationCode) {
             return CodeBlock.builder()
-                    .addStatement("$T.markGenerated($L, $S)", GeneratedBeanDefinitions.class,
+                    .addStatement('$T.markGenerated($L, $S)', GeneratedBeanDefinitions,
                             BEAN_DEFINITION_VARIABLE, this.declaredType)
                     .add(super.generateReturnCode(generationContext, beanRegistrationCode))
-                    .build();
+                    .build()
         }
     }
 }

@@ -16,21 +16,19 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
 
-import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution
+import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
+import org.springframework.core.io.Resource
 
-import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution;
-import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.core.io.Resource;
-
-import grails.plugins.GrailsPlugin;
-import grails.plugins.GrailsPluginManager;
-import org.apache.grails.core.plugins.PluginUtils;
+import grails.plugins.GrailsPlugin
+import grails.plugins.GrailsPluginManager
+import org.apache.grails.core.plugins.PluginUtils
 
 /**
  * Copies each plugin's configuration to a location of its own, where an application running on generated
@@ -49,36 +47,37 @@ import org.apache.grails.core.plugins.PluginUtils;
  *
  * @since 9.0
  */
-public class PluginConfigurationBeanFactoryInitializationAotProcessor implements BeanFactoryInitializationAotProcessor {
+@CompileStatic
+class PluginConfigurationBeanFactoryInitializationAotProcessor implements BeanFactoryInitializationAotProcessor {
 
     @Override
     @Nullable
-    public BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
-        Map<String, Resource> configurations = configurationsOf(beanFactory);
+    BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
+        Map<String, Resource> configurations = configurationsOf(beanFactory)
         if (configurations.isEmpty()) {
-            return null;
+            return null
         }
         return (generationContext, beanFactoryInitializationCode) -> configurations.forEach((path, configuration) -> {
-            generationContext.getGeneratedFiles().addResourceFile(path, configuration);
-            generationContext.getRuntimeHints().resources().registerPattern(path);
-        });
+            generationContext.getGeneratedFiles().addResourceFile(path, configuration)
+            generationContext.getRuntimeHints().resources().registerPattern(path)
+        })
     }
 
     /** Where each loaded plugin's configuration is copied to, and the configuration itself. */
     private static Map<String, Resource> configurationsOf(ConfigurableListableBeanFactory beanFactory) {
-        Map<String, Resource> configurations = new LinkedHashMap<>();
+        Map<String, Resource> configurations = new LinkedHashMap<>()
         if (!(beanFactory.getSingleton(GrailsPluginManager.BEAN_NAME) instanceof GrailsPluginManager pluginManager)) {
-            return configurations;
+            return configurations
         }
         for (GrailsPlugin plugin : pluginManager.getAllPlugins()) {
-            Class<?> pluginClass = plugin.getPluginClass();
-            Resource configuration = PluginUtils.readPluginConfiguration(pluginClass);
+            Class<?> pluginClass = plugin.getPluginClass()
+            Resource configuration = PluginUtils.readPluginConfiguration(pluginClass)
             if (configuration != null) {
                 configurations.put(PluginUtils.getGeneratedConfigurationPath(pluginClass.getName(),
-                        configuration.getFilename()), configuration);
+                        configuration.getFilename()), configuration)
             }
         }
-        return configurations;
+        return configurations
     }
 
 }

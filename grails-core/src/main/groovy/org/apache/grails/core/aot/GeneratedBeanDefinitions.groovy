@@ -16,34 +16,31 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import java.lang.ref.Reference;
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Member;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
+import java.lang.ref.Reference
+import java.lang.ref.ReferenceQueue
+import java.lang.ref.WeakReference
+import java.lang.reflect.Member
+import java.lang.reflect.Method
+import java.util.function.Supplier
 
-import org.jspecify.annotations.Nullable;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.ConstructorArgumentValues;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.InstanceSupplier;
-import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor;
-import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.context.annotation.CommonAnnotationBeanPostProcessor;
-import org.springframework.core.BridgeMethodResolver;
-import org.springframework.util.ClassUtils;
+import org.springframework.beans.factory.BeanFactory
+import org.springframework.beans.factory.config.BeanDefinition
+import org.springframework.beans.factory.config.BeanDefinitionHolder
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
+import org.springframework.beans.factory.config.ConstructorArgumentValues
+import org.springframework.beans.factory.support.AbstractBeanDefinition
+import org.springframework.beans.factory.support.BeanDefinitionRegistry
+import org.springframework.beans.factory.support.InstanceSupplier
+import org.springframework.beans.factory.support.MergedBeanDefinitionPostProcessor
+import org.springframework.beans.factory.support.RootBeanDefinition
+import org.springframework.context.annotation.CommonAnnotationBeanPostProcessor
+import org.springframework.core.BridgeMethodResolver
+import org.springframework.util.ClassUtils
 
 /**
  * What the code generated ahead of time did for the beans it contributed, so that the processors injecting
@@ -72,13 +69,14 @@ import org.springframework.util.ClassUtils;
  *
  * @since 8.0.1
  */
-public final class GeneratedBeanDefinitions {
+@CompileStatic
+final class GeneratedBeanDefinitions {
 
     /** The attribute that names, on a definition the generated code contributed, the type that code injects. */
-    public static final String DECLARED_TYPE_ATTRIBUTE = GeneratedBeanDefinitions.class.getName() + ".declaredType";
+    public static final String DECLARED_TYPE_ATTRIBUTE = GeneratedBeanDefinitions.getName() + '.declaredType'
 
     /** The instances the suppliers of generated definitions created. */
-    private static final WeakIdentitySet CREATED = new WeakIdentitySet();
+    private static final WeakIdentitySet CREATED = new WeakIdentitySet()
 
     private GeneratedBeanDefinitions() {
     }
@@ -89,21 +87,21 @@ public final class GeneratedBeanDefinitions {
      * @param beanDefinition the definition, with the instance supplier the generated code gave it
      * @param declaredType the name of the type whose annotated members the generated code injects
      */
-    @SuppressWarnings("unchecked")
-    public static void markGenerated(RootBeanDefinition beanDefinition, String declaredType) {
-        beanDefinition.setAttribute(DECLARED_TYPE_ATTRIBUTE, declaredType);
-        Supplier<?> supplier = beanDefinition.getInstanceSupplier();
+    @SuppressWarnings('unchecked')
+    static void markGenerated(RootBeanDefinition beanDefinition, String declaredType) {
+        beanDefinition.setAttribute(DECLARED_TYPE_ATTRIBUTE, declaredType)
+        Supplier<?> supplier = beanDefinition.getInstanceSupplier()
         if (supplier == null) {
-            return;
+            return
         }
         InstanceSupplier<Object> instanceSupplier = (supplier instanceof InstanceSupplier<?> generated) ?
-                (InstanceSupplier<Object>) generated : InstanceSupplier.using(supplier::get);
+                (InstanceSupplier<Object>) generated : InstanceSupplier.using(supplier::get)
         beanDefinition.setInstanceSupplier(instanceSupplier.andThen((registeredBean, instance) -> {
             if (instance != null) {
-                CREATED.add(instance);
+                CREATED.add(instance)
             }
-            return instance;
-        }));
+            return instance
+        }))
     }
 
     /**
@@ -117,14 +115,14 @@ public final class GeneratedBeanDefinitions {
      * @return {@code true} when the bean's definition was contributed by the generated code and the instance
      *         was not created by it
      */
-    public static boolean isAnotherInstanceOfGeneratedBean(@Nullable BeanFactory beanFactory, String beanName,
+    static boolean isAnotherInstanceOfGeneratedBean(@Nullable BeanFactory beanFactory, String beanName,
             Object bean) {
         if (!(beanFactory instanceof ConfigurableListableBeanFactory listable) ||
                 !listable.containsBeanDefinition(beanName)) {
-            return false;
+            return false
         }
         return listable.getMergedBeanDefinition(beanName).hasAttribute(DECLARED_TYPE_ATTRIBUTE) &&
-                !CREATED.contains(bean);
+                !CREATED.contains(bean)
     }
 
     /**
@@ -140,23 +138,23 @@ public final class GeneratedBeanDefinitions {
      * @param generatingProcessor a processor of the kind and configuration the code was generated with, which
      *        is given a definition of its own to process
      */
-    public static void markMembersInjectedByGeneratedCode(RootBeanDefinition beanDefinition, Class<?> beanType,
+    static void markMembersInjectedByGeneratedCode(RootBeanDefinition beanDefinition, Class<?> beanType,
             MergedBeanDefinitionPostProcessor generatingProcessor) {
         if (!(beanDefinition.getAttribute(DECLARED_TYPE_ATTRIBUTE) instanceof String declaredTypeName)) {
-            return;
+            return
         }
-        Class<?> beanClass = ClassUtils.getUserClass(beanType);
-        Class<?> declaredType = findType(beanClass, declaredTypeName);
+        Class<?> beanClass = ClassUtils.getUserClass(beanType)
+        Class<?> declaredType = findType(beanClass, declaredTypeName)
         if (declaredType == null) {
-            return;
+            return
         }
-        RootBeanDefinition generated = new RootBeanDefinition(declaredType);
-        generatingProcessor.postProcessMergedBeanDefinition(generated, declaredType, "");
+        RootBeanDefinition generated = new RootBeanDefinition(declaredType)
+        generatingProcessor.postProcessMergedBeanDefinition(generated, declaredType, '')
         for (Member member : generated.getExternallyManagedConfigMembers()) {
-            beanDefinition.registerExternallyManagedConfigMember(member);
+            beanDefinition.registerExternallyManagedConfigMember(member)
             if (member instanceof Method method) {
                 beanDefinition.registerExternallyManagedConfigMember(
-                        BridgeMethodResolver.getMostSpecificMethod(method, beanClass));
+                        BridgeMethodResolver.getMostSpecificMethod(method, beanClass))
             }
         }
     }
@@ -172,10 +170,10 @@ public final class GeneratedBeanDefinitions {
      *
      * @param registry the registry the generated code contributed its definitions to
      */
-    public static void leaveAnnotatedLifecycleMethodsToProcessor(BeanDefinitionRegistry registry) {
-        CommonAnnotationBeanPostProcessor generatingProcessor = new CommonAnnotationBeanPostProcessor();
+    static void leaveAnnotatedLifecycleMethodsToProcessor(BeanDefinitionRegistry registry) {
+        CommonAnnotationBeanPostProcessor generatingProcessor = new CommonAnnotationBeanPostProcessor()
         for (String beanName : registry.getBeanDefinitionNames()) {
-            leaveAnnotatedLifecycleMethodsToProcessor(registry.getBeanDefinition(beanName), generatingProcessor);
+            leaveAnnotatedLifecycleMethodsToProcessor(registry.getBeanDefinition(beanName), generatingProcessor)
         }
     }
 
@@ -184,58 +182,58 @@ public final class GeneratedBeanDefinitions {
         if (beanDefinition instanceof AbstractBeanDefinition definition &&
                 definition.getAttribute(DECLARED_TYPE_ATTRIBUTE) instanceof String declaredTypeName &&
                 (definition.getInitMethodNames() != null || definition.getDestroyMethodNames() != null)) {
-            Class<?> definedType = definition.getResolvableType().resolve();
+            Class<?> definedType = definition.getResolvableType().resolve()
             Class<?> declaredType = (definedType != null) ?
-                    findType(ClassUtils.getUserClass(definedType), declaredTypeName) : null;
+                    findType(ClassUtils.getUserClass(definedType), declaredTypeName) : null
             if (declaredType != null) {
-                RootBeanDefinition annotated = new RootBeanDefinition(declaredType);
-                generatingProcessor.postProcessMergedBeanDefinition(annotated, declaredType, "");
+                RootBeanDefinition annotated = new RootBeanDefinition(declaredType)
+                generatingProcessor.postProcessMergedBeanDefinition(annotated, declaredType, '')
                 definition.setInitMethodNames(
-                        without(definition.getInitMethodNames(), annotated.getExternallyManagedInitMethods()));
+                        without(definition.getInitMethodNames(), annotated.getExternallyManagedInitMethods()))
                 definition.setDestroyMethodNames(
-                        without(definition.getDestroyMethodNames(), annotated.getExternallyManagedDestroyMethods()));
+                        without(definition.getDestroyMethodNames(), annotated.getExternallyManagedDestroyMethods()))
             }
         }
         if (beanDefinition.hasPropertyValues()) {
-            beanDefinition.getPropertyValues().forEach(value -> leaveToProcessorIn(value.getValue(), generatingProcessor));
+            beanDefinition.getPropertyValues().forEach(value -> leaveToProcessorIn(value.getValue(), generatingProcessor))
         }
         if (beanDefinition.hasConstructorArgumentValues()) {
-            ConstructorArgumentValues arguments = beanDefinition.getConstructorArgumentValues();
+            ConstructorArgumentValues arguments = beanDefinition.getConstructorArgumentValues()
             arguments.getIndexedArgumentValues().values()
-                    .forEach(argument -> leaveToProcessorIn(argument.getValue(), generatingProcessor));
+                    .forEach(argument -> leaveToProcessorIn(argument.getValue(), generatingProcessor))
             arguments.getGenericArgumentValues()
-                    .forEach(argument -> leaveToProcessorIn(argument.getValue(), generatingProcessor));
+                    .forEach(argument -> leaveToProcessorIn(argument.getValue(), generatingProcessor))
         }
     }
 
     /** Looks for inner beans in a property value or constructor argument, however deeply they are held. */
     private static void leaveToProcessorIn(@Nullable Object value, MergedBeanDefinitionPostProcessor generatingProcessor) {
         if (value instanceof BeanDefinitionHolder holder) {
-            leaveAnnotatedLifecycleMethodsToProcessor(holder.getBeanDefinition(), generatingProcessor);
+            leaveAnnotatedLifecycleMethodsToProcessor(holder.getBeanDefinition(), generatingProcessor)
         }
         else if (value instanceof BeanDefinition definition) {
-            leaveAnnotatedLifecycleMethodsToProcessor(definition, generatingProcessor);
+            leaveAnnotatedLifecycleMethodsToProcessor(definition, generatingProcessor)
         }
         else if (value instanceof Iterable<?> values) {
-            values.forEach(element -> leaveToProcessorIn(element, generatingProcessor));
+            values.forEach(element -> leaveToProcessorIn(element, generatingProcessor))
         }
         else if (value instanceof Map<?, ?> map) {
             map.forEach((key, element) -> {
-                leaveToProcessorIn(key, generatingProcessor);
-                leaveToProcessorIn(element, generatingProcessor);
-            });
+                leaveToProcessorIn(key, generatingProcessor)
+                leaveToProcessorIn(element, generatingProcessor)
+            })
         }
         else if (value instanceof Object[] values) {
-            Arrays.stream(values).forEach(element -> leaveToProcessorIn(element, generatingProcessor));
+            Arrays.stream(values).forEach(element -> leaveToProcessorIn(element, generatingProcessor))
         }
     }
 
     private static String @Nullable [] without(String @Nullable [] methodNames, Set<String> annotated) {
         if (methodNames == null) {
-            return null;
+            return null
         }
-        String[] remaining = Arrays.stream(methodNames).filter(name -> !annotated.contains(name)).toArray(String[]::new);
-        return (remaining.length > 0) ? remaining : null;
+        String[] remaining = Arrays.stream(methodNames).filter(name -> !annotated.contains(name)).toArray(String[]::new)
+        return (remaining.length > 0) ? remaining : null
     }
 
     /** The class, superclass or interface of the bean's class with the given name. */
@@ -243,15 +241,15 @@ public final class GeneratedBeanDefinitions {
     private static Class<?> findType(Class<?> beanClass, String name) {
         for (Class<?> type = beanClass; type != null; type = type.getSuperclass()) {
             if (type.getName().equals(name)) {
-                return type;
+                return type
             }
         }
         for (Class<?> type : ClassUtils.getAllInterfacesForClassAsSet(beanClass)) {
             if (type.getName().equals(name)) {
-                return type;
+                return type
             }
         }
-        return null;
+        return null
     }
 
     /**
@@ -260,49 +258,49 @@ public final class GeneratedBeanDefinitions {
      */
     private static final class WeakIdentitySet {
 
-        private final ReferenceQueue<Object> collected = new ReferenceQueue<>();
+        private final ReferenceQueue<Object> collected = new ReferenceQueue<>()
 
-        private final Set<Element> elements = new HashSet<>();
+        private final Set<Element> elements = new HashSet<>()
 
         synchronized void add(Object instance) {
-            expunge();
-            elements.add(new Element(instance, collected));
+            expunge()
+            elements.add(new Element(instance, collected))
         }
 
         synchronized boolean contains(Object instance) {
-            expunge();
-            return elements.contains(new Element(instance, null));
+            expunge()
+            return elements.contains(new Element(instance, null))
         }
 
         private void expunge() {
-            Reference<?> reference = collected.poll();
+            Reference<?> reference = collected.poll()
             while (reference != null) {
-                elements.remove(reference);
-                reference = collected.poll();
+                elements.remove(reference)
+                reference = collected.poll()
             }
         }
 
         private static final class Element extends WeakReference<Object> {
 
-            private final int hash;
+            private final int hash
 
             Element(Object instance, @Nullable ReferenceQueue<Object> queue) {
-                super(instance, queue);
-                this.hash = System.identityHashCode(instance);
+                super(instance, queue)
+                this.hash = System.identityHashCode(instance)
             }
 
             @Override
-            public int hashCode() {
-                return hash;
+            int hashCode() {
+                return hash
             }
 
             @Override
-            public boolean equals(Object other) {
-                if (this == other) {
-                    return true;
+            boolean equals(Object other) {
+                if (this.is(other)) {
+                    return true
                 }
-                Object instance = get();
-                return other instanceof Element element && instance != null && instance == element.get();
+                Object instance = get()
+                return other instanceof Element element && instance != null && instance.is(element.get())
             }
         }
     }

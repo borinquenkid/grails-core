@@ -16,23 +16,20 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import groovy.transform.CompileStatic
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
+import org.jspecify.annotations.Nullable
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution
+import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
+import org.springframework.core.io.support.ResourcePatternResolver
+import org.springframework.util.ClassUtils
 
-import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution;
-import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.util.ClassUtils;
-
-import grails.boot.config.GrailsAutoConfiguration;
+import grails.boot.config.GrailsAutoConfiguration
 
 /**
  * Registers the reflection the application's own classes imply, read from their bytecode the way
@@ -48,24 +45,25 @@ import grails.boot.config.GrailsAutoConfiguration;
  *
  * @since 9.0
  */
-public class ApplicationBytecodeBeanFactoryInitializationAotProcessor implements BeanFactoryInitializationAotProcessor {
+@CompileStatic
+class ApplicationBytecodeBeanFactoryInitializationAotProcessor implements BeanFactoryInitializationAotProcessor {
 
-    private static final Log logger = LogFactory.getLog(ApplicationBytecodeBeanFactoryInitializationAotProcessor.class);
+    private static final Log logger = LogFactory.getLog(ApplicationBytecodeBeanFactoryInitializationAotProcessor)
 
     @Override
     @Nullable
-    public BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
-        Set<String> packages = applicationPackages(beanFactory);
+    BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
+        Set<String> packages = applicationPackages(beanFactory)
         if (packages.isEmpty()) {
-            return null;
+            return null
         }
         String[] patterns = packages.stream()
                 .map(name -> ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
-                        ClassUtils.convertClassNameToResourcePath(name) + "/**/*.class")
-                .toArray(String[]::new);
-        ClassLoader classLoader = beanFactory.getBeanClassLoader();
+                        ClassUtils.convertClassNameToResourcePath(name) + '/**/*.class')
+                .toArray(String[]::new)
+        ClassLoader classLoader = beanFactory.getBeanClassLoader()
         return (generationContext, beanFactoryInitializationCode) ->
-                BytecodeRuntimeHints.registerFoundIn(generationContext.getRuntimeHints(), classLoader, patterns);
+                BytecodeRuntimeHints.registerFoundIn(generationContext.getRuntimeHints(), classLoader, patterns)
     }
 
     /**
@@ -73,24 +71,24 @@ public class ApplicationBytecodeBeanFactoryInitializationAotProcessor implements
      * not a Grails application context.
      */
     private Set<String> applicationPackages(ConfigurableListableBeanFactory beanFactory) {
-        Set<String> packages = new LinkedHashSet<>();
+        Set<String> packages = new LinkedHashSet<>()
         for (String name : beanFactory.getBeanDefinitionNames()) {
-            String className = beanFactory.getBeanDefinition(name).getBeanClassName();
+            String className = beanFactory.getBeanDefinition(name).getBeanClassName()
             if (className == null) {
-                continue;
+                continue
             }
-            Class<?> beanClass;
+            Class<?> beanClass
             try {
-                beanClass = ClassUtils.forName(className, beanFactory.getBeanClassLoader());
+                beanClass = ClassUtils.forName(className, beanFactory.getBeanClassLoader())
             }
             catch (ClassNotFoundException | LinkageError ex) {
-                continue;
+                continue
             }
-            if (GrailsAutoConfiguration.class.isAssignableFrom(beanClass) && beanClass != GrailsAutoConfiguration.class) {
-                packages.addAll(packagesNamedBy(beanClass));
+            if (GrailsAutoConfiguration.isAssignableFrom(beanClass) && beanClass != GrailsAutoConfiguration) {
+                packages.addAll(packagesNamedBy(beanClass))
             }
         }
-        return packages;
+        return packages
     }
 
     /**
@@ -100,12 +98,12 @@ public class ApplicationBytecodeBeanFactoryInitializationAotProcessor implements
      */
     private Collection<String> packagesNamedBy(Class<?> applicationClass) {
         try {
-            return ((GrailsAutoConfiguration) applicationClass.getDeclaredConstructor().newInstance()).packageNames();
+            return ((GrailsAutoConfiguration) applicationClass.getDeclaredConstructor().newInstance()).packageNames()
         }
         catch (ReflectiveOperationException | RuntimeException | LinkageError ex) {
-            logger.debug("Unable to ask " + applicationClass.getName() + " for its packages", ex);
-            String packageName = applicationClass.getPackageName();
-            return packageName.isEmpty() ? Set.of() : Set.of(packageName);
+            logger.debug('Unable to ask ' + applicationClass.getName() + ' for its packages', ex)
+            String packageName = applicationClass.getPackageName()
+            return packageName.isEmpty() ? Set.of() : Set.of(packageName)
         }
     }
 

@@ -16,36 +16,34 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.annotation.Annotation
+import java.lang.reflect.AnnotatedElement
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.annotation.Resource;
-import jakarta.inject.Inject;
+import groovy.transform.CompileStatic
+import jakarta.annotation.PostConstruct
+import jakarta.annotation.PreDestroy
+import jakarta.annotation.Resource
+import jakarta.inject.Inject
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.Nullable
 
-import org.springframework.aot.hint.ExecutableMode;
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.ReflectionHints;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution;
-import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor;
-import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.aot.hint.ExecutableMode
+import org.springframework.aot.hint.MemberCategory
+import org.springframework.aot.hint.ReflectionHints
+import org.springframework.beans.factory.NoSuchBeanDefinitionException
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution
+import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor
+import org.springframework.beans.factory.aot.BeanRegistrationAotProcessor
+import org.springframework.beans.factory.config.BeanDefinition
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
+import org.springframework.beans.factory.support.AbstractBeanDefinition
+import org.springframework.core.annotation.AnnotatedElementUtils
+import org.springframework.util.ClassUtils
+import org.springframework.util.ReflectionUtils
 
 /**
  * Registers what Spring reaches reflectively when it creates and wires the beans the framework declares.
@@ -70,34 +68,35 @@ import org.springframework.util.ReflectionUtils;
  *
  * @since 9.0
  */
-public class BeanReflectionBeanFactoryInitializationAotProcessor implements BeanFactoryInitializationAotProcessor {
+@CompileStatic
+class BeanReflectionBeanFactoryInitializationAotProcessor implements BeanFactoryInitializationAotProcessor {
 
-    private static final String SPRING_PACKAGE = "org.springframework.";
+    private static final String SPRING_PACKAGE = 'org.springframework.'
 
     /** The annotations Spring injects a member through, or calls a method for. */
     private static final List<Class<? extends Annotation>> INJECTION_ANNOTATIONS = List.of(
-            Autowired.class, Value.class, Inject.class, Resource.class, PostConstruct.class, PreDestroy.class);
+            Autowired, Value, Inject, Resource, PostConstruct, PreDestroy)
 
     /** Only its annotated members are reached: a Spring bean, or the product of a factory method. */
-    private static final int INJECTED = 0;
+    private static final int INJECTED = 0
 
     /** Also given its properties through its setters, after a supplier created it. */
-    private static final int WIRED = 1;
+    private static final int WIRED = 1
 
     /** Also created through its constructor. */
-    private static final int CREATED = 2;
+    private static final int CREATED = 2
 
     @Override
     @Nullable
-    public BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
-        Map<Class<?>, Integer> beanClasses = beanClassesOf(beanFactory);
+    BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
+        Map<Class<?>, Integer> beanClasses = beanClassesOf(beanFactory)
         if (beanClasses.isEmpty()) {
-            return null;
+            return null
         }
         return (generationContext, beanFactoryInitializationCode) -> {
-            ReflectionHints reflection = generationContext.getRuntimeHints().reflection();
-            beanClasses.forEach((beanClass, access) -> register(reflection, beanClass, access));
-        };
+            ReflectionHints reflection = generationContext.getRuntimeHints().reflection()
+            beanClasses.forEach((beanClass, access) -> register(reflection, beanClass, access))
+        }
     }
 
     /**
@@ -106,52 +105,52 @@ public class BeanReflectionBeanFactoryInitializationAotProcessor implements Bean
      * a Spring bean the generated code creates, only has its annotated members reached.
      */
     private Map<Class<?>, Integer> beanClassesOf(ConfigurableListableBeanFactory beanFactory) {
-        Map<Class<?>, Integer> beanClasses = new LinkedHashMap<>();
+        Map<Class<?>, Integer> beanClasses = new LinkedHashMap<>()
         for (String name : beanFactory.getBeanDefinitionNames()) {
-            BeanDefinition definition;
+            BeanDefinition definition
             try {
-                definition = beanFactory.getMergedBeanDefinition(name);
+                definition = beanFactory.getMergedBeanDefinition(name)
             }
             catch (NoSuchBeanDefinitionException ex) {
-                continue;
+                continue
             }
             if (!(definition instanceof AbstractBeanDefinition beanDefinition) || beanDefinition.isAbstract()) {
-                continue;
+                continue
             }
-            Class<?> beanClass;
-            int access;
+            Class<?> beanClass
+            int access
             if (beanDefinition.getFactoryMethodName() != null) {
-                beanClass = productOf(beanFactory, name);
-                access = INJECTED;
+                beanClass = productOf(beanFactory, name)
+                access = INJECTED
             }
             else {
-                beanClass = beanClassOf(beanDefinition, beanFactory.getBeanClassLoader());
-                access = (beanDefinition.getInstanceSupplier() == null) ? CREATED : WIRED;
+                beanClass = beanClassOf(beanDefinition, beanFactory.getBeanClassLoader())
+                access = (beanDefinition.getInstanceSupplier() == null) ? CREATED : WIRED
             }
             if (beanClass == null) {
-                continue;
+                continue
             }
             if (beanClass.getName().startsWith(SPRING_PACKAGE) && !isLeftOutOfGeneration(beanDefinition)) {
-                access = INJECTED;
+                access = INJECTED
             }
-            beanClasses.merge(beanClass, access, Math::max);
+            beanClasses.merge(beanClass, access, Math::max)
         }
-        return beanClasses;
+        return beanClasses
     }
 
     /** A registrar's bean: the generated code does not create it, and the registrar declares it again. */
     private static boolean isLeftOutOfGeneration(AbstractBeanDefinition beanDefinition) {
-        return Boolean.TRUE.equals(beanDefinition.getAttribute(BeanRegistrationAotProcessor.IGNORE_REGISTRATION_ATTRIBUTE));
+        return Boolean.TRUE.equals(beanDefinition.getAttribute(BeanRegistrationAotProcessor.IGNORE_REGISTRATION_ATTRIBUTE))
     }
 
     /** What a factory method creates, as far as it can be told without calling it. */
     @Nullable
     private static Class<?> productOf(ConfigurableListableBeanFactory beanFactory, String name) {
         try {
-            return beanFactory.getType(name, false);
+            return beanFactory.getType(name, false)
         }
         catch (RuntimeException | LinkageError ex) {
-            return null;
+            return null
         }
     }
 
@@ -162,35 +161,35 @@ public class BeanReflectionBeanFactoryInitializationAotProcessor implements Bean
     @Nullable
     private static Class<?> beanClassOf(AbstractBeanDefinition beanDefinition, @Nullable ClassLoader classLoader) {
         if (beanDefinition.hasBeanClass()) {
-            return beanDefinition.getBeanClass();
+            return beanDefinition.getBeanClass()
         }
-        String className = beanDefinition.getBeanClassName();
+        String className = beanDefinition.getBeanClassName()
         if (className == null) {
-            return null;
+            return null
         }
         try {
-            return ClassUtils.forName(className, classLoader);
+            return ClassUtils.forName(className, classLoader)
         }
         catch (ClassNotFoundException | LinkageError ex) {
-            return null;
+            return null
         }
     }
 
     private static void register(ReflectionHints reflection, Class<?> beanClass, int access) {
         if (access == CREATED) {
             reflection.registerType(beanClass, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
-                    MemberCategory.INVOKE_PUBLIC_METHODS);
+                    MemberCategory.INVOKE_PUBLIC_METHODS)
         }
         else if (access == WIRED) {
-            reflection.registerType(beanClass, MemberCategory.INVOKE_PUBLIC_METHODS);
+            reflection.registerType(beanClass, MemberCategory.INVOKE_PUBLIC_METHODS)
         }
         try {
             ReflectionUtils.doWithMethods(beanClass, method -> reflection.registerMethod(method, ExecutableMode.INVOKE),
-                    BeanReflectionBeanFactoryInitializationAotProcessor::isInjectionPoint);
+                    BeanReflectionBeanFactoryInitializationAotProcessor::isInjectionPoint)
             ReflectionUtils.doWithFields(beanClass, reflection::registerField,
-                    BeanReflectionBeanFactoryInitializationAotProcessor::isInjectionPoint);
+                    BeanReflectionBeanFactoryInitializationAotProcessor::isInjectionPoint)
         }
-        catch (LinkageError ex) {
+        catch (LinkageError ignored) {
             // a member naming a class that is absent here cannot be injected here either
         }
     }
@@ -198,10 +197,10 @@ public class BeanReflectionBeanFactoryInitializationAotProcessor implements Bean
     private static boolean isInjectionPoint(AnnotatedElement element) {
         for (Class<? extends Annotation> annotation : INJECTION_ANNOTATIONS) {
             if (AnnotatedElementUtils.hasAnnotation(element, annotation)) {
-                return true;
+                return true
             }
         }
-        return false;
+        return false
     }
 
 }

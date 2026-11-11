@@ -16,16 +16,17 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import org.jspecify.annotations.Nullable;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
 
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.MemberCategory
+import org.springframework.aot.hint.RuntimeHints
+import org.springframework.aot.hint.RuntimeHintsRegistrar
 
-import org.grails.beans.support.PropertiesEditor;
-import org.grails.core.support.ClassEditor;
+import org.grails.beans.support.PropertiesEditor
+import org.grails.core.support.ClassEditor
 
 /**
  * Registers the property editors the core plugin installs, which Spring creates reflectively.
@@ -38,18 +39,19 @@ import org.grails.core.support.ClassEditor;
  *
  * @since 9.0
  */
-public class PropertyEditorRuntimeHints implements RuntimeHintsRegistrar {
+@CompileStatic
+class PropertyEditorRuntimeHints implements RuntimeHintsRegistrar {
 
     /** The editors the core plugin registers by class. */
-    private static final Class<?>[] EDITORS = {
-        ClassEditor.class,
-        PropertiesEditor.class
-    };
+    private static final Class<?>[] EDITORS = [
+        ClassEditor,
+        PropertiesEditor
+    ] as Class<?>[]
 
     @Override
-    public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+    void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
         for (Class<?> editor : EDITORS) {
-            hints.reflection().registerType(editor, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
+            hints.reflection().registerType(editor, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)
         }
     }
 

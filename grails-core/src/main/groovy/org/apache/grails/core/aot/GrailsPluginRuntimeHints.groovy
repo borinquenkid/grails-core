@@ -16,18 +16,19 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import org.jspecify.annotations.Nullable;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
 
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.util.ClassUtils;
+import org.springframework.aot.hint.MemberCategory
+import org.springframework.aot.hint.RuntimeHints
+import org.springframework.aot.hint.RuntimeHintsRegistrar
+import org.springframework.util.ClassUtils
 
-import org.apache.grails.common.aot.RegistrableTypes;
-import org.apache.grails.core.plugins.PluginDescriptor;
-import org.apache.grails.core.plugins.PluginUtils;
+import org.apache.grails.common.aot.RegistrableTypes
+import org.apache.grails.core.plugins.PluginDescriptor
+import org.apache.grails.core.plugins.PluginUtils
 
 /**
  * Registers what finding the plugins reads: the descriptors that list them, and the classes they name.
@@ -52,12 +53,13 @@ import org.apache.grails.core.plugins.PluginUtils;
  *
  * @since 9.0
  */
-public class GrailsPluginRuntimeHints implements RuntimeHintsRegistrar {
+@CompileStatic
+class GrailsPluginRuntimeHints implements RuntimeHintsRegistrar {
 
     @Override
-    public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
-        hints.resources().registerPattern(PluginUtils.PLUGIN_XML_PATTERN);
-        ClassLoader loader = (classLoader != null) ? classLoader : ClassUtils.getDefaultClassLoader();
+    void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+        hints.resources().registerPattern(PluginUtils.PLUGIN_XML_PATTERN)
+        ClassLoader loader = (classLoader != null) ? classLoader : ClassUtils.getDefaultClassLoader()
         for (PluginDescriptor descriptor : PluginUtils.scanPluginDescriptorResources(loader)) {
             for (String pluginClass : descriptor.getProvidedPlugins()) {
                 if (RegistrableTypes.loads(pluginClass, loader)) {
@@ -65,9 +67,9 @@ public class GrailsPluginRuntimeHints implements RuntimeHintsRegistrar {
                             MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                             MemberCategory.INVOKE_PUBLIC_METHODS,
                             MemberCategory.INVOKE_DECLARED_METHODS,
-                            MemberCategory.ACCESS_DECLARED_FIELDS);
+                            MemberCategory.ACCESS_DECLARED_FIELDS)
                     hints.resources().registerPattern(ClassUtils.convertClassNameToResourcePath(pluginClass) +
-                            ClassUtils.CLASS_FILE_SUFFIX);
+                            ClassUtils.CLASS_FILE_SUFFIX)
                 }
             }
         }

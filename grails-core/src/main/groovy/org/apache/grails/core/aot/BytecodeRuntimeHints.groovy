@@ -16,44 +16,33 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import groovy.transform.CompileStatic
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
+import org.jspecify.annotations.Nullable
 
-import groovy.lang.GroovyObject;
+import org.springframework.aot.hint.ExecutableMode
+import org.springframework.aot.hint.MemberCategory
+import org.springframework.aot.hint.RuntimeHints
+import org.springframework.aot.hint.RuntimeHintsRegistrar
+import org.springframework.aot.hint.TypeReference
+import org.springframework.asm.AnnotationVisitor
+import org.springframework.asm.ClassReader
+import org.springframework.asm.ClassVisitor
+import org.springframework.asm.FieldVisitor
+import org.springframework.asm.Handle
+import org.springframework.asm.Label
+import org.springframework.asm.MethodVisitor
+import org.springframework.asm.SpringAsmInfo
+import org.springframework.asm.Type
+import org.springframework.core.io.Resource
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver
+import org.springframework.core.io.support.ResourcePatternResolver
+import org.springframework.util.ClassUtils
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.jspecify.annotations.Nullable;
-
-import org.springframework.aot.hint.ExecutableMode;
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.aot.hint.TypeReference;
-import org.springframework.asm.AnnotationVisitor;
-import org.springframework.asm.ClassReader;
-import org.springframework.asm.ClassVisitor;
-import org.springframework.asm.FieldVisitor;
-import org.springframework.asm.Handle;
-import org.springframework.asm.Label;
-import org.springframework.asm.MethodVisitor;
-import org.springframework.asm.SpringAsmInfo;
-import org.springframework.asm.Type;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.util.ClassUtils;
-
-import org.apache.grails.common.aot.RegistrableTypes;
+import org.apache.grails.common.aot.RegistrableTypes
 
 /**
  * Registers the reflection the framework's own compiled classes imply, read from their bytecode.
@@ -106,50 +95,51 @@ import org.apache.grails.common.aot.RegistrableTypes;
  *
  * @since 9.0
  */
-public class BytecodeRuntimeHints implements RuntimeHintsRegistrar {
+@CompileStatic
+class BytecodeRuntimeHints implements RuntimeHintsRegistrar {
 
-    private static final Log logger = LogFactory.getLog(BytecodeRuntimeHints.class);
+    private static final Log logger = LogFactory.getLog(BytecodeRuntimeHints)
 
     /** Where the framework's classes are found: its own packages, old and new. */
-    private static final String[] PATTERNS = {
-        ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + "grails/**/*.class",
-        ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + "org/grails/**/*.class",
-        ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + "org/apache/grails/**/*.class"
-    };
+    private static final String[] PATTERNS = [
+        ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + 'grails/**/*.class',
+        ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + 'org/grails/**/*.class',
+        ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX + 'org/apache/grails/**/*.class'
+    ] as String[]
 
-    private static final String ENUM = "java/lang/Enum";
+    private static final String ENUM = 'java/lang/Enum'
 
-    private static final String GROOVY_OBJECT = "groovy/lang/GroovyObject";
+    private static final String GROOVY_OBJECT = 'groovy/lang/GroovyObject'
 
-    private static final String INDY_INTERFACE = "org/codehaus/groovy/vmplugin/v8/IndyInterface";
+    private static final String INDY_INTERFACE = 'org/codehaus/groovy/vmplugin/v8/IndyInterface'
 
-    private static final String CAST = "cast";
+    private static final String CAST = 'cast'
 
-    private static final String INVOKE = "invoke";
+    private static final String INVOKE = 'invoke'
 
-    private static final String AS_TYPE = "asType";
+    private static final String AS_TYPE = 'asType'
 
-    private static final String CLOSURE = "Lgroovy/lang/Closure;";
+    private static final String CLOSURE = 'Lgroovy/lang/Closure;'
 
-    private static final String CLASS = "Ljava/lang/Class;";
+    private static final String CLASS = 'Ljava/lang/Class;'
 
     /** How Groovy names the classes that carry a trait's methods and fields. */
-    private static final String[] TRAIT_HELPER_SUFFIXES = {
-        "$Trait$Helper", "$Trait$FieldHelper", "$Trait$StaticFieldHelper"
-    };
+    private static final String[] TRAIT_HELPER_SUFFIXES = [
+        '$Trait$Helper', '$Trait$FieldHelper', '$Trait$StaticFieldHelper'
+    ] as String[]
 
     /** The annotations a member is injected or called through, as they appear in bytecode. */
     private static final Set<String> SPRING_ANNOTATIONS = Set.of(
-            "Lorg/springframework/beans/factory/annotation/Autowired;",
-            "Lorg/springframework/beans/factory/annotation/Value;",
-            "Ljakarta/inject/Inject;",
-            "Ljakarta/annotation/Resource;",
-            "Ljakarta/annotation/PostConstruct;",
-            "Ljakarta/annotation/PreDestroy;");
+            'Lorg/springframework/beans/factory/annotation/Autowired;',
+            'Lorg/springframework/beans/factory/annotation/Value;',
+            'Ljakarta/inject/Inject;',
+            'Ljakarta/annotation/Resource;',
+            'Ljakarta/annotation/PostConstruct;',
+            'Ljakarta/annotation/PreDestroy;')
 
     @Override
-    public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
-        registerFoundIn(hints, classLoader, PATTERNS);
+    void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+        registerFoundIn(hints, classLoader, PATTERNS)
     }
 
     /**
@@ -161,32 +151,32 @@ public class BytecodeRuntimeHints implements RuntimeHintsRegistrar {
      * @param patterns resource patterns matching class files
      */
     static void registerFoundIn(RuntimeHints hints, @Nullable ClassLoader classLoader, String... patterns) {
-        ClassLoader loader = (classLoader != null) ? classLoader : ClassUtils.getDefaultClassLoader();
-        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(loader);
-        Findings findings = new Findings();
+        ClassLoader loader = (classLoader != null) ? classLoader : ClassUtils.getDefaultClassLoader()
+        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(loader)
+        Findings findings = new Findings()
         for (String pattern : patterns) {
-            Resource[] resources;
+            Resource[] resources
             try {
-                resources = resolver.getResources(pattern);
+                resources = resolver.getResources(pattern)
             }
             catch (IOException ex) {
-                logger.warn("Unable to scan for classes matching " + pattern, ex);
-                continue;
+                logger.warn('Unable to scan for classes matching ' + pattern, ex)
+                continue
             }
             for (Resource resource : resources) {
-                read(resource, findings);
+                read(resource, findings)
             }
         }
-        findings.register(hints, loader);
+        findings.register(hints, loader)
     }
 
     private static void read(Resource resource, Findings findings) {
         try (InputStream input = resource.getInputStream()) {
             new ClassReader(input).accept(new FindingClassVisitor(findings, resource),
-                    ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+                    ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES)
         }
         catch (IOException | RuntimeException ex) {
-            logger.debug("Unable to read " + resource, ex);
+            logger.debug('Unable to read ' + resource, ex)
         }
     }
 
@@ -197,13 +187,13 @@ public class BytecodeRuntimeHints implements RuntimeHintsRegistrar {
     @Nullable
     private static Class<?> load(String type, ClassLoader loader) {
         if (!RegistrableTypes.loads(type, loader)) {
-            return null;
+            return null
         }
         try {
-            return ClassUtils.forName(type, loader);
+            return ClassUtils.forName(type, loader)
         }
         catch (ClassNotFoundException | LinkageError ex) {
-            return null;
+            return null
         }
     }
 
@@ -213,14 +203,14 @@ public class BytecodeRuntimeHints implements RuntimeHintsRegistrar {
      * {@link GrailsClosureRuntimeHints}, which registers more of it.
      */
     private static boolean isGroovyClass(String className, Resource resource, ClassLoader loader) {
-        if (className.contains("$_")) {
-            return false;
+        if (className.contains('$_')) {
+            return false
         }
-        Class<?> type = load(className, loader);
-        if (type == null || type.isInterface() || !GroovyObject.class.isAssignableFrom(type)) {
-            return false;
+        Class<?> type = load(className, loader)
+        if (type == null || type.isInterface() || !GroovyObject.isAssignableFrom(type)) {
+            return false
         }
-        return referencesLoad(resource, loader);
+        return referencesLoad(resource, loader)
     }
 
     /**
@@ -228,15 +218,15 @@ public class BytecodeRuntimeHints implements RuntimeHintsRegistrar {
      * here. Loading resolves signatures and not bodies, so a class loads without what its methods name.
      */
     private static boolean isRegistrable(String className, @Nullable Resource resource, ClassLoader loader) {
-        return resource != null && load(className, loader) != null && referencesLoad(resource, loader);
+        return resource != null && load(className, loader) != null && referencesLoad(resource, loader)
     }
 
     private static boolean referencesLoad(Resource resource, ClassLoader loader) {
         try {
-            return RegistrableTypes.referencesLoad(resource.getInputStream(), loader);
+            return RegistrableTypes.referencesLoad(resource.getInputStream(), loader)
         }
         catch (IOException ex) {
-            return false;
+            return false
         }
     }
 
@@ -246,7 +236,7 @@ public class BytecodeRuntimeHints implements RuntimeHintsRegistrar {
      * proxy, since the JDK refuses to make one.
      */
     private static boolean isProxiable(Class<?> type) {
-        return type.isInterface() && !type.isSealed();
+        return type.isInterface() && !type.isSealed()
     }
 
     /** A method by its name and the names of its parameter types. */
@@ -261,58 +251,58 @@ public class BytecodeRuntimeHints implements RuntimeHintsRegistrar {
      */
     private static final class Findings {
 
-        private final Set<String> enums = new LinkedHashSet<>();
+        private final Set<String> enums = new LinkedHashSet<>()
 
-        private final Set<String> coercedTo = new LinkedHashSet<>();
+        private final Set<String> coercedTo = new LinkedHashSet<>()
 
-        private final Set<String> traitHelpers = new LinkedHashSet<>();
+        private final Set<String> traitHelpers = new LinkedHashSet<>()
 
-        private final Map<String, Set<String>> injectedFields = new LinkedHashMap<>();
+        private final Map<String, Set<String>> injectedFields = new LinkedHashMap<>()
 
-        private final Map<String, Set<MethodSignature>> invokedMethods = new LinkedHashMap<>();
+        private final Map<String, Set<MethodSignature>> invokedMethods = new LinkedHashMap<>()
 
         /** Every class read, with where it was read from, to be asked whether it can be registered. */
-        private final Map<String, Resource> classes = new LinkedHashMap<>();
+        private final Map<String, Resource> classes = new LinkedHashMap<>()
 
         private void register(RuntimeHints hints, ClassLoader loader) {
             for (String type : enums) {
                 if (isRegistrable(type, classes.get(type), loader)) {
-                    hints.reflection().registerType(TypeReference.of(type), MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
+                    hints.reflection().registerType(TypeReference.of(type), MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)
                 }
             }
             for (String type : coercedTo) {
-                Class<?> coerced = load(type, loader);
+                Class<?> coerced = load(type, loader)
                 if (coerced != null && isProxiable(coerced)) {
-                    hints.proxies().registerJdkProxy(TypeReference.of(type));
+                    hints.proxies().registerJdkProxy(TypeReference.of(type))
                 }
             }
             for (String type : traitHelpers) {
                 if (isRegistrable(type, classes.get(type), loader)) {
-                    hints.reflection().registerType(TypeReference.of(type), MemberCategory.INVOKE_DECLARED_METHODS);
+                    hints.reflection().registerType(TypeReference.of(type), MemberCategory.INVOKE_DECLARED_METHODS)
                 }
             }
             injectedFields.forEach((type, fields) -> {
                 if (isRegistrable(type, classes.get(type), loader)) {
-                    hints.reflection().registerType(TypeReference.of(type), builder -> fields.forEach(builder::withField));
+                    hints.reflection().registerType(TypeReference.of(type), builder -> fields.forEach(builder::withField))
                 }
-            });
+            })
             invokedMethods.forEach((type, methods) -> {
                 if (isRegistrable(type, classes.get(type), loader)) {
                     hints.reflection().registerType(TypeReference.of(type), builder -> methods.forEach(method ->
-                            builder.withMethod(method.name(), method.parameterTypes(), ExecutableMode.INVOKE)));
+                            builder.withMethod(method.name(), method.parameterTypes(), ExecutableMode.INVOKE)))
                 }
-            });
-            int groovyClasses = 0;
+            })
+            int groovyClasses = 0
             for (Map.Entry<String, Resource> found : classes.entrySet()) {
                 if (isGroovyClass(found.getKey(), found.getValue(), loader)) {
-                    hints.reflection().registerType(TypeReference.of(found.getKey()));
-                    groovyClasses++;
+                    hints.reflection().registerType(TypeReference.of(found.getKey()))
+                    groovyClasses++
                 }
             }
-            logger.debug("Registered " + groovyClasses + " Groovy classes, " + enums.size() + " Groovy enums, " +
-                    traitHelpers.size() + " trait helpers, " +
-                    "proxies for " + coercedTo.size() + " interfaces closures are coerced to, and the injected " +
-                    "members of " + (injectedFields.size() + invokedMethods.size()) + " classes");
+            logger.debug('Registered ' + groovyClasses + ' Groovy classes, ' + enums.size() + ' Groovy enums, ' +
+                    traitHelpers.size() + ' trait helpers, ' +
+                    'proxies for ' + coercedTo.size() + ' interfaces closures are coerced to, and the injected ' +
+                    'members of ' + (injectedFields.size() + invokedMethods.size()) + ' classes')
         }
     }
 
@@ -322,50 +312,50 @@ public class BytecodeRuntimeHints implements RuntimeHintsRegistrar {
      */
     private static final class FindingClassVisitor extends ClassVisitor {
 
-        private final Findings findings;
+        private final Findings findings
 
-        private final Resource resource;
+        private final Resource resource
 
-        private String className = "";
+        private String className = ''
 
         private FindingClassVisitor(Findings findings, Resource resource) {
-            super(SpringAsmInfo.ASM_VERSION);
-            this.findings = findings;
-            this.resource = resource;
+            super(SpringAsmInfo.ASM_VERSION)
+            this.findings = findings
+            this.resource = resource
         }
 
         @Override
-        public void visit(int version, int access, String name, String signature, String superName,
+        void visit(int version, int access, String name, String signature, String superName,
                 String[] interfaces) {
-            className = ClassUtils.convertResourcePathToClassName(name);
-            findings.classes.put(className, resource);
+            className = ClassUtils.convertResourcePathToClassName(name)
+            findings.classes.put(className, resource)
             if (ENUM.equals(superName) && interfaces != null && Arrays.asList(interfaces).contains(GROOVY_OBJECT)) {
-                findings.enums.add(className);
+                findings.enums.add(className)
             }
             for (String suffix : TRAIT_HELPER_SUFFIXES) {
                 if (className.endsWith(suffix)) {
-                    findings.traitHelpers.add(className);
+                    findings.traitHelpers.add(className)
                 }
             }
         }
 
         @Override
-        public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+        FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
             return new FieldVisitor(SpringAsmInfo.ASM_VERSION) {
                 @Override
-                public AnnotationVisitor visitAnnotation(String annotation, boolean visible) {
+                AnnotationVisitor visitAnnotation(String annotation, boolean visible) {
                     if (SPRING_ANNOTATIONS.contains(annotation)) {
-                        findings.injectedFields.computeIfAbsent(className, type -> new LinkedHashSet<>()).add(name);
+                        findings.injectedFields.computeIfAbsent(className, type -> new LinkedHashSet<>()).add(name)
                     }
-                    return null;
+                    return null
                 }
-            };
+            }
         }
 
         @Override
-        public MethodVisitor visitMethod(int access, String name, String descriptor, String signature,
+        MethodVisitor visitMethod(int access, String name, String descriptor, String signature,
                 String[] exceptions) {
-            return new FindingMethodVisitor(findings, className, name, descriptor);
+            return new FindingMethodVisitor(findings, className, name, descriptor)
         }
 
     }
@@ -375,37 +365,37 @@ public class BytecodeRuntimeHints implements RuntimeHintsRegistrar {
      */
     private static final class FindingMethodVisitor extends MethodVisitor {
 
-        private final Findings findings;
+        private final Findings findings
 
-        private final String className;
+        private final String className
 
-        private final String name;
+        private final String name
 
-        private final String descriptor;
+        private final String descriptor
 
         /** The class the previous instruction named with a literal, which {@code as} takes its target from. */
         @Nullable
-        private Type classLiteral;
+        private Type classLiteral
 
-        private FindingMethodVisitor(Findings findings, String className, String name, String descriptor) {
-            super(SpringAsmInfo.ASM_VERSION);
-            this.findings = findings;
-            this.className = className;
-            this.name = name;
-            this.descriptor = descriptor;
+        FindingMethodVisitor(Findings findings, String className, String name, String descriptor) {
+            super(SpringAsmInfo.ASM_VERSION)
+            this.findings = findings
+            this.className = className
+            this.name = name
+            this.descriptor = descriptor
         }
 
         @Override
-        public AnnotationVisitor visitAnnotation(String annotation, boolean visible) {
+        AnnotationVisitor visitAnnotation(String annotation, boolean visible) {
             if (SPRING_ANNOTATIONS.contains(annotation)) {
-                List<TypeReference> parameterTypes = new ArrayList<>();
+                List<TypeReference> parameterTypes = new ArrayList<>()
                 for (Type parameter : Type.getArgumentTypes(descriptor)) {
-                    parameterTypes.add(TypeReference.of(parameter.getClassName()));
+                    parameterTypes.add(TypeReference.of(parameter.getClassName()))
                 }
                 findings.invokedMethods.computeIfAbsent(className, type -> new LinkedHashSet<>())
-                        .add(new MethodSignature(name, parameterTypes));
+                        .add(new MethodSignature(name, parameterTypes))
             }
-            return null;
+            return null
         }
 
         /**
@@ -417,87 +407,87 @@ public class BytecodeRuntimeHints implements RuntimeHintsRegistrar {
          * method's result, and a {@code Map} for a map literal, which is proxied as a closure is.
          */
         @Override
-        public void visitInvokeDynamicInsn(String methodName, String methodDescriptor, Handle bootstrap,
+        void visitInvokeDynamicInsn(String methodName, String methodDescriptor, Handle bootstrap,
                 Object... bootstrapArguments) {
-            Type named = classLiteral;
-            classLiteral = null;
+            Type named = classLiteral
+            classLiteral = null
             if (!INDY_INTERFACE.equals(bootstrap.getOwner())) {
-                return;
+                return
             }
-            Type[] arguments = Type.getArgumentTypes(methodDescriptor);
+            Type[] arguments = Type.getArgumentTypes(methodDescriptor)
             if (CAST.equals(methodName)) {
-                Type target = Type.getReturnType(methodDescriptor);
+                Type target = Type.getReturnType(methodDescriptor)
                 if (arguments.length == 1 && CLOSURE.equals(arguments[0].getDescriptor()) &&
                         target.getSort() == Type.OBJECT) {
-                    findings.coercedTo.add(target.getClassName());
+                    findings.coercedTo.add(target.getClassName())
                 }
             }
             else if (INVOKE.equals(methodName) && arguments.length == 2 &&
                     CLASS.equals(arguments[1].getDescriptor()) && bootstrapArguments.length > 0 &&
                     AS_TYPE.equals(bootstrapArguments[0]) && named != null) {
-                findings.coercedTo.add(named.getClassName());
+                findings.coercedTo.add(named.getClassName())
             }
         }
 
         @Override
-        public void visitLdcInsn(Object value) {
-            classLiteral = (value instanceof Type type && type.getSort() == Type.OBJECT) ? type : null;
+        void visitLdcInsn(Object value) {
+            classLiteral = (value instanceof Type type && type.getSort() == Type.OBJECT) ? type : null
         }
 
         @Override
-        public void visitInsn(int opcode) {
-            classLiteral = null;
+        void visitInsn(int opcode) {
+            classLiteral = null
         }
 
         @Override
-        public void visitIntInsn(int opcode, int operand) {
-            classLiteral = null;
+        void visitIntInsn(int opcode, int operand) {
+            classLiteral = null
         }
 
         @Override
-        public void visitVarInsn(int opcode, int varIndex) {
-            classLiteral = null;
+        void visitVarInsn(int opcode, int varIndex) {
+            classLiteral = null
         }
 
         @Override
-        public void visitTypeInsn(int opcode, String type) {
-            classLiteral = null;
+        void visitTypeInsn(int opcode, String type) {
+            classLiteral = null
         }
 
         @Override
-        public void visitFieldInsn(int opcode, String owner, String fieldName, String fieldDescriptor) {
-            classLiteral = null;
+        void visitFieldInsn(int opcode, String owner, String fieldName, String fieldDescriptor) {
+            classLiteral = null
         }
 
         @Override
-        public void visitMethodInsn(int opcode, String owner, String methodName, String methodDescriptor,
+        void visitMethodInsn(int opcode, String owner, String methodName, String methodDescriptor,
                 boolean isInterface) {
-            classLiteral = null;
+            classLiteral = null
         }
 
         @Override
-        public void visitJumpInsn(int opcode, Label label) {
-            classLiteral = null;
+        void visitJumpInsn(int opcode, Label label) {
+            classLiteral = null
         }
 
         @Override
-        public void visitIincInsn(int varIndex, int increment) {
-            classLiteral = null;
+        void visitIincInsn(int varIndex, int increment) {
+            classLiteral = null
         }
 
         @Override
-        public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
-            classLiteral = null;
+        void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
+            classLiteral = null
         }
 
         @Override
-        public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
-            classLiteral = null;
+        void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
+            classLiteral = null
         }
 
         @Override
-        public void visitMultiANewArrayInsn(String arrayDescriptor, int dimensions) {
-            classLiteral = null;
+        void visitMultiANewArrayInsn(String arrayDescriptor, int dimensions) {
+            classLiteral = null
         }
     }
 

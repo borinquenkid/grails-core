@@ -16,24 +16,22 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
 
-import org.jspecify.annotations.Nullable;
+import org.springframework.aot.hint.MemberCategory
+import org.springframework.aot.hint.ReflectionHints
+import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution
+import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
 
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.ReflectionHints;
-import org.springframework.beans.factory.aot.BeanFactoryInitializationAotContribution;
-import org.springframework.beans.factory.aot.BeanFactoryInitializationAotProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-
-import grails.core.ArtefactHandler;
-import grails.core.ArtefactHandlerAdapter;
-import grails.core.GrailsApplication;
-import grails.plugins.GrailsPlugin;
-import grails.plugins.GrailsPluginManager;
+import grails.core.ArtefactHandler
+import grails.core.ArtefactHandlerAdapter
+import grails.core.GrailsApplication
+import grails.plugins.GrailsPlugin
+import grails.plugins.GrailsPluginManager
 
 /**
  * Registers what the framework reaches reflectively as it registers artefacts: the class that represents
@@ -58,28 +56,29 @@ import grails.plugins.GrailsPluginManager;
  *
  * @since 9.0
  */
-public class ArtefactReflectionBeanFactoryInitializationAotProcessor implements BeanFactoryInitializationAotProcessor {
+@CompileStatic
+class ArtefactReflectionBeanFactoryInitializationAotProcessor implements BeanFactoryInitializationAotProcessor {
 
     @Override
     @Nullable
-    public BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
-        Set<Class<?>> representations = representationsOf(beanFactory);
-        Set<Class<?>> artefacts = artefactsOf(beanFactory);
-        artefacts.addAll(providedByPlugins(beanFactory));
+    BeanFactoryInitializationAotContribution processAheadOfTime(ConfigurableListableBeanFactory beanFactory) {
+        Set<Class<?>> representations = representationsOf(beanFactory)
+        Set<Class<?>> artefacts = artefactsOf(beanFactory)
+        artefacts.addAll(providedByPlugins(beanFactory))
         if (representations.isEmpty() && artefacts.isEmpty()) {
-            return null;
+            return null
         }
         return (generationContext, beanFactoryInitializationCode) -> {
-            ReflectionHints reflection = generationContext.getRuntimeHints().reflection();
+            ReflectionHints reflection = generationContext.getRuntimeHints().reflection()
             for (Class<?> representation : representations) {
-                reflection.registerType(representation, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
+                reflection.registerType(representation, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)
             }
             for (Class<?> artefact : artefacts) {
                 reflection.registerType(artefact, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                         MemberCategory.INVOKE_DECLARED_METHODS, MemberCategory.INVOKE_PUBLIC_METHODS,
-                        MemberCategory.ACCESS_DECLARED_FIELDS);
+                        MemberCategory.ACCESS_DECLARED_FIELDS)
             }
-        };
+        }
     }
 
     /**
@@ -87,56 +86,56 @@ public class ArtefactReflectionBeanFactoryInitializationAotProcessor implements 
      * plain Spring one being generated has no {@code grailsApplication}.
      */
     private Set<Class<?>> representationsOf(ConfigurableListableBeanFactory beanFactory) {
-        Set<Class<?>> representations = new LinkedHashSet<>();
-        Object application = beanFactory.getSingleton(GrailsApplication.APPLICATION_ID);
+        Set<Class<?>> representations = new LinkedHashSet<>()
+        Object application = beanFactory.getSingleton(GrailsApplication.APPLICATION_ID)
         if (!(application instanceof GrailsApplication grailsApplication)) {
-            return representations;
+            return representations
         }
-        ArtefactHandler[] handlers = grailsApplication.getArtefactHandlers();
+        ArtefactHandler[] handlers = grailsApplication.getArtefactHandlers()
         if (handlers == null) {
-            return representations;
+            return representations
         }
         for (ArtefactHandler handler : handlers) {
             if (handler instanceof ArtefactHandlerAdapter adapter && adapter.getGrailsClassImpl() != null) {
-                representations.add(adapter.getGrailsClassImpl());
+                representations.add(adapter.getGrailsClassImpl())
             }
         }
-        return representations;
+        return representations
     }
 
     /** The artefacts the application holds, whichever module they came from. */
     private Set<Class<?>> artefactsOf(ConfigurableListableBeanFactory beanFactory) {
-        Set<Class<?>> artefacts = new LinkedHashSet<>();
-        Object application = beanFactory.getSingleton(GrailsApplication.APPLICATION_ID);
+        Set<Class<?>> artefacts = new LinkedHashSet<>()
+        Object application = beanFactory.getSingleton(GrailsApplication.APPLICATION_ID)
         if (!(application instanceof GrailsApplication grailsApplication) || grailsApplication.getAllClasses() == null) {
-            return artefacts;
+            return artefacts
         }
         for (Class<?> artefact : grailsApplication.getAllClasses()) {
             if (artefact != null) {
-                artefacts.add(artefact);
+                artefacts.add(artefact)
             }
         }
-        return artefacts;
+        return artefacts
     }
 
     /** The artefacts the plugins provide, which the application declares nowhere. */
     private Set<Class<?>> providedByPlugins(ConfigurableListableBeanFactory beanFactory) {
-        Set<Class<?>> provided = new LinkedHashSet<>();
-        Object manager = beanFactory.getSingleton(GrailsPluginManager.BEAN_NAME);
+        Set<Class<?>> provided = new LinkedHashSet<>()
+        Object manager = beanFactory.getSingleton(GrailsPluginManager.BEAN_NAME)
         if (!(manager instanceof GrailsPluginManager pluginManager)) {
-            return provided;
+            return provided
         }
         for (GrailsPlugin plugin : pluginManager.getAllPlugins()) {
-            Class<?>[] artefacts = plugin.getProvidedArtefacts();
+            Class<?>[] artefacts = plugin.getProvidedArtefacts()
             if (artefacts != null) {
                 for (Class<?> artefact : artefacts) {
                     if (artefact != null) {
-                        provided.add(artefact);
+                        provided.add(artefact)
                     }
                 }
             }
         }
-        return provided;
+        return provided
     }
 
 }

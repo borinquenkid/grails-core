@@ -174,7 +174,7 @@ class BytecodeRuntimeHintsSpec extends Specification {
 
     void 'a class that is not a Groovy class is not registered for that'() {
         expect: 'a Java class in a scanned package, which no Groovy dispatch asks about'
-            !RuntimeHintsPredicates.reflection().onType(CaffeineRuntimeHints).test(hints)
+            !RuntimeHintsPredicates.reflection().onType(JavaOnlyFixture).test(hints)
     }
 
     void 'a #kind whose bytecode names a class the application does not have is not registered'() {

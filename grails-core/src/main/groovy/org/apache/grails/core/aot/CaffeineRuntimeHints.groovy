@@ -16,13 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import org.jspecify.annotations.Nullable;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
 
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.MemberCategory
+import org.springframework.aot.hint.RuntimeHints
+import org.springframework.aot.hint.RuntimeHintsRegistrar
 
 /**
  * Registers the Caffeine classes the framework's own caches are built from.
@@ -41,30 +42,31 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
  *
  * @since 9.0
  */
-public class CaffeineRuntimeHints implements RuntimeHintsRegistrar {
+@CompileStatic
+class CaffeineRuntimeHints implements RuntimeHintsRegistrar {
 
-    private static final String PACKAGE = "com.github.benmanes.caffeine.cache.";
+    private static final String PACKAGE = 'com.github.benmanes.caffeine.cache.'
 
     /**
      * The classes the framework's caches are built from: for each set of options, the cache class Caffeine
      * creates and the class of the entries it holds.
      */
-    private static final String[] CLASSES = {
+    private static final String[] CLASSES = [
         // maximumSize
-        "SSMS", "PSMS",
+        'SSMS', 'PSMS',
         // maximumWeight with a weigher
-        "SSMW", "PSMW",
+        'SSMW', 'PSMW',
         // weakKeys
-        "WS", "FS",
+        'WS', 'FS',
         // maximumSize with a removal listener
-        "SSLMS"
-    };
+        'SSLMS'
+    ] as String[]
 
     @Override
-    public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+    void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
         for (String name : CLASSES) {
             hints.reflection().registerTypeIfPresent(classLoader, PACKAGE + name,
-                    MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.ACCESS_DECLARED_FIELDS);
+                    MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.ACCESS_DECLARED_FIELDS)
         }
     }
 

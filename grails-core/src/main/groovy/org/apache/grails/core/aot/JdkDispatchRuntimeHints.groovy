@@ -16,32 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.core.aot;
+package org.apache.grails.core.aot
 
-import java.io.File;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
 
-import org.jspecify.annotations.Nullable;
-
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.MemberCategory
+import org.springframework.aot.hint.RuntimeHints
+import org.springframework.aot.hint.RuntimeHintsRegistrar
 
 /**
  * Registers the JDK types the framework's dynamically compiled code calls.
@@ -60,51 +42,52 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
  *
  * @since 9.0
  */
-public class JdkDispatchRuntimeHints implements RuntimeHintsRegistrar {
+@CompileStatic
+class JdkDispatchRuntimeHints implements RuntimeHintsRegistrar {
 
     /** What dynamically compiled code calls methods on and reads constants from. */
-    private static final Class<?>[] CALLED = {
-        Object.class,
-        String.class,
-        CharSequence.class,
-        Comparable.class,
-        Number.class,
-        Boolean.class,
-        Enum.class,
-        Iterable.class,
-        Iterator.class,
-        Collection.class,
-        List.class,
-        Set.class,
-        Map.class,
-        Map.Entry.class,
-        System.class,
-        Arrays.class,
-        Collections.class,
-        Objects.class,
-        File.class
-    };
+    private static final Class<?>[] CALLED = [
+        Object,
+        String,
+        CharSequence,
+        Comparable,
+        Number,
+        Boolean,
+        Enum,
+        Iterable,
+        Iterator,
+        Collection,
+        List,
+        Set,
+        Map,
+        Map.Entry,
+        System,
+        Arrays,
+        Collections,
+        Objects,
+        File
+    ] as Class<?>[]
 
     /** What it creates with {@code new}. */
-    private static final Class<?>[] CREATED = {
-        ArrayList.class,
-        HashMap.class,
-        LinkedHashMap.class,
-        TreeMap.class,
-        HashSet.class,
-        LinkedHashSet.class,
-        TreeSet.class,
-        BigDecimal.class,
-        BigInteger.class
-    };
+    private static final Class<?>[] CREATED = [
+        ArrayList,
+        HashMap,
+        LinkedHashMap,
+        TreeMap,
+        HashSet,
+        LinkedHashSet,
+        TreeSet,
+        BigDecimal,
+        BigInteger
+    ] as Class<?>[]
 
     @Override
-    public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+    void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
         for (Class<?> type : CALLED) {
-            hints.reflection().registerType(type, MemberCategory.INVOKE_PUBLIC_METHODS, MemberCategory.ACCESS_PUBLIC_FIELDS);
+            hints.reflection().registerType(type, MemberCategory.INVOKE_PUBLIC_METHODS, MemberCategory.ACCESS_PUBLIC_FIELDS)
         }
         for (Class<?> type : CREATED) {
-            hints.reflection().registerType(type, MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS);
+            hints.reflection().registerType(type, MemberCategory.INVOKE_PUBLIC_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS)
         }
     }
 
