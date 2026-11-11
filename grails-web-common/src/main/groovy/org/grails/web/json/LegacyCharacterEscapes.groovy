@@ -16,11 +16,13 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.json;
+package org.grails.web.json
 
-import tools.jackson.core.SerializableString;
-import tools.jackson.core.io.CharacterEscapes;
-import tools.jackson.core.io.SerializedString;
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
+import tools.jackson.core.SerializableString
+import tools.jackson.core.io.CharacterEscapes
+import tools.jackson.core.io.SerializedString
 
 /**
  * Escapes the control characters that have no short escape as {@code grails.converters.JSON} escaped them in Grails 8:
@@ -29,33 +31,36 @@ import tools.jackson.core.io.SerializedString;
  *
  * @since 9.0
  */
+@CompileStatic
+@PackageScope
 final class LegacyCharacterEscapes extends CharacterEscapes {
 
-    static final LegacyCharacterEscapes INSTANCE = new LegacyCharacterEscapes();
+    @PackageScope
+    static final LegacyCharacterEscapes INSTANCE = new LegacyCharacterEscapes()
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L
 
-    private final int[] asciiEscapes;
+    private final int[] asciiEscapes
 
-    private final SerializedString[] controlEscapes = new SerializedString[0x20];
+    private final SerializedString[] controlEscapes = new SerializedString[0x20]
 
     private LegacyCharacterEscapes() {
-        asciiEscapes = standardAsciiEscapesForJSON();
+        asciiEscapes = standardAsciiEscapesForJSON()
         for (int c = 0; c < controlEscapes.length; c++) {
             if (asciiEscapes[c] == ESCAPE_STANDARD) {
-                asciiEscapes[c] = ESCAPE_CUSTOM;
-                controlEscapes[c] = new SerializedString(c == 0x0B ? "\\u000B" : String.format("\\u%04x", c));
+                asciiEscapes[c] = ESCAPE_CUSTOM
+                controlEscapes[c] = new SerializedString(c == 0x0B ? '\\u000B' : String.format('\\u%04x', c))
             }
         }
     }
 
     @Override
-    public int[] getEscapeCodesForAscii() {
-        return asciiEscapes;
+    int[] getEscapeCodesForAscii() {
+        return asciiEscapes
     }
 
     @Override
-    public SerializableString getEscapeSequence(int ch) {
-        return ch >= 0 && ch < controlEscapes.length ? controlEscapes[ch] : null;
+    SerializableString getEscapeSequence(int ch) {
+        return ch >= 0 && ch < controlEscapes.length ? controlEscapes[ch] : null
     }
 }

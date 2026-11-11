@@ -16,15 +16,16 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.web.http.aot;
+package org.apache.grails.web.http.aot
 
-import org.jspecify.annotations.Nullable;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
 
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.MemberCategory
+import org.springframework.aot.hint.RuntimeHints
+import org.springframework.aot.hint.RuntimeHintsRegistrar
 
-import grails.web.http.ContentSecurityPolicyNonce;
+import grails.web.http.ContentSecurityPolicyNonce
 
 /**
  * Registers what reading the nonce of a nonce-based Content-Security-Policy reflects on.
@@ -36,27 +37,28 @@ import grails.web.http.ContentSecurityPolicyNonce;
  *
  * @since 9.1
  */
-public class ContentSecurityPolicyRuntimeHints implements RuntimeHintsRegistrar {
+@CompileStatic
+class ContentSecurityPolicyRuntimeHints implements RuntimeHintsRegistrar {
 
     /** What a hinted type is registered for: the members Groovy reads to choose an overload. */
-    private static final MemberCategory[] DISPATCHED_MEMBERS = {
+    private static final MemberCategory[] DISPATCHED_MEMBERS = [
         MemberCategory.INVOKE_DECLARED_METHODS,
         MemberCategory.INVOKE_PUBLIC_METHODS,
         MemberCategory.INVOKE_DECLARED_CONSTRUCTORS
-    };
+    ] as MemberCategory[]
 
     /**
      * The nonce Spring Security's nonce filter sets. Named as a string and registered only when
      * present, since an application need not use Spring Security.
      */
     private static final String SPRING_SECURITY_NONCE =
-            "org.springframework.security.web.header.ContentSecurityPolicyNonce";
+            'org.springframework.security.web.header.ContentSecurityPolicyNonce'
 
     @Override
-    public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+    void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
         // a controller, a service or a dynamically compiled page reads the nonce through Groovy's
         // dynamic dispatch
-        hints.reflection().registerType(ContentSecurityPolicyNonce.class, DISPATCHED_MEMBERS);
-        hints.reflection().registerTypeIfPresent(classLoader, SPRING_SECURITY_NONCE, DISPATCHED_MEMBERS);
+        hints.reflection().registerType(ContentSecurityPolicyNonce, DISPATCHED_MEMBERS)
+        hints.reflection().registerTypeIfPresent(classLoader, SPRING_SECURITY_NONCE, DISPATCHED_MEMBERS)
     }
 }

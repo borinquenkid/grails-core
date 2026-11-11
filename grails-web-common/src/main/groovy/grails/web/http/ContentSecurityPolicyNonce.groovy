@@ -16,21 +16,21 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.web.http;
+package grails.web.http
 
-import java.lang.reflect.Method;
-import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.function.Supplier;
+import java.lang.reflect.Method
+import java.security.SecureRandom
+import java.util.function.Supplier
 
-import jakarta.servlet.http.HttpServletRequest;
+import groovy.transform.CompileStatic
+import jakarta.servlet.http.HttpServletRequest
 
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.Nullable
 
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
-import org.springframework.util.function.SingletonSupplier;
+import org.springframework.util.ClassUtils
+import org.springframework.util.ReflectionUtils
+import org.springframework.util.StringUtils
+import org.springframework.util.function.SingletonSupplier
 
 /**
  * The nonce of a nonce-based Content-Security-Policy, which a request carries under the
@@ -44,12 +44,13 @@ import org.springframework.util.function.SingletonSupplier;
  *
  * @since 9.1
  */
-public final class ContentSecurityPolicyNonce {
+@CompileStatic
+final class ContentSecurityPolicyNonce {
 
     /**
      * The request attribute that carries the nonce.
      */
-    public static final String ATTRIBUTE = "_csp";
+    public static final String ATTRIBUTE = '_csp'
 
     /**
      * The public type of the nonce Spring Security generates, whose implementation is a private
@@ -57,13 +58,13 @@ public final class ContentSecurityPolicyNonce {
      * does not depend on Spring Security.
      */
     private static final String SPRING_SECURITY_NONCE =
-            "org.springframework.security.web.header.ContentSecurityPolicyNonce";
+            'org.springframework.security.web.header.ContentSecurityPolicyNonce'
 
-    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final SecureRandom RANDOM = new SecureRandom()
 
-    private static final int NONCE_BYTES = 16;
+    private static final int NONCE_BYTES = 16
 
-    private final Supplier<String> generated = SingletonSupplier.of(ContentSecurityPolicyNonce::generate);
+    private final Supplier<String> generated = SingletonSupplier.of(ContentSecurityPolicyNonce::generate)
 
     /**
      * The nonce, generated the first time it is read: 128 bits from a {@link SecureRandom},
@@ -71,8 +72,8 @@ public final class ContentSecurityPolicyNonce {
      *
      * @return the nonce
      */
-    public String getNonce() {
-        return this.generated.get();
+    String getNonce() {
+        return this.generated.get()
     }
 
     /**
@@ -82,32 +83,32 @@ public final class ContentSecurityPolicyNonce {
      * @param request the request
      * @return the nonce, or {@code null} when the request carries neither
      */
-    public static @Nullable String nonceOf(HttpServletRequest request) {
-        Object holder = request.getAttribute(ATTRIBUTE);
-        if (holder instanceof ContentSecurityPolicyNonce nonce) {
-            return nonce.getNonce();
+    static @Nullable String nonceOf(HttpServletRequest request) {
+        Object holder = request.getAttribute(ATTRIBUTE)
+        if (holder instanceof ContentSecurityPolicyNonce own) {
+            return own.getNonce()
         }
-        Method getNonce = springSecurityGetNonce(holder);
-        Object nonce = (getNonce != null) ? ReflectionUtils.invokeMethod(getNonce, holder) : null;
-        return (nonce instanceof String value && StringUtils.hasText(value)) ? value : null;
+        Method getNonce = springSecurityGetNonce(holder)
+        Object resolved = (getNonce != null) ? ReflectionUtils.invokeMethod(getNonce, holder) : null
+        return (resolved instanceof String value && StringUtils.hasText(value)) ? value : null
     }
 
     private static @Nullable Method springSecurityGetNonce(@Nullable Object holder) {
         if (holder == null) {
-            return null;
+            return null
         }
         // the loader of the holder's own class, which loaded the interface it implements
-        ClassLoader classLoader = holder.getClass().getClassLoader();
+        ClassLoader classLoader = holder.getClass().getClassLoader()
         if (!ClassUtils.isPresent(SPRING_SECURITY_NONCE, classLoader)) {
-            return null;
+            return null
         }
-        Class<?> nonceType = ClassUtils.resolveClassName(SPRING_SECURITY_NONCE, classLoader);
-        return nonceType.isInstance(holder) ? ClassUtils.getMethodIfAvailable(nonceType, "getNonce") : null;
+        Class<?> nonceType = ClassUtils.resolveClassName(SPRING_SECURITY_NONCE, classLoader)
+        return nonceType.isInstance(holder) ? ClassUtils.getMethodIfAvailable(nonceType, 'getNonce') : null
     }
 
     private static String generate() {
-        byte[] bytes = new byte[NONCE_BYTES];
-        RANDOM.nextBytes(bytes);
-        return Base64.getEncoder().withoutPadding().encodeToString(bytes);
+        byte[] bytes = new byte[NONCE_BYTES]
+        RANDOM.nextBytes(bytes)
+        return Base64.getEncoder().withoutPadding().encodeToString(bytes)
     }
 }

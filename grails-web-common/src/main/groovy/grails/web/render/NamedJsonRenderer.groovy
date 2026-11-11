@@ -16,24 +16,20 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.web.render;
-
-import java.io.IOException;
-import java.io.Writer;
-import java.util.List;
+package grails.web.render
 
 /**
  * Renders a value with a registered named JSON configuration, or the default when the name is null.
  *
  * @since 9.0
  */
-public interface NamedJsonRenderer {
+interface NamedJsonRenderer {
 
     /**
      * @param name a configuration's name, or {@code null} for the default one
      * @return whether it is registered; the default one always is
      */
-    boolean contains(String name);
+    boolean contains(String name)
 
     /**
      * Renders with a per-response projection applied.
@@ -50,5 +46,5 @@ public interface NamedJsonRenderer {
      * @throws IllegalArgumentException if no configuration of the name is registered
      */
     void render(String name, Object value, Writer writer,
-            List<String> includes, List<String> excludes) throws IOException;
+            List<String> includes, List<String> excludes) throws IOException
 }

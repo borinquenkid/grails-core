@@ -16,15 +16,16 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.web.common.aot;
+package org.apache.grails.web.common.aot
 
-import org.jspecify.annotations.Nullable;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
 
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.MemberCategory
+import org.springframework.aot.hint.RuntimeHints
+import org.springframework.aot.hint.RuntimeHintsRegistrar
 
-import grails.web.context.WebRequestServletHolder;
+import grails.web.context.WebRequestServletHolder
 
 /**
  * Registers the holder {@code Holders} keeps the servlet context in, which it creates by name.
@@ -36,11 +37,12 @@ import grails.web.context.WebRequestServletHolder;
  *
  * @since 9.0
  */
-public class ServletContextHolderRuntimeHints implements RuntimeHintsRegistrar {
+@CompileStatic
+class ServletContextHolderRuntimeHints implements RuntimeHintsRegistrar {
 
     @Override
-    public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
-        hints.reflection().registerType(WebRequestServletHolder.class, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS);
+    void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+        hints.reflection().registerType(WebRequestServletHolder, MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)
     }
 
 }
