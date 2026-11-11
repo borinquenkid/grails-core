@@ -16,13 +16,14 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.events.aot;
+package org.apache.grails.events.aot
 
-import org.jspecify.annotations.Nullable;
+import groovy.transform.CompileStatic
+import org.jspecify.annotations.Nullable
 
-import org.springframework.aot.hint.MemberCategory;
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.MemberCategory
+import org.springframework.aot.hint.RuntimeHints
+import org.springframework.aot.hint.RuntimeHintsRegistrar
 
 /**
  * Registers the promise factories the event bus reads its executor from.
@@ -37,19 +38,20 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
  *
  * @since 9.0
  */
-public class PromiseFactoryExecutorRuntimeHints implements RuntimeHintsRegistrar {
+@CompileStatic
+class PromiseFactoryExecutorRuntimeHints implements RuntimeHintsRegistrar {
 
     /** The promise factories that expose the executor they run on. */
-    private static final String[] PROMISE_FACTORIES = {
-        "org.grails.async.factory.future.CompletableFuturePromiseFactory",
-        "org.grails.async.factory.future.VirtualThreadPromiseFactory",
-        "org.grails.async.factory.groovy.AwaitablePromiseFactory"
-    };
+    private static final String[] PROMISE_FACTORIES = [
+        'org.grails.async.factory.future.CompletableFuturePromiseFactory',
+        'org.grails.async.factory.future.VirtualThreadPromiseFactory',
+        'org.grails.async.factory.groovy.AwaitablePromiseFactory'
+    ] as String[]
 
     @Override
-    public void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+    void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
         for (String promiseFactory : PROMISE_FACTORIES) {
-            hints.reflection().registerTypeIfPresent(classLoader, promiseFactory, MemberCategory.INVOKE_PUBLIC_METHODS);
+            hints.reflection().registerTypeIfPresent(classLoader, promiseFactory, MemberCategory.INVOKE_PUBLIC_METHODS)
         }
     }
 
