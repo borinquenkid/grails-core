@@ -124,7 +124,12 @@ class GrailsBootstrapRegistryInitializer implements BootstrapRegistryInitializer
 
         StackTraceFilterer filterer
         try {
-            filterer = BeanUtils.instantiateClass(filtererClass, StackTraceFilterer)
+            // The default is created directly: reflection would need its constructor registered in a
+            // native image, where every application would otherwise log that it fell back to the very
+            // class it asked for.
+            filterer = (filtererClass == DefaultStackTraceFilterer) ?
+                    new DefaultStackTraceFilterer() :
+                    BeanUtils.instantiateClass(filtererClass, StackTraceFilterer)
         }
         catch (Throwable t) {
             LOG.warn('Problem instantiating configured StackTraceFilterer [{}], falling back to default: {}',
