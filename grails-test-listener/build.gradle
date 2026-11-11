@@ -34,6 +34,7 @@ group = 'org.apache.grails'
 // jar would run it in the test suites of every application that depended on it.
 dependencies {
     compileOnly platform(project(':grails-bom'))
+    compileOnly 'org.apache.groovy:groovy'
     compileOnly 'org.junit.platform:junit-platform-launcher'
 
     testImplementation platform(project(':grails-bom'))
