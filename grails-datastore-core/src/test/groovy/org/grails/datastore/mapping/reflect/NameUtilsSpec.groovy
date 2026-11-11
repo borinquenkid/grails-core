@@ -211,15 +211,3 @@ class NameUtilsEntity$Proxy$Wrapper extends NameUtilsEntity$Proxy {
 
 class NameUtilsEntity$Proxy$Wrapper$Outer extends NameUtilsEntity$Proxy$Wrapper {
 }
-
-class NameUtilsEntity {
-}
-
-class NameUtilsEntity$Proxy extends NameUtilsEntity {
-}
-
-class NameUtilsEntity$Proxy$Wrapper extends NameUtilsEntity$Proxy {
-}
-
-class NameUtilsEntity$Proxy$Wrapper$Outer extends NameUtilsEntity$Proxy$Wrapper {
-}
