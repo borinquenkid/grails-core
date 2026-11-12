@@ -370,7 +370,7 @@ public class JSONWriter {
         if (o == null || o.equals(null)) {
             return valueNull();
         }
-        if (o instanceof JsonMapperValue && ((JsonMapperValue) o).getJsonMapperSupport() == jsonMapper) {
+        if (o instanceof JsonMapperValue && ((JsonMapperValue) o).getJsonMapperSupport().is(jsonMapper)) {
             JsonMapperValue mapperValue = (JsonMapperValue) o;
             return write({ -> jsonMapper.writeValue(generator, mapperValue.getValue(), mapperValue.getNestedValueWriter()) }, o);
         }
