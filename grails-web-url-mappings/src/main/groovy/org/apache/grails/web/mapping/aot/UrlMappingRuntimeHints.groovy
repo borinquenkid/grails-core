@@ -55,7 +55,7 @@ class UrlMappingRuntimeHints implements RuntimeHintsRegistrar {
      * a call the closure resolves dynamically against the builder, which reads the builder's own fields as
      * well as calling its methods.
      */
-    private static final String MAPPINGS_BUILDER = "org.grails.web.mapping.DefaultUrlMappingEvaluator$UrlMappingBuilder";
+    private static final String MAPPINGS_BUILDER = 'org.grails.web.mapping.DefaultUrlMappingEvaluator$UrlMappingBuilder'
 
     @Override
     void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
@@ -68,7 +68,7 @@ class UrlMappingRuntimeHints implements RuntimeHintsRegistrar {
         hints.reflection().registerTypeIfPresent(classLoader, MAPPINGS_BUILDER,
                 MemberCategory.INVOKE_DECLARED_METHODS,
                 MemberCategory.INVOKE_PUBLIC_METHODS,
-                MemberCategory.ACCESS_DECLARED_FIELDS);
+                MemberCategory.ACCESS_DECLARED_FIELDS)
     }
 
 }
