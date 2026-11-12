@@ -30,8 +30,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.boot.servlet.autoconfigure.HttpEncodingAutoConfiguration;
-import org.springframework.boot.servlet.filter.OrderedCharacterEncodingFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.webmvc.autoconfigure.DispatcherServletAutoConfiguration;
 import org.springframework.boot.webmvc.autoconfigure.DispatcherServletRegistrationBean;
@@ -40,7 +38,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.util.ClassUtils;
-import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -57,18 +54,12 @@ import org.grails.web.util.HiddenHttpMethod;
 // TODO(groovyism-cleanup): semicolons kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
 @SuppressWarnings(['UnnecessarySemicolon'])
 @AutoConfiguration(
-        before = [DispatcherServletAutoConfiguration, HttpEncodingAutoConfiguration, WebMvcAutoConfiguration],
+        before = [DispatcherServletAutoConfiguration, WebMvcAutoConfiguration],
         after = [DomainClassAutoConfiguration]
 )
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @CompileStatic
 class ControllersAutoConfiguration {
-
-    @Value('\${' + Settings.FILTER_ENCODING + ':utf-8}')
-    private String filtersEncoding;
-
-    @Value('\${' + Settings.FILTER_FORCE_ENCODING + ':false}')
-    private boolean filtersForceEncoding;
 
     @Value('\${' + Settings.RESOURCES_CACHE_PERIOD + ':0}')
     private int resourcesCachePeriod;
@@ -81,17 +72,6 @@ class ControllersAutoConfiguration {
 
     @Value('\${' + Settings.WEB_SERVLET_PATH + ':#{null}}')
     String grailsServletPath;
-
-    @Bean
-    @ConditionalOnMissingBean(CharacterEncodingFilter)
-    CharacterEncodingFilter characterEncodingFilter() {
-        FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
-        OrderedCharacterEncodingFilter characterEncodingFilter = new OrderedCharacterEncodingFilter();
-        characterEncodingFilter.setEncoding(filtersEncoding);
-        characterEncodingFilter.setForceEncoding(filtersForceEncoding);
-        characterEncodingFilter.setOrder(GrailsFilters.CHARACTER_ENCODING_FILTER.getOrder());
-        return characterEncodingFilter;
-    }
 
     // Auto-configured rather than registered by the plugin descriptor so an application- or
     // plugin-defined 'exceptionHandler' backs this default off instead of overriding it.
