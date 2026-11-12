@@ -24,7 +24,7 @@ import org.springframework.aot.hint.MemberCategory
 import org.springframework.aot.hint.RuntimeHints
 import org.springframework.aot.hint.RuntimeHintsRegistrar
 
-import org.grails.web.databinding.bindingsource.JsonDataBindingSourceCreator;
+import org.grails.web.databinding.bindingsource.JsonDataBindingSourceCreator
 
 /**
  * Registers the data binding API a request is bound through, and the JSON binding source creator that parses with
@@ -64,11 +64,11 @@ class DataBindingRuntimeHints implements RuntimeHintsRegistrar {
         }
         // created by its class, to parse the JSON bodies no creator bean handles with Jackson: Spring constructs it,
         // injects its fields and initializes it by reflection
-        hints.reflection().registerType(JsonDataBindingSourceCreator.class,
+        hints.reflection().registerType(JsonDataBindingSourceCreator,
                 MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                 MemberCategory.ACCESS_DECLARED_FIELDS,
                 MemberCategory.INVOKE_DECLARED_METHODS,
-                MemberCategory.INVOKE_PUBLIC_METHODS);
+                MemberCategory.INVOKE_PUBLIC_METHODS)
     }
 
 }
