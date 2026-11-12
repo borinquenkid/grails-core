@@ -16,20 +16,19 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.plugins.web.controllers;
+package org.grails.plugins.web.controllers
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import groovy.transform.CompileStatic
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
+import org.springframework.boot.env.DefaultPropertiesPropertySource
+import org.springframework.context.ApplicationContextInitializer
+import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.core.env.ConfigurableEnvironment
 
-import org.springframework.boot.env.DefaultPropertiesPropertySource;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.env.ConfigurableEnvironment;
-
-import grails.config.Settings;
+import grails.config.Settings
 
 /**
  * Translates the deprecated {@code grails.filter.encoding} and {@code grails.filter.forceEncoding} into
@@ -48,41 +47,42 @@ import grails.config.Settings;
  * @deprecated only needed while applications move to {@code spring.servlet.encoding}; it will be removed
  * together with the two properties it translates
  */
-@Deprecated(since = "9.0", forRemoval = true)
-public class GrailsCharacterEncodingInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+@CompileStatic
+@Deprecated(since = '9.0', forRemoval = true)
+class GrailsCharacterEncodingInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
-    private static final Logger logger = LoggerFactory.getLogger(GrailsCharacterEncodingInitializer.class);
+    private static final Logger logger = LoggerFactory.getLogger(GrailsCharacterEncodingInitializer)
 
     @Override
-    public void initialize(ConfigurableApplicationContext applicationContext) {
-        applicationContext.addBeanFactoryPostProcessor(beanFactory -> translate(applicationContext.getEnvironment()));
+    void initialize(ConfigurableApplicationContext applicationContext) {
+        applicationContext.addBeanFactoryPostProcessor((ConfigurableListableBeanFactory beanFactory) -> translate(applicationContext.getEnvironment()))
     }
 
-    @SuppressWarnings("removal")
+    @SuppressWarnings('removal')
     private void translate(ConfigurableEnvironment environment) {
-        var translated = new LinkedHashMap<String, Object>();
-        translate(environment, Settings.FILTER_ENCODING, "spring.servlet.encoding.charset", translated);
-        translate(environment, Settings.FILTER_FORCE_ENCODING, "spring.servlet.encoding.force", translated);
+        Map<String, Object> translated = new LinkedHashMap<>()
+        translate(environment, Settings.FILTER_ENCODING, 'spring.servlet.encoding.charset', translated)
+        translate(environment, Settings.FILTER_FORCE_ENCODING, 'spring.servlet.encoding.force', translated)
         if (!translated.isEmpty()) {
-            DefaultPropertiesPropertySource.addOrMerge(translated, environment.getPropertySources());
+            DefaultPropertiesPropertySource.addOrMerge(translated, environment.getPropertySources())
         }
     }
 
     private void translate(ConfigurableEnvironment environment, String deprecatedProperty,
             String replacement, Map<String, Object> translated) {
-        var value = environment.getProperty(deprecatedProperty);
+        String value = environment.getProperty(deprecatedProperty)
         if (value == null) {
-            return;
+            return
         }
         // DefaultPropertiesPropertySource.addOrMerge replaces a key, and the application may have set this one as a
         // default property itself
         if (environment.containsProperty(replacement)) {
             logger.warn("'{}' is deprecated and will be removed. It is ignored, because '{}' is set.",
-                    deprecatedProperty, replacement);
-            return;
+                    deprecatedProperty, replacement)
+            return
         }
         logger.warn("'{}' is deprecated and will be removed. Spring Boot registers the character encoding filter " +
-                "now, so use '{}={}' instead.", deprecatedProperty, replacement, value);
-        translated.put(replacement, value);
+                "now, so use '{}={}' instead.", deprecatedProperty, replacement, value)
+        translated.put(replacement, value)
     }
 }
