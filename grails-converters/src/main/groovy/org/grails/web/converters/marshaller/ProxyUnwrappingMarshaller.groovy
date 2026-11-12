@@ -20,6 +20,7 @@ package org.grails.web.converters.marshaller
 
 import groovy.transform.CompileStatic
 
+import grails.converters.JSON
 import grails.util.GrailsNameUtils
 import org.grails.web.converters.Converter
 import org.grails.web.converters.exceptions.ConverterException
@@ -47,6 +48,9 @@ class ProxyUnwrappingMarshaller<C extends Converter> implements ObjectMarshaller
 
     void marshalObject(Object object, C converter) throws ConverterException {
         Object unwrapped = unwrap(object)
+        if (converter instanceof JSON json && unwrapped != null) {
+            json.standIn(object, unwrapped)
+        }
         converter.lookupObjectMarshaller(unwrapped).marshalObject(unwrapped, converter)
     }
 

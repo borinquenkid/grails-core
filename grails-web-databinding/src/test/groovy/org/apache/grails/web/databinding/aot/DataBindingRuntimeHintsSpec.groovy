@@ -18,34 +18,48 @@
  */
 package org.apache.grails.web.databinding.aot
 
-import org.springframework.aot.hint.MemberCategory
 import org.springframework.aot.hint.RuntimeHints
-import org.springframework.aot.hint.TypeHint
+import org.springframework.aot.hint.RuntimeHintsRegistrar
+import org.springframework.aot.hint.predicate.RuntimeHintsPredicates
+import org.springframework.core.io.support.SpringFactoriesLoader
 import spock.lang.Specification
+
+import grails.databinding.DataBindingSource
+import org.grails.web.databinding.bindingsource.JsonDataBindingSourceCreator
 
 class DataBindingRuntimeHintsSpec extends Specification {
 
-    void 'the runtime hints register the data binding types that are present'() {
+    void 'the types binding dispatches on are registered'() {
         given:
-        RuntimeHints hints = new RuntimeHints()
+        def hints = new RuntimeHints()
 
         when:
         new DataBindingRuntimeHints().registerHints(hints, getClass().classLoader)
-        List<TypeHint> typeHints = hints.reflection().typeHints().toList()
 
         then:
-        typeHints*.type*.name.sort() == [
-                'grails.databinding.BindingHelper',
-                'grails.databinding.DataBindingSource',
-                'grails.databinding.converters.ValueConverter',
-                'grails.web.databinding.DataBindingUtils',
-                'grails.web.databinding.WebDataBinding',
-                'java.lang.Class'
-        ]
-        typeHints.every { TypeHint hint ->
-            hint.memberCategories == [MemberCategory.INVOKE_DECLARED_METHODS, MemberCategory.INVOKE_PUBLIC_METHODS,
-                                      MemberCategory.INVOKE_DECLARED_CONSTRUCTORS] as Set
-        }
+        RuntimeHintsPredicates.reflection().onType(DataBindingSource).test(hints)
     }
 
+    void 'what Spring creates the JSON binding source creator by its class with, to parse with Jackson, is registered'() {
+        given:
+        def hints = new RuntimeHints()
+
+        when:
+        new DataBindingRuntimeHints().registerHints(hints, getClass().classLoader)
+
+        then:
+        RuntimeHintsPredicates.reflection().onConstructorInvocation(JsonDataBindingSourceCreator.getConstructor()).test(hints)
+
+        and: 'the fields Spring injects and the method it initializes it with, which it finds by reflection'
+        ['jsonMapperProvider', 'applicationContext', 'useJackson', 'jsonSlurper'].every { String field ->
+            RuntimeHintsPredicates.reflection().onFieldAccess(JsonDataBindingSourceCreator, field).test(hints)
+        }
+        RuntimeHintsPredicates.reflection().onMethodInvocation(JsonDataBindingSourceCreator, 'reportLegacyParsing').test(hints)
+    }
+
+    void 'is registered for ahead-of-time processing'() {
+        expect:
+        SpringFactoriesLoader.forResourceLocation('META-INF/spring/aot.factories')
+                .load(RuntimeHintsRegistrar).any { it instanceof DataBindingRuntimeHints }
+    }
 }
