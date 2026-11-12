@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.datastore.core.querytail;
+package org.apache.grails.datastore.core.querytail
 
 /**
  * What a web framework resolved a request to, as a {@link QueryTailRequestReader} reads it: the page the statements
@@ -24,14 +24,14 @@ package org.apache.grails.datastore.core.querytail;
  *
  * @since 9.0
  */
-public interface QueryTailRequestTarget {
+interface QueryTailRequestTarget {
 
     /**
      * @return the page the statements of the request are counted under: the controller and action serving it, as
      * {@code controller/action}, with the namespace of the controller before them, as
      * {@code namespace:controller/action}, when it has one
      */
-    String getPage();
+    String getPage()
 
     /**
      * Reads the path of the request against what matched it: what it spells out is kept, and every value in it is
@@ -41,5 +41,5 @@ public interface QueryTailRequestTarget {
      * @return the path with its values replaced, or null when the path does not follow what matched the request, as
      * a path kept from before a forward may not, so that only its shape is recorded
      */
-    String describePath(String path);
+    String describePath(String path)
 }
