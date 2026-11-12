@@ -16,7 +16,7 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.datastore.core.querytail;
+package org.apache.grails.datastore.core.querytail
 
 /**
  * Reads what the web framework that routed a request resolved it to, for the {@code query-tail} capture: the page
@@ -36,7 +36,7 @@ package org.apache.grails.datastore.core.querytail;
  *
  * @since 9.0
  */
-public interface QueryTailRequestReader {
+interface QueryTailRequestReader {
 
     /**
      * Reads the request on the current thread.
@@ -44,7 +44,7 @@ public interface QueryTailRequestReader {
      * @param request the attributes of the request
      * @return what the framework resolved the request to, or null when it has resolved it to nothing this reader knows
      */
-    QueryTailRequestTarget read(Attributes request);
+    QueryTailRequestTarget read(Attributes request)
 
     /**
      * The attributes of a request, where a framework keeps what it resolved the request to.
@@ -55,7 +55,7 @@ public interface QueryTailRequestReader {
          * @param name the name of an attribute
          * @return its value, or null when the request has none
          */
-        Object getAttribute(String name);
+        Object getAttribute(String name)
 
         /**
          * Keeps a value on the request, for the later statements of the request to find.
@@ -63,6 +63,6 @@ public interface QueryTailRequestReader {
          * @param name the name of the attribute, which no other reader or framework uses
          * @param value the value
          */
-        void setAttribute(String name, Object value);
+        void setAttribute(String name, Object value)
     }
 }

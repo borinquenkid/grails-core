@@ -16,14 +16,16 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.testing.listener;
+package org.apache.grails.testing.listener
 
-import java.beans.Introspector;
+import java.beans.Introspector
 
-import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.engine.support.descriptor.ClassSource;
-import org.junit.platform.launcher.TestExecutionListener;
-import org.junit.platform.launcher.TestIdentifier;
+import groovy.transform.CompileStatic
+
+import org.junit.platform.engine.TestExecutionResult
+import org.junit.platform.engine.support.descriptor.ClassSource
+import org.junit.platform.launcher.TestExecutionListener
+import org.junit.platform.launcher.TestIdentifier
 
 /**
  * Flushes the caches of the JDK Introspector after each test class.
@@ -40,16 +42,17 @@ import org.junit.platform.launcher.TestIdentifier;
  * class's tests built their MetaClasses in. BeanInfo cached on threads of other thread groups, which
  * some executors and servers create, is not released.</p>
  */
-public final class IntrospectorFlushListener implements TestExecutionListener {
+@CompileStatic
+final class IntrospectorFlushListener implements TestExecutionListener {
 
     @Override
-    public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
+    void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (isTestClass(testIdentifier)) {
-            Introspector.flushCaches();
+            Introspector.flushCaches()
         }
     }
 
     private static boolean isTestClass(TestIdentifier testIdentifier) {
-        return testIdentifier.isContainer() && testIdentifier.getSource().filter(ClassSource.class::isInstance).isPresent();
+        return testIdentifier.isContainer() && testIdentifier.getSource().filter(source -> source instanceof ClassSource).isPresent()
     }
 }
