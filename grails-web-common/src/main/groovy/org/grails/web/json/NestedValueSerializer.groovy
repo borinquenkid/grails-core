@@ -114,14 +114,14 @@ final class NestedValueSerializer extends DelegatingSerializer {
         context.setAttribute(FRAME, frame);
         context.setAttribute(HANDED_BACK, null);
         try {
-            if (handedBack instanceof HandedBack nested && nested.generator == generator && nested.value == value) {
+            if (handedBack instanceof HandedBack nested && nested.generator.is(generator) && nested.value.is(value)) {
                 // A nested value the nested value writer writes with the mapper again is written by the serializer of the
                 // property it is the value of, so that what the property is annotated with applies to it
                 frame.rootWritten = true;
                 nested.write(context);
             }
-            else if (handedBack instanceof HandedBack nested && nested.generator == generator && value != null &&
-                    nested.standIn == value) {
+            else if (handedBack instanceof HandedBack nested && nested.generator.is(generator) && value != null &&
+                    nested.standIn.is(value)) {
                 // The instance it writes in the place of a proxy is written as the mapper writes the instance a proxy stands
                 // for: by the property's serializer for its class, whose wrappers take it as the value being written
                 nested.writeStandIn(context);
@@ -147,8 +147,8 @@ final class NestedValueSerializer extends DelegatingSerializer {
      */
     static void standIn(JsonGenerator generator, Object value, Object instance) {
         if (generator.objectWriteContext() instanceof SerializationContext context &&
-                context.getAttribute(HANDED_BACK) instanceof HandedBack nested && nested.generator == generator &&
-                nested.value == value) {
+                context.getAttribute(HANDED_BACK) instanceof HandedBack nested && nested.generator.is(generator) &&
+                nested.value.is(value)) {
             context.setAttribute(HANDED_BACK, nested.withStandIn(instance));
         }
     }
@@ -198,7 +198,7 @@ final class NestedValueSerializer extends DelegatingSerializer {
     @Override
     public ValueSerializer<?> createContextual(SerializationContext context, BeanProperty property) {
         ValueSerializer<?> contextual = context.handleSecondaryContextualization(_delegatee, property);
-        return contextual == _delegatee && property == this.property ? this : new NestedValueSerializer(contextual, property);
+        return contextual.is(_delegatee) && property.is(this.property) ? this : new NestedValueSerializer(contextual, property);
     }
 
     /**
@@ -209,7 +209,7 @@ final class NestedValueSerializer extends DelegatingSerializer {
     @Override
     public ValueSerializer<Object> unwrappingSerializer(NameTransformer unwrapper) {
         ValueSerializer<Object> unwrapping = _delegatee.unwrappingSerializer(unwrapper);
-        return unwrapping == _delegatee ? this : unwrapping;
+        return unwrapping.is(_delegatee) ? this : unwrapping;
     }
 
     /**
@@ -405,13 +405,13 @@ final class NestedValueSerializer extends DelegatingSerializer {
         }
 
         private ValueSerializer<?> rewrapped(ValueSerializer<?> serializer) {
-            return serializer == nested ? this : of(serializer);
+            return serializer.is(nested) ? this : of(serializer);
         }
 
         @Override
         protected StdContainerSerializer<?> _withValueTypeSerializer(TypeSerializer valueTypeSerializer) {
             StdContainerSerializer<?> typed = container.withValueTypeSerializer(valueTypeSerializer);
-            return typed == container ? this :
+            return typed.is(container) ? this :
                     new Container((NestedValueSerializer) nested.replaceDelegatee(typed), typed);
         }
 
