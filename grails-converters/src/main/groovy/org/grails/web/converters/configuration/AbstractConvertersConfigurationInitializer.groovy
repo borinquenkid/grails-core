@@ -16,22 +16,22 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.configuration;
+package org.grails.web.converters.configuration
 
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.beans.factory.InitializingBean
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
 
-import grails.config.Config;
-import grails.core.GrailsApplication;
-import grails.core.support.GrailsApplicationAware;
-import grails.core.support.proxy.DefaultProxyHandler;
-import grails.core.support.proxy.ProxyHandler;
-import org.grails.config.PropertySourcesConfig;
-import org.grails.web.converters.Converter;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
+import grails.config.Config
+import grails.core.GrailsApplication
+import grails.core.support.GrailsApplicationAware
+import grails.core.support.proxy.DefaultProxyHandler
+import grails.core.support.proxy.ProxyHandler
+import org.grails.config.PropertySourcesConfig
+import org.grails.web.converters.Converter
+import org.grails.web.converters.marshaller.ObjectMarshaller
 
 /**
  * What the initializers of the JSON converter and of the XML converter, which {@code grails-xml} provides, share: the
@@ -39,50 +39,51 @@ import org.grails.web.converters.marshaller.ObjectMarshaller;
  *
  * @since 9.0
  */
-public abstract class AbstractConvertersConfigurationInitializer
+@CompileStatic
+abstract class AbstractConvertersConfigurationInitializer
         implements ApplicationContextAware, GrailsApplicationAware, InitializingBean {
 
-    private ApplicationContext applicationContext;
+    private ApplicationContext applicationContext
 
-    private GrailsApplication grailsApplication;
+    private GrailsApplication grailsApplication
 
     /**
      * Initializes the default and named configurations of the converter.
      */
-    public abstract void initialize();
+    abstract void initialize()
 
     @Override
-    public void afterPropertiesSet() {
-        initialize();
+    void afterPropertiesSet() {
+        initialize()
     }
 
-    public ApplicationContext getApplicationContext() {
-        return applicationContext;
+    ApplicationContext getApplicationContext() {
+        return applicationContext
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+    void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext
     }
 
     protected GrailsApplication getGrailsApplication() {
-        return grailsApplication;
+        return grailsApplication
     }
 
     @Override
-    public void setGrailsApplication(GrailsApplication grailsApplication) {
-        this.grailsApplication = grailsApplication;
+    void setGrailsApplication(GrailsApplication grailsApplication) {
+        this.grailsApplication = grailsApplication
     }
 
     /**
      * @return the application's configuration, or an empty one, so that every setting has its default
      */
     protected Config getGrailsConfig() {
-        return grailsApplication != null ? grailsApplication.getConfig() : new PropertySourcesConfig();
+        return grailsApplication != null ? grailsApplication.getConfig() : new PropertySourcesConfig()
     }
 
     protected ProxyHandler getProxyHandler() {
-        return applicationContext != null ? applicationContext.getBean(ProxyHandler.class) : new DefaultProxyHandler();
+        return applicationContext != null ? applicationContext.getBean(ProxyHandler) : new DefaultProxyHandler()
     }
 
     /**
@@ -91,8 +92,8 @@ public abstract class AbstractConvertersConfigurationInitializer
      * @return whether the converter writes the version of a domain class instance
      */
     protected static boolean includeDomainVersionProperty(Config config, String converterType) {
-        return config.getProperty(String.format("grails.converters.%s.domain.include.version", converterType), Boolean.class,
-                config.getProperty("grails.converters.domain.include.version", Boolean.class, false));
+        return config.getProperty(String.format('grails.converters.%s.domain.include.version', converterType), Boolean,
+                config.getProperty('grails.converters.domain.include.version', Boolean, false))
     }
 
     /**
@@ -101,22 +102,22 @@ public abstract class AbstractConvertersConfigurationInitializer
      * @return whether the converter writes the class name of a domain class instance
      */
     protected static boolean includeDomainClassProperty(Config config, String converterType) {
-        return config.getProperty(String.format("grails.converters.%s.domain.include.class", converterType), Boolean.class,
-                config.getProperty("grails.converters.domain.include.class", Boolean.class, false));
+        return config.getProperty(String.format('grails.converters.%s.domain.include.class', converterType), Boolean,
+                config.getProperty('grails.converters.domain.include.class', Boolean, false))
     }
 
     /**
      * Registers the marshallers of the application's {@link ObjectMarshallerRegisterer} beans for the converter.
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ 'unchecked', 'rawtypes' })
     protected <C extends Converter> void registerObjectMarshallersFromApplicationContext(
             DefaultConverterConfiguration<C> configuration, Class<C> converterClass) {
         if (applicationContext == null) {
-            return;
+            return
         }
-        for (ObjectMarshallerRegisterer registerer : applicationContext.getBeansOfType(ObjectMarshallerRegisterer.class).values()) {
+        for (ObjectMarshallerRegisterer registerer : applicationContext.getBeansOfType(ObjectMarshallerRegisterer).values()) {
             if (registerer.getConverterClass() == converterClass) {
-                configuration.registerObjectMarshaller(registerer.getMarshaller(), registerer.getPriority());
+                configuration.registerObjectMarshaller(registerer.getMarshaller(), registerer.getPriority())
             }
         }
     }
@@ -125,6 +126,6 @@ public abstract class AbstractConvertersConfigurationInitializer
      * @return the marshallers the converter's default configuration has, registered before it is initialized
      */
     protected <C extends Converter> List<ObjectMarshaller<C>> getPreviouslyConfiguredMarshallers(Class<C> converterClass) {
-        return ConvertersConfigurationHolder.getConverterConfiguration(converterClass).getOrderedObjectMarshallers();
+        return ConvertersConfigurationHolder.getConverterConfiguration(converterClass).getOrderedObjectMarshallers()
     }
 }

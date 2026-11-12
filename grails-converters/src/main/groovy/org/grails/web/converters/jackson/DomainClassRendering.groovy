@@ -113,8 +113,8 @@ class DomainClassRendering {
         this.includeClass = includeClass
         this.deep = deep
         this.domainClassFetchers = grailsApplication != null ?
-                List.of(new ByGrailsApplicationDomainClassFetcher(grailsApplication), new ByDatasourceDomainClassFetcher()) :
-                List.of(new ByDatasourceDomainClassFetcher())
+                (List<DomainClassFetcher>) List.of(new ByGrailsApplicationDomainClassFetcher(grailsApplication), new ByDatasourceDomainClassFetcher()) :
+                (List<DomainClassFetcher>) List.of(new ByDatasourceDomainClassFetcher())
     }
 
     /**
@@ -223,7 +223,7 @@ class DomainClassRendering {
      */
     Object unwrap(Object value) {
         Object unwrapped = proxyHandler.unwrapIfProxy(value)
-        if (unwrapped == value && value instanceof EntityProxy<?> proxy) {
+        if (unwrapped.is(value) && value instanceof EntityProxy<?> proxy) {
             return proxy.getTarget()
         }
         return unwrapped

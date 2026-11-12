@@ -16,25 +16,24 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Predicate;
+import groovy.transform.CompileStatic
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.BeanProperty;
-import tools.jackson.databind.JavaType;
-import tools.jackson.databind.SerializationConfig;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
-import tools.jackson.databind.jsontype.TypeSerializer;
-import tools.jackson.databind.ser.PropertyWriter;
-import tools.jackson.databind.ser.bean.BeanSerializerBase;
-import tools.jackson.databind.util.NameTransformer;
+import java.util.function.Predicate
+
+import com.fasterxml.jackson.annotation.JsonFormat
+import tools.jackson.core.JsonGenerator
+import tools.jackson.databind.BeanProperty
+import tools.jackson.databind.JavaType
+import tools.jackson.databind.SerializationConfig
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.ValueSerializer
+import tools.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper
+import tools.jackson.databind.jsontype.TypeSerializer
+import tools.jackson.databind.ser.PropertyWriter
+import tools.jackson.databind.ser.bean.BeanSerializerBase
+import tools.jackson.databind.util.NameTransformer
 
 /**
  * A bean serializer that does not write an object again while it is being written, writing what its
@@ -42,20 +41,21 @@ import tools.jackson.databind.util.NameTransformer;
  *
  * @since 9.0
  */
+@CompileStatic
 final class CycleTracking extends ValueSerializer<Object> {
 
     /** Writes what stands for an object reached again while it is being written. */
     @FunctionalInterface
     interface OnCycle {
 
-        void write(Object value, Cycles.Frame enclosing, JsonGenerator generator, SerializationContext context);
+        void write(Object value, Cycles.Frame enclosing, JsonGenerator generator, SerializationContext context)
     }
 
-    private final ValueSerializer<Object> delegate;
+    private final ValueSerializer<Object> delegate
 
-    private final OnCycle onCycle;
+    private final OnCycle onCycle
 
-    private final Predicate<SerializationContext> paths;
+    private final Predicate<SerializationContext> paths
 
     /**
      * Tracks the bean serializer a serializer wraps, if any.
@@ -77,24 +77,24 @@ final class CycleTracking extends ValueSerializer<Object> {
      */
     static ValueSerializer<?> around(ValueSerializer<?> serializer, OnCycle onCycle, Predicate<SerializationContext> paths) {
         if (serializer instanceof CycleTracking tracking) {
-            return around(tracking.delegate, onCycle, paths);
+            return around(tracking.delegate, onCycle, paths)
         }
         if (serializer instanceof BeanSerializerBase) {
-            return serializer.usesObjectId() ? null : new CycleTracking(serializer, onCycle, paths);
+            return serializer.usesObjectId() ? null : new CycleTracking(serializer, onCycle, paths)
         }
-        ValueSerializer<?> delegatee = serializer.getDelegatee();
+        ValueSerializer<?> delegatee = serializer.getDelegatee()
         if (delegatee == null || delegatee == serializer) {
-            return null;
+            return null
         }
-        ValueSerializer<?> tracked = around(delegatee, onCycle, paths);
-        return tracked != null ? serializer.replaceDelegatee(tracked) : null;
+        ValueSerializer<?> tracked = around(delegatee, onCycle, paths)
+        return tracked != null ? serializer.replaceDelegatee(tracked) : null
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     CycleTracking(ValueSerializer<?> delegate, OnCycle onCycle, Predicate<SerializationContext> paths) {
-        this.delegate = (ValueSerializer<Object>) delegate;
-        this.onCycle = onCycle;
-        this.paths = paths;
+        this.delegate = (ValueSerializer<Object>) delegate
+        this.onCycle = onCycle
+        this.paths = paths
     }
 
     /**
@@ -103,127 +103,127 @@ final class CycleTracking extends ValueSerializer<Object> {
      */
     private boolean paths(SerializationContext context) {
         if (context.getAttribute(paths) instanceof Boolean decided) {
-            return decided;
+            return decided
         }
-        boolean decided = paths.test(context);
-        context.setAttribute(paths, decided);
-        return decided;
+        boolean decided = paths.test(context)
+        context.setAttribute(paths, decided)
+        return decided
     }
 
     @Override
-    public void serialize(Object value, JsonGenerator gen, SerializationContext ctxt) {
-        Map<Object, Cycles.Frame> instances = Cycles.instances(ctxt);
-        Cycles.Frame enclosing = instances.get(value);
+    void serialize(Object value, JsonGenerator gen, SerializationContext ctxt) {
+        Map<Object, Cycles.Frame> instances = Cycles.instances(ctxt)
+        Cycles.Frame enclosing = instances.get(value)
         if (enclosing != null) {
-            onCycle.write(value, enclosing, gen, ctxt);
-            return;
+            onCycle.write(value, enclosing, gen, ctxt)
+            return
         }
-        instances.put(value, Cycles.upcoming(gen, paths(ctxt)));
+        instances.put(value, Cycles.upcoming(gen, paths(ctxt)))
         try {
-            delegate.serialize(value, gen, ctxt);
+            delegate.serialize(value, gen, ctxt)
         }
         finally {
-            instances.remove(value);
+            instances.remove(value)
         }
     }
 
     @Override
-    public void serializeWithType(Object value, JsonGenerator gen, SerializationContext ctxt, TypeSerializer typeSer) {
-        Map<Object, Cycles.Frame> instances = Cycles.instances(ctxt);
-        Cycles.Frame enclosing = instances.get(value);
+    void serializeWithType(Object value, JsonGenerator gen, SerializationContext ctxt, TypeSerializer typeSer) {
+        Map<Object, Cycles.Frame> instances = Cycles.instances(ctxt)
+        Cycles.Frame enclosing = instances.get(value)
         if (enclosing != null) {
-            onCycle.write(value, enclosing, gen, ctxt);
-            return;
+            onCycle.write(value, enclosing, gen, ctxt)
+            return
         }
-        instances.put(value, Cycles.upcoming(gen, paths(ctxt)));
+        instances.put(value, Cycles.upcoming(gen, paths(ctxt)))
         try {
-            delegate.serializeWithType(value, gen, ctxt, typeSer);
+            delegate.serializeWithType(value, gen, ctxt, typeSer)
         }
         finally {
-            instances.remove(value);
+            instances.remove(value)
         }
     }
 
     @Override
-    public void resolve(SerializationContext ctxt) {
-        delegate.resolve(ctxt);
+    void resolve(SerializationContext ctxt) {
+        delegate.resolve(ctxt)
     }
 
     @Override
-    public ValueSerializer<?> createContextual(SerializationContext ctxt, BeanProperty property) {
-        ValueSerializer<?> contextual = delegate.createContextual(ctxt, property);
-        if (contextual == delegate) {
-            return this;
+    ValueSerializer<?> createContextual(SerializationContext ctxt, BeanProperty property) {
+        ValueSerializer<?> contextual = delegate.createContextual(ctxt, property)
+        if (contextual.is(delegate)) {
+            return this
         }
         // a property annotated @JsonIdentityInfo makes the serializer write object ids
-        return contextual.usesObjectId() ? contextual : new CycleTracking(contextual, onCycle, paths);
+        return contextual.usesObjectId() ? contextual : new CycleTracking(contextual, onCycle, paths)
     }
 
     @Override
-    public ValueSerializer<?> withIgnoredProperties(Set<String> ignoredProperties) {
-        return tracking(delegate.withIgnoredProperties(ignoredProperties));
+    ValueSerializer<?> withIgnoredProperties(Set<String> ignoredProperties) {
+        return tracking(delegate.withIgnoredProperties(ignoredProperties))
     }
 
     @Override
-    public ValueSerializer<?> withFilterId(Object filterId) {
-        return tracking(delegate.withFilterId(filterId));
+    ValueSerializer<?> withFilterId(Object filterId) {
+        return tracking(delegate.withFilterId(filterId))
     }
 
     @Override
-    public ValueSerializer<?> withFormatOverrides(SerializationConfig config, JsonFormat.Value formatOverrides) {
-        ValueSerializer<?> overridden = delegate.withFormatOverrides(config, formatOverrides);
-        return overridden == null ? null : tracking(overridden);
+    ValueSerializer<?> withFormatOverrides(SerializationConfig config, JsonFormat.Value formatOverrides) {
+        ValueSerializer<?> overridden = delegate.withFormatOverrides(config, formatOverrides)
+        return overridden == null ? null : tracking(overridden)
     }
 
     @Override
-    public ValueSerializer<Object> replaceDelegatee(ValueSerializer<?> delegatee) {
-        return tracking(delegatee);
+    ValueSerializer<Object> replaceDelegatee(ValueSerializer<?> delegatee) {
+        return tracking(delegatee)
     }
 
     /** The bean serializer Jackson asks for, such as one that leaves out properties, tracked as this one is. */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     private ValueSerializer<Object> tracking(ValueSerializer<?> serializer) {
-        return serializer == delegate ? this : new CycleTracking(serializer, onCycle, paths);
+        return serializer.is(delegate) ? this : new CycleTracking(serializer, onCycle, paths)
     }
 
     @Override
-    public ValueSerializer<Object> unwrappingSerializer(NameTransformer unwrapper) {
+    ValueSerializer<Object> unwrappingSerializer(NameTransformer unwrapper) {
         // Properties written into an enclosing object have no object of their own to track
-        return delegate.unwrappingSerializer(unwrapper);
+        return delegate.unwrappingSerializer(unwrapper)
     }
 
     @Override
-    public boolean isUnwrappingSerializer() {
-        return delegate.isUnwrappingSerializer();
+    boolean isUnwrappingSerializer() {
+        return delegate.isUnwrappingSerializer()
     }
 
     @Override
-    public boolean isEmpty(SerializationContext ctxt, Object value) {
-        return delegate.isEmpty(ctxt, value);
+    boolean isEmpty(SerializationContext ctxt, Object value) {
+        return delegate.isEmpty(ctxt, value)
     }
 
     @Override
-    public boolean usesObjectId() {
-        return delegate.usesObjectId();
+    boolean usesObjectId() {
+        return delegate.usesObjectId()
     }
 
     @Override
-    public Class<?> handledType() {
-        return delegate.handledType();
+    Class<?> handledType() {
+        return delegate.handledType()
     }
 
     @Override
-    public ValueSerializer<?> getDelegatee() {
-        return delegate;
+    ValueSerializer<?> getDelegatee() {
+        return delegate
     }
 
     @Override
-    public Iterator<PropertyWriter> properties() {
-        return delegate.properties();
+    Iterator<PropertyWriter> properties() {
+        return delegate.properties()
     }
 
     @Override
-    public void acceptJsonFormatVisitor(JsonFormatVisitorWrapper visitor, JavaType type) {
-        delegate.acceptJsonFormatVisitor(visitor, type);
+    void acceptJsonFormatVisitor(JsonFormatVisitorWrapper visitor, JavaType type) {
+        delegate.acceptJsonFormatVisitor(visitor, type)
     }
 }

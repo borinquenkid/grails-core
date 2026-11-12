@@ -248,7 +248,7 @@ class JSON extends AbstractConverter<JSONWriter> implements IncludeExcludeConver
      */
     void value(Object o) throws ConverterException {
         Object unwrapped = config.getProxyHandler().unwrapIfProxy(o)
-        if (unwrapped != o && unwrapped != null) {
+        if (!unwrapped.is(o) && unwrapped != null) {
             standIn(o, unwrapped)
         }
         o = unwrapped
@@ -402,7 +402,7 @@ class JSON extends AbstractConverter<JSONWriter> implements IncludeExcludeConver
         if (filter == null) {
             filter = propertyFilters.computeIfAbsent(bean.getClass(), this::createPropertyFilter)
         }
-        return filter == NO_FILTER ? null : filter
+        return filter.is(NO_FILTER) ? null : filter
     }
 
     private BiPredicate<String, String> createPropertyFilter(Class<?> type) {
@@ -457,7 +457,7 @@ class JSON extends AbstractConverter<JSONWriter> implements IncludeExcludeConver
 
     void property(String key, Object value) throws JSONException, ConverterException {
         writer.key(key)
-        value(value)
+        this.value(value)
     }
 
     /**
@@ -564,7 +564,9 @@ class JSON extends AbstractConverter<JSONWriter> implements IncludeExcludeConver
             try {
                 pushbackInputStream = new PushbackInputStream(request.getInputStream())
                 firstByte = pushbackInputStream.read()
-            } catch (IOException ioe) {}
+            } catch (IOException ignored) {
+                // a request that cannot be read is treated as one with no content
+            }
 
             // code has only been changed from here down
             if (firstByte == -1) {
@@ -647,7 +649,7 @@ class JSON extends AbstractConverter<JSONWriter> implements IncludeExcludeConver
             return referenceStack.indexOf(o)
         }
         for (int i = 0; i < referenceStack.size(); i++) {
-            if (referenceStack.get(i) == o) {
+            if (referenceStack.get(i).is(o)) {
                 return i
             }
         }
@@ -914,7 +916,7 @@ class JSON extends AbstractConverter<JSONWriter> implements IncludeExcludeConver
                 }
                 else {
                     writer.key(String.valueOf(key))
-                    json.convertAnother(value); //.value(value)
+                    json.convertAnother(value) //.value(value)
                 }
                 return retVal != 0 ? retVal : null
             }

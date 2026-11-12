@@ -55,8 +55,8 @@ public class JsonMapperValueMarshaller implements ObjectMarshaller<JSON> {
     private static final ClassValue<Boolean> OVERRIDES_MARSHAL_OBJECT = new ClassValue<>() {
         @Override
         protected Boolean computeValue(Class<?> type) {
-            Method marshalObject = ReflectionUtils.findMethod(type, "marshalObject", Object.class, JSON.class);
-            return marshalObject != null && marshalObject.getDeclaringClass() != JsonMapperValueMarshaller.class;
+            Method marshalObject = ReflectionUtils.findMethod(type, "marshalObject", Object, JSON);
+            return marshalObject != null && marshalObject.getDeclaringClass() != JsonMapperValueMarshaller;
         }
     };
 

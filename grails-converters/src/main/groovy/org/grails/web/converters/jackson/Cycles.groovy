@@ -16,21 +16,19 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.stream.BaseStream;
+import groovy.transform.CompileStatic
 
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.core.TokenStreamContext;
-import tools.jackson.databind.DatabindException;
-import tools.jackson.databind.ObjectWriter;
-import tools.jackson.databind.SerializationContext;
+import java.util.stream.BaseStream
 
-import org.grails.web.converters.Converter.CircularReferenceBehaviour;
+import tools.jackson.core.JsonGenerator
+import tools.jackson.core.TokenStreamContext
+import tools.jackson.databind.DatabindException
+import tools.jackson.databind.ObjectWriter
+import tools.jackson.databind.SerializationContext
+
+import org.grails.web.converters.Converter.CircularReferenceBehaviour
 
 /**
  * Tracks the objects a write has started and not finished, so that one reached again is not written again, and writes
@@ -38,9 +36,10 @@ import org.grails.web.converters.Converter.CircularReferenceBehaviour;
  *
  * @since 9.0
  */
+@CompileStatic
 final class Cycles {
 
-    private static final String INSTANCES = Cycles.class.getName() + ".instances";
+    private static final String INSTANCES = Cycles.getName() + '.instances'
 
     private Cycles() {
     }
@@ -62,17 +61,17 @@ final class Cycles {
      * @return the writer, with a map of its own
      */
     static ObjectWriter sharingInstances(ObjectWriter writer) {
-        return writer.withAttribute(INSTANCES, new IdentityHashMap<Object, Frame>());
+        return writer.withAttribute(INSTANCES, new IdentityHashMap<Object, Frame>())
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     static Map<Object, Frame> instances(SerializationContext context) {
-        Map<Object, Frame> instances = (Map<Object, Frame>) context.getAttribute(INSTANCES);
+        Map<Object, Frame> instances = (Map<Object, Frame>) context.getAttribute(INSTANCES)
         if (instances == null) {
-            instances = new IdentityHashMap<>();
-            context.setAttribute(INSTANCES, instances);
+            instances = new IdentityHashMap<>()
+            context.setAttribute(INSTANCES, instances)
         }
-        return instances;
+        return instances
     }
 
     /**
@@ -83,46 +82,48 @@ final class Cycles {
      * @param withPath whether the path is kept, which only the {@code PATH} behaviour writes
      */
     static Frame upcoming(JsonGenerator generator, boolean withPath) {
-        TokenStreamContext current = generator.streamWriteContext();
+        TokenStreamContext current = generator.streamWriteContext()
         if (!withPath) {
-            return new Frame(current.getNestingDepth() + 1, null);
+            return new Frame(current.getNestingDepth() + 1, null)
         }
-        StringBuilder path = new StringBuilder();
+        StringBuilder path = new StringBuilder()
         for (TokenStreamContext context = current; context != null && !context.inRoot(); context = context.getParent()) {
-            int index = context == current ? context.getEntryCount() : context.getCurrentIndex();
-            path.insert(0, context.inArray() ? "[" + index + "]" : "." + context.currentName());
+            int index = context.is(current) ? context.getEntryCount() : context.getCurrentIndex()
+            path.insert(0, context.inArray() ? '[' + index + ']' : '.' + context.currentName())
         }
-        return new Frame(current.getNestingDepth() + 1, path.toString());
+        return new Frame(current.getNestingDepth() + 1, path.toString())
     }
 
     /** Writes what the circular reference behaviour selects for an object reached again. */
     static void write(Object value, Frame enclosing, JsonGenerator generator, CircularReferenceBehaviour behaviour) {
-        String type = value.getClass().getName();
-        switch (behaviour) {
-            case EXCEPTION -> throw DatabindException.from(generator, "Circular Reference detected: class " + type);
-            case INSERT_NULL -> generator.writeNull();
-            case IGNORE -> {
-                // An element of a list can be left out; a property name has already been written, or its position counts
-                if (!inElementArray(generator)) {
-                    generator.writeNull();
-                }
+        String type = value.getClass().getName()
+        if (behaviour == CircularReferenceBehaviour.EXCEPTION) {
+            throw DatabindException.from(generator, 'Circular Reference detected: class ' + type)
+        }
+        if (behaviour == CircularReferenceBehaviour.INSERT_NULL) {
+            generator.writeNull()
+        }
+        else if (behaviour == CircularReferenceBehaviour.IGNORE) {
+            // An element of a list can be left out; a property name has already been written, or its position counts
+            if (!inElementArray(generator)) {
+                generator.writeNull()
             }
-            case PATH -> {
-                // the keys in the order the JSON converter writes them, as Grails 8 did
-                generator.writeStartObject();
-                generator.writeStringProperty("ref", "root" + enclosing.path());
-                generator.writeStringProperty("class", type);
-                generator.writeEndObject();
-            }
-            default -> {
-                // One step up from the object or array the reference is written in for each one between it and the value it
-                // repeats, or none, written ".", where it repeats the object it is written in
-                int levels = generator.streamWriteContext().getNestingDepth() - enclosing.depth();
-                generator.writeStartObject();
-                generator.writeStringProperty("_ref", levels > 0 ? String.join("/", Collections.nCopies(levels, "..")) : ".");
-                generator.writeStringProperty("class", type);
-                generator.writeEndObject();
-            }
+        }
+        else if (behaviour == CircularReferenceBehaviour.PATH) {
+            // the keys in the order the JSON converter writes them, as Grails 8 did
+            generator.writeStartObject()
+            generator.writeStringProperty('ref', 'root' + enclosing.path())
+            generator.writeStringProperty('class', type)
+            generator.writeEndObject()
+        }
+        else {
+            // One step up from the object or array the reference is written in for each one between it and the value it
+            // repeats, or none, written ".", where it repeats the object it is written in
+            int levels = generator.streamWriteContext().getNestingDepth() - enclosing.depth()
+            generator.writeStartObject()
+            generator.writeStringProperty('_ref', levels > 0 ? String.join('/', Collections.nCopies(levels, '..')) : '.')
+            generator.writeStringProperty('class', type)
+            generator.writeEndObject()
         }
     }
 
@@ -134,12 +135,12 @@ final class Cycles {
      * array of a container of another type, such as a Scala collection, for a bean's.
      */
     private static boolean inElementArray(JsonGenerator generator) {
-        TokenStreamContext context = generator.streamWriteContext();
+        TokenStreamContext context = generator.streamWriteContext()
         if (!context.inArray()) {
-            return false;
+            return false
         }
-        Object current = context.currentValue();
+        Object current = context.currentValue()
         return current == null || current instanceof Iterable || current instanceof Iterator ||
-                current instanceof BaseStream || current.getClass().isArray();
+                current instanceof BaseStream || current.getClass().isArray()
     }
 }

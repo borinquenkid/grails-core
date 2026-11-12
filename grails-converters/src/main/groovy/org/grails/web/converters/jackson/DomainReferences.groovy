@@ -16,31 +16,28 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
+import groovy.transform.CompileStatic
 
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.BeanProperty;
-import tools.jackson.databind.DatabindException;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.SerializationFeature;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.introspect.BeanPropertyDefinition;
-import tools.jackson.databind.jsontype.TypeSerializer;
-import tools.jackson.databind.ser.BeanPropertyWriter;
-import tools.jackson.databind.ser.bean.BeanSerializerBase;
-import tools.jackson.databind.ser.impl.PropertySerializerMap;
-import tools.jackson.databind.ser.std.StdContainerSerializer;
-import tools.jackson.databind.util.ClassUtil;
+import java.util.concurrent.ConcurrentHashMap
+import java.util.function.BiConsumer
 
-import org.grails.datastore.mapping.model.PersistentEntity;
+import tools.jackson.core.JsonGenerator
+import tools.jackson.databind.BeanProperty
+import tools.jackson.databind.DatabindException
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.SerializationFeature
+import tools.jackson.databind.ValueSerializer
+import tools.jackson.databind.introspect.BeanPropertyDefinition
+import tools.jackson.databind.jsontype.TypeSerializer
+import tools.jackson.databind.ser.BeanPropertyWriter
+import tools.jackson.databind.ser.bean.BeanSerializerBase
+import tools.jackson.databind.ser.impl.PropertySerializerMap
+import tools.jackson.databind.ser.std.StdContainerSerializer
+import tools.jackson.databind.util.ClassUtil
+
+import org.grails.datastore.mapping.model.PersistentEntity
 
 /**
  * Writes the references to associated domain class instances: an object of the class name, when it is included, and the
@@ -49,13 +46,14 @@ import org.grails.datastore.mapping.model.PersistentEntity;
  *
  * @since 9.0
  */
+@CompileStatic
 final class DomainReferences {
 
-    private final Map<Class<?>, String> idNames = new ConcurrentHashMap<>();
+    private final Map<Class<?>, String> idNames = new ConcurrentHashMap<>()
 
-    private final Map<Class<?>, String> classNames = new ConcurrentHashMap<>();
+    private final Map<Class<?>, String> classNames = new ConcurrentHashMap<>()
 
-    private final Map<Class<?>, Boolean> ownSerializers = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Boolean> ownSerializers = new ConcurrentHashMap<>()
 
     /**
      * Writes an associated instance that is not written in full: a reference to it, or what the rendering writes in its
@@ -68,27 +66,27 @@ final class DomainReferences {
             SerializationContext context, DomainClassRendering rendering, ReferenceSerializer serializers,
             TypeSerializer typeSerializer) {
         if (associated == null) {
-            generator.writeNull();
-            return;
+            generator.writeNull()
+            return
         }
         if (rendering.writeReference(associated, entity.getIdentity(), entity)) {
-            return;
+            return
         }
         if (hasSerializerOfItsOwn(associated, entity, context)) {
-            Object written = writtenInstead(associated, rendering);
+            Object written = writtenInstead(associated, rendering)
             if (written == null) {
                 // a proxy of an instance that no longer exists
-                generator.writeNull();
+                generator.writeNull()
             }
             else if (typeSerializer != null) {
-                serializers.valueSerializer(written, context).serializeWithType(written, generator, context, typeSerializer);
+                serializers.valueSerializer(written, context).serializeWithType(written, generator, context, typeSerializer)
             }
             else {
-                serializers.valueSerializer(written, context).serialize(written, generator, context);
+                serializers.valueSerializer(written, context).serialize(written, generator, context)
             }
-            return;
+            return
         }
-        writeReference(associated, entity, generator, context, rendering);
+        writeReference(associated, entity, generator, context, rendering)
     }
 
     /**
@@ -99,20 +97,20 @@ final class DomainReferences {
     private boolean isEmpty(Object associated, PersistentEntity entity, SerializationContext context,
             DomainClassRendering rendering, ReferenceSerializer serializers) {
         if (rendering.writesReferences() || !hasSerializerOfItsOwn(associated, entity, context)) {
-            return false;
+            return false
         }
-        Object written = writtenInstead(associated, rendering);
-        return written == null || serializers.valueSerializer(written, context).isEmpty(context, written);
+        Object written = writtenInstead(associated, rendering)
+        return written == null || serializers.valueSerializer(written, context).isEmpty(context, written)
     }
 
     private boolean hasSerializerOfItsOwn(Object associated, PersistentEntity entity, SerializationContext context) {
         return hasSerializerOfItsOwn(DomainClassRendering.isProxyClass(associated.getClass()) ?
-                entity.getJavaClass() : associated.getClass(), context);
+                entity.getJavaClass() : associated.getClass(), context)
     }
 
     /** The instance a proxy stands for, which is {@code null} when it no longer exists, or else the instance itself. */
     private static Object writtenInstead(Object associated, DomainClassRendering rendering) {
-        return DomainClassRendering.isProxyClass(associated.getClass()) ? rendering.unwrap(associated) : associated;
+        return DomainClassRendering.isProxyClass(associated.getClass()) ? rendering.unwrap(associated) : associated
     }
 
     /**
@@ -122,35 +120,35 @@ final class DomainReferences {
     void write(Object reference, PersistentEntity entity, JsonGenerator generator, SerializationContext context,
             DomainClassRendering rendering) {
         if (reference == null) {
-            generator.writeNull();
-            return;
+            generator.writeNull()
+            return
         }
         if (rendering.writeReference(reference, entity.getIdentity(), entity)) {
-            return;
+            return
         }
-        writeReference(reference, entity, generator, context, rendering);
+        writeReference(reference, entity, generator, context, rendering)
     }
 
     private void writeReference(Object reference, PersistentEntity entity, JsonGenerator generator,
             SerializationContext context, DomainClassRendering rendering) {
-        Object id = rendering.referenceId(reference, entity.getIdentity());
-        generator.writeStartObject();
+        Object id = rendering.referenceId(reference, entity.getIdentity())
+        generator.writeStartObject()
         if (rendering.isIncludeClass()) {
-            generator.writeStringProperty(name(classNames, context, entity.getJavaClass(), "class"), entity.getName());
+            generator.writeStringProperty(name(classNames, context, entity.getJavaClass(), 'class'), entity.getName())
         }
         if (id != null) {
-            generator.writeName(name(idNames, context, entity.getJavaClass(), "id"));
+            generator.writeName(name(idNames, context, entity.getJavaClass(), 'id'))
             // DomainClassMarshaller wrote the id of a reference with the converter's writer, which quotes the string of
             // an id that is not a number, such as a MongoDB ObjectId; the id of an instance itself is written as any
             // other value, by the mapper, as the converter rendered it in Grails 8 as well
             if (id instanceof Number || id instanceof Boolean) {
-                context.writeValue(generator, id);
+                context.writeValue(generator, id)
             }
             else {
-                generator.writeString(id.toString());
+                generator.writeString(id.toString())
             }
         }
-        generator.writeEndObject();
+        generator.writeEndObject()
     }
 
     /**
@@ -163,39 +161,39 @@ final class DomainReferences {
         // Jackson does not keep a serializer it cannot build, and would try again for every reference
         return ownSerializers.computeIfAbsent(type, t -> {
             try {
-                return findsSerializerOfItsOwn(t, context);
+                return findsSerializerOfItsOwn(t, context)
             }
             catch (DatabindException e) {
                 // a definition Jackson rejects, or a mapping problem, such as a module failing to build a serializer of
                 // one of its properties
-                return false;
+                return false
             }
-        });
+        })
     }
 
     private static boolean findsSerializerOfItsOwn(Class<?> type, SerializationContext context) {
-        ValueSerializer<?> serializer = context.findValueSerializer(type);
+        ValueSerializer<?> serializer = context.findValueSerializer(type)
         // a bean serializer of another class, such as the one a @JsonSerialize converter converts the instances to,
         // is not that of the domain class
         while (!(serializer instanceof BeanSerializerBase) || !serializer.handledType().isAssignableFrom(type)) {
-            ValueSerializer<?> delegatee = serializer.getDelegatee();
+            ValueSerializer<?> delegatee = serializer.getDelegatee()
             if (delegatee == null || delegatee == serializer) {
-                return true;
+                return true
             }
-            serializer = delegatee;
+            serializer = delegatee
         }
-        return false;
+        return false
     }
 
     private static String name(Map<Class<?>, String> cache, SerializationContext context, Class<?> type, String property) {
         return cache.computeIfAbsent(type, t -> {
             for (BeanPropertyDefinition definition : context.introspectBeanDescription(context.constructType(t)).findProperties()) {
                 if (property.equals(definition.getInternalName())) {
-                    return definition.getName();
+                    return definition.getName()
                 }
             }
-            return property;
-        });
+            return property
+        })
     }
 
     /**
@@ -205,103 +203,103 @@ final class DomainReferences {
      */
     ValueSerializer<Object> serializer(PersistentEntity associated, boolean toMany, DomainRendering rendering,
             BeanProperty property) {
-        return new ReferenceSerializer(this, associated, toMany, rendering, property);
+        return new ReferenceSerializer(this, associated, toMany, rendering, property)
     }
 
     private static final class ReferenceSerializer extends ValueSerializer<Object> {
 
-        private final DomainReferences references;
+        private final DomainReferences references
 
-        private final PersistentEntity associated;
+        private final PersistentEntity associated
 
-        private final boolean toMany;
+        private final boolean toMany
 
-        private final DomainRendering rendering;
+        private final DomainRendering rendering
 
-        private final BeanProperty property;
+        private final BeanProperty property
 
-        private TypeSerializer elementTypes;
+        private TypeSerializer elementTypes
 
-        private volatile boolean elementTypesFound;
+        private volatile boolean elementTypesFound
 
-        private volatile PropertySerializerMap valueSerializers = PropertySerializerMap.emptyForProperties();
+        private volatile PropertySerializerMap valueSerializers = PropertySerializerMap.emptyForProperties()
 
-        private volatile ValueSerializer<Object> containerSerializer;
+        private volatile ValueSerializer<Object> containerSerializer
 
         private ReferenceSerializer(DomainReferences references, PersistentEntity associated, boolean toMany,
                 DomainRendering rendering, BeanProperty property) {
-            this.references = references;
-            this.associated = associated;
-            this.toMany = toMany;
-            this.rendering = rendering;
-            this.property = property;
+            this.references = references
+            this.associated = associated
+            this.toMany = toMany
+            this.rendering = rendering
+            this.property = property
         }
 
         @Override
-        public ValueSerializer<?> createContextual(SerializationContext context, BeanProperty property) {
-            return property == this.property ? this : new ReferenceSerializer(references, associated, toMany, rendering, property);
+        ValueSerializer<?> createContextual(SerializationContext context, BeanProperty property) {
+            return property.is(this.property) ? this : new ReferenceSerializer(references, associated, toMany, rendering, property)
         }
 
         @Override
-        public void serialize(Object value, JsonGenerator generator, SerializationContext context) {
-            DomainClassRendering current = rendering.ofOwner(context, generator);
+        void serialize(Object value, JsonGenerator generator, SerializationContext context) {
+            DomainClassRendering current = rendering.ofOwner(context, generator)
             if (deep(current, context)) {
-                Object unwrapped = current.unwrap(value);
+                Object unwrapped = current.unwrap(value)
                 if (unwrapped == null) {
                     // a proxy of an instance that no longer exists
-                    generator.writeNull();
-                    return;
+                    generator.writeNull()
+                    return
                 }
-                standIn(context, value, unwrapped);
-                Object written = DomainWrites.copied(unwrapped);
-                serializer(written, context).serialize(written, generator, context);
+                standIn(context, value, unwrapped)
+                Object written = DomainWrites.copied(unwrapped)
+                serializer(written, context).serialize(written, generator, context)
             }
             else if (!toMany) {
-                references.writeAssociated(value, associated, generator, context, current, this, null);
+                references.writeAssociated(value, associated, generator, context, current, this, null)
             }
             else if (value instanceof Collection<?> collection) {
-                generator.writeStartArray();
-                TypeSerializer elementTypes = elementTypeSerializer(context);
+                generator.writeStartArray()
+                TypeSerializer elementTypes = elementTypeSerializer(context)
                 for (Object reference : collection) {
-                    references.writeAssociated(reference, associated, generator, context, current, this, elementTypes);
+                    references.writeAssociated(reference, associated, generator, context, current, this, elementTypes)
                 }
-                generator.writeEndArray();
+                generator.writeEndArray()
             }
             else if (value instanceof Map<?, ?> map) {
-                generator.writeStartObject();
-                TypeSerializer elementTypes = elementTypeSerializer(context);
+                generator.writeStartObject()
+                TypeSerializer elementTypes = elementTypeSerializer(context)
                 for (Map.Entry<?, ?> entry : ordered(map, context).entrySet()) {
-                    writeKey(entry.getKey(), generator, context);
+                    writeKey(entry.getKey(), generator, context)
                     references.writeAssociated(entry.getValue(), associated, generator, context, current, this,
-                            elementTypes);
+                            elementTypes)
                 }
-                generator.writeEndObject();
+                generator.writeEndObject()
             }
             else {
-                context.writeValue(generator, value);
+                context.writeValue(generator, value)
             }
         }
 
         @Override
-        public void serializeWithType(Object value, JsonGenerator generator, SerializationContext context,
+        void serializeWithType(Object value, JsonGenerator generator, SerializationContext context,
                 TypeSerializer typeSerializer) {
-            DomainClassRendering current = rendering.ofOwner(context, generator);
+            DomainClassRendering current = rendering.ofOwner(context, generator)
             if (deep(current, context) && !toMany) {
                 // In full, an instance is written with its type id; a reference carries none
-                Object unwrapped = current.unwrap(value);
+                Object unwrapped = current.unwrap(value)
                 if (unwrapped == null) {
-                    generator.writeNull();
-                    return;
+                    generator.writeNull()
+                    return
                 }
-                standIn(context, value, unwrapped);
-                Object written = DomainWrites.copied(unwrapped);
-                valueSerializer(written, context).serializeWithType(written, generator, context, typeSerializer);
+                standIn(context, value, unwrapped)
+                Object written = DomainWrites.copied(unwrapped)
+                valueSerializer(written, context).serializeWithType(written, generator, context, typeSerializer)
             }
             else if (!toMany) {
-                references.writeAssociated(value, associated, generator, context, current, this, typeSerializer);
+                references.writeAssociated(value, associated, generator, context, current, this, typeSerializer)
             }
             else {
-                serialize(value, generator, context);
+                serialize(value, generator, context)
             }
         }
 
@@ -311,18 +309,18 @@ final class DomainReferences {
          */
         private TypeSerializer elementTypeSerializer(SerializationContext context) {
             if (!elementTypesFound) {
-                elementTypes = findElementTypeSerializer(context);
-                elementTypesFound = true;
+                elementTypes = findElementTypeSerializer(context)
+                elementTypesFound = true
             }
-            return elementTypes;
+            return elementTypes
         }
 
         private TypeSerializer findElementTypeSerializer(SerializationContext context) {
             if (property == null || property.getType().getContentType() == null) {
-                return null;
+                return null
             }
-            TypeSerializer named = elementTypeSerializerNamedByProperty();
-            return named != null ? named : context.findTypeSerializer(property.getType().getContentType());
+            TypeSerializer named = elementTypeSerializerNamedByProperty()
+            return named != null ? named : context.findTypeSerializer(property.getType().getContentType())
         }
 
         /**
@@ -333,22 +331,22 @@ final class DomainReferences {
             if (property instanceof BeanPropertyWriter writer && writer.getSerializationType() != null &&
                     writer.getSerializationType().getContentType() != null &&
                     writer.getSerializationType().getContentType().getTypeHandler() instanceof TypeSerializer named) {
-                return named;
+                return named
             }
-            return null;
+            return null
         }
 
         /** Tells the writer of a proxy that is written in full as the instance it proxies, as the proxy serializer does. */
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings('unchecked')
         private static void standIn(SerializationContext context, Object value, Object unwrapped) {
-            if (unwrapped != value && context.getAttribute(DomainClassJacksonModule.STAND_INS) instanceof BiConsumer<?, ?> standIns) {
-                ((BiConsumer<Object, Object>) standIns).accept(value, unwrapped);
+            if (!unwrapped.is(value) && context.getAttribute(DomainClassJacksonModule.STAND_INS) instanceof BiConsumer<?, ?> standIns) {
+                ((BiConsumer<Object, Object>) standIns).accept(value, unwrapped)
             }
         }
 
         /** Whether associated instances are written in full: for every write, or for this one. */
         private static boolean deep(DomainClassRendering rendering, SerializationContext context) {
-            return rendering.isDeep() || Boolean.TRUE.equals(context.getAttribute(DomainClassJacksonModule.DEEP));
+            return rendering.isDeep() || Boolean.TRUE.equals(context.getAttribute(DomainClassJacksonModule.DEEP))
         }
 
         /**
@@ -358,28 +356,28 @@ final class DomainReferences {
          */
         private ValueSerializer<Object> serializer(Object written, SerializationContext context) {
             if (toMany && property != null && property.getType().getRawClass().isInstance(written)) {
-                ValueSerializer<Object> found = containerSerializer;
+                ValueSerializer<Object> found = containerSerializer
                 if (found == null) {
-                    found = findContainerSerializer(context);
-                    containerSerializer = found;
+                    found = findContainerSerializer(context)
+                    containerSerializer = found
                 }
-                return found;
+                return found
             }
-            return valueSerializer(written, context);
+            return valueSerializer(written, context)
         }
 
         /**
          * The serializer of the collection or map of a to-many association, given the type serializer the property names
          * for its elements, as Jackson gives it the serializer of any other property of a container type.
          */
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings('unchecked')
         private ValueSerializer<Object> findContainerSerializer(SerializationContext context) {
-            ValueSerializer<Object> serializer = context.findPrimaryPropertySerializer(property.getType(), property);
-            TypeSerializer named = elementTypeSerializerNamedByProperty();
+            ValueSerializer<Object> serializer = context.findPrimaryPropertySerializer(property.getType(), property)
+            TypeSerializer named = elementTypeSerializerNamedByProperty()
             if (named != null && serializer instanceof StdContainerSerializer<?> container) {
-                return (ValueSerializer<Object>) container.withValueTypeSerializer(named);
+                return (ValueSerializer<Object>) container.withValueTypeSerializer(named)
             }
-            return serializer;
+            return serializer
         }
 
         /**
@@ -387,46 +385,46 @@ final class DomainReferences {
          * for each class, as Jackson's own writers find it.
          */
         private ValueSerializer<Object> valueSerializer(Object written, SerializationContext context) {
-            PropertySerializerMap found = valueSerializers;
-            ValueSerializer<Object> serializer = found.serializerFor(written.getClass());
+            PropertySerializerMap found = valueSerializers
+            ValueSerializer<Object> serializer = found.serializerFor(written.getClass())
             if (serializer == null) {
                 PropertySerializerMap.SerializerAndMapResult result = toMany ?
                         found.findAndAddSecondarySerializer(written.getClass(), context, property) :
-                        found.findAndAddPrimarySerializer(context.constructType(written.getClass()), context, property);
-                valueSerializers = result.map;
-                serializer = result.serializer;
+                        found.findAndAddPrimarySerializer(context.constructType(written.getClass()), context, property)
+                valueSerializers = result.map
+                serializer = result.serializer
             }
-            return serializer;
+            return serializer
         }
 
         @Override
-        public boolean isEmpty(SerializationContext context, Object value) {
+        boolean isEmpty(SerializationContext context, Object value) {
             if (value instanceof Collection<?> collection) {
-                return collection.isEmpty();
+                return collection.isEmpty()
             }
             if (value instanceof Map<?, ?> map) {
-                return map.isEmpty();
+                return map.isEmpty()
             }
             if (value == null) {
-                return true;
+                return true
             }
             if (toMany) {
-                return false;
+                return false
             }
             // Jackson asks before it writes the name of the property, inside the object of the instance that has it
-            JsonGenerator generator = context.getGenerator();
-            DomainClassRendering current = generator != null ? rendering.ofOwner(context, generator) : rendering.get();
+            JsonGenerator generator = context.getGenerator()
+            DomainClassRendering current = generator != null ? rendering.ofOwner(context, generator) : rendering.get()
             if (deep(current, context)) {
                 // in full, as the serializer it is written with has it; a proxy of an instance that no longer exists is
                 // written as null
-                Object unwrapped = current.unwrap(value);
+                Object unwrapped = current.unwrap(value)
                 if (unwrapped == null) {
-                    return true;
+                    return true
                 }
-                Object written = DomainWrites.copied(unwrapped);
-                return valueSerializer(written, context).isEmpty(context, written);
+                Object written = DomainWrites.copied(unwrapped)
+                return valueSerializer(written, context).isEmpty(context, written)
             }
-            return references.isEmpty(value, associated, context, current, this);
+            return references.isEmpty(value, associated, context, current, this)
         }
 
         /**
@@ -438,42 +436,42 @@ final class DomainReferences {
         private static Map<?, ?> ordered(Map<?, ?> map, SerializationContext context) {
             if (!context.isEnabled(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS) || map instanceof SortedMap<?, ?> ||
                     map.isEmpty()) {
-                return map;
+                return map
             }
-            Object firstKey = map.keySet().iterator().next();
+            Object firstKey = map.keySet().iterator().next()
             if (!(firstKey instanceof Comparable<?>)) {
                 if (context.isEnabled(SerializationFeature.FAIL_ON_ORDER_MAP_BY_INCOMPARABLE_KEY)) {
-                    context.reportBadDefinition(firstKey == null ? Object.class : firstKey.getClass(),
-                            "Cannot order Map entries by key of incomparable type " + ClassUtil.classNameOf(firstKey) +
-                                    ", consider disabling `SerializationFeature.FAIL_ON_ORDER_MAP_BY_INCOMPARABLE_KEY` to " +
-                                    "simply skip sorting");
+                    context.reportBadDefinition(firstKey == null ? Object : firstKey.getClass(),
+                            'Cannot order Map entries by key of incomparable type ' + ClassUtil.classNameOf(firstKey) +
+                                    ', consider disabling `SerializationFeature.FAIL_ON_ORDER_MAP_BY_INCOMPARABLE_KEY` to ' +
+                                    'simply skip sorting')
                 }
-                return map;
+                return map
             }
-            Map<Object, Object> ordered = new LinkedHashMap<>();
+            Map<Object, Object> ordered = new LinkedHashMap<>()
             if (map.containsKey(null)) {
-                ordered.put(null, map.get(null));
+                ordered.put(null, map.get(null))
             }
-            TreeMap<Object, Object> sorted = new TreeMap<>();
+            TreeMap<Object, Object> sorted = new TreeMap<>()
             for (Map.Entry<?, ?> entry : map.entrySet()) {
                 if (entry.getKey() != null) {
-                    sorted.put(entry.getKey(), entry.getValue());
+                    sorted.put(entry.getKey(), entry.getValue())
                 }
             }
-            ordered.putAll(sorted);
-            return ordered;
+            ordered.putAll(sorted)
+            return ordered
         }
 
         /** Writes a key as Jackson writes the key of a map: a {@code null} one with its null key serializer, which fails by default. */
         private static void writeKey(Object key, JsonGenerator generator, SerializationContext context) {
             if (key == null) {
-                context.findNullKeySerializer(context.constructType(Object.class), null).serialize(null, generator, context);
+                context.findNullKeySerializer(context.constructType(Object), null).serialize(null, generator, context)
             }
             else if (key instanceof String name) {
-                generator.writeName(name);
+                generator.writeName(name)
             }
             else {
-                context.findKeySerializer(key.getClass(), null).serialize(key, generator, context);
+                context.findKeySerializer(key.getClass(), null).serialize(key, generator, context)
             }
         }
     }

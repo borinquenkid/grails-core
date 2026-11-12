@@ -16,15 +16,16 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.plugins.xml;
+package org.grails.plugins.xml
 
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import groovy.transform.CompileStatic
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.concurrent.ConcurrentHashMap
 
-import org.grails.core.lifecycle.ShutdownOperations;
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
+
+import org.grails.core.lifecycle.ShutdownOperations
 
 /**
  * Logs, once per application and format, that a response is rendered in an XML format scheduled for removal. The
@@ -32,14 +33,15 @@ import org.grails.core.lifecycle.ShutdownOperations;
  *
  * @since 9.0
  */
-public final class DeprecatedXmlNotice {
+@CompileStatic
+final class DeprecatedXmlNotice {
 
-    private static final Log LOG = LogFactory.getLog(DeprecatedXmlNotice.class);
+    private static final Log LOG = LogFactory.getLog(DeprecatedXmlNotice)
 
-    private static final Set<String> REPORTED = ConcurrentHashMap.newKeySet();
+    private static final Set<String> REPORTED = ConcurrentHashMap.newKeySet()
 
     static {
-        ShutdownOperations.addOperation(REPORTED::clear, true);
+        ShutdownOperations.addOperation(REPORTED::clear, true)
     }
 
     private DeprecatedXmlNotice() {
@@ -49,9 +51,9 @@ public final class DeprecatedXmlNotice {
      * @param format the format, such as {@code HAL XML}
      * @param advice what to render instead
      */
-    public static void report(String format, String advice) {
+    static void report(String format, String advice) {
         if (REPORTED.add(format)) {
-            LOG.warn(format + " rendering is scheduled for removal in Grails 11. " + advice);
+            LOG.warn(format + ' rendering is scheduled for removal in Grails 11. ' + advice)
         }
     }
 }

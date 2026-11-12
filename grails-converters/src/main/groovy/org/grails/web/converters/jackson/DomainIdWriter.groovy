@@ -16,21 +16,21 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.util.Objects;
+import groovy.transform.CompileStatic
 
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.jsontype.TypeSerializer;
-import tools.jackson.databind.ser.BeanPropertyWriter;
-import tools.jackson.databind.ser.impl.PropertySerializerMap;
-import tools.jackson.databind.util.NameTransformer;
+import tools.jackson.core.JsonGenerator
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.ValueSerializer
+import tools.jackson.databind.jsontype.TypeSerializer
+import tools.jackson.databind.ser.BeanPropertyWriter
+import tools.jackson.databind.ser.impl.PropertySerializerMap
+import tools.jackson.databind.util.NameTransformer
 
-import org.springframework.util.ClassUtils;
+import org.springframework.util.ClassUtils
 
-import org.grails.datastore.mapping.model.PersistentProperty;
+import org.grails.datastore.mapping.model.PersistentProperty
 
 /**
  * Writes the id of a domain class instance with the value the rendering of the instance gives it, as the version and the
@@ -44,106 +44,107 @@ import org.grails.datastore.mapping.model.PersistentProperty;
  *
  * @since 9.0
  */
+@CompileStatic
 final class DomainIdWriter extends BeanPropertyWriter {
 
-    private final BeanPropertyWriter delegate;
+    private final BeanPropertyWriter delegate
 
-    private final PersistentProperty identity;
+    private final PersistentProperty identity
 
-    private final DomainRendering rendering;
+    private final DomainRendering rendering
 
     DomainIdWriter(BeanPropertyWriter delegate, PersistentProperty identity, DomainRendering rendering) {
-        super(delegate);
-        this.delegate = delegate;
-        this.identity = identity;
-        this.rendering = rendering;
+        super(delegate)
+        this.delegate = delegate
+        this.identity = identity
+        this.rendering = rendering
     }
 
     @Override
-    public BeanPropertyWriter rename(NameTransformer transformer) {
-        BeanPropertyWriter renamed = delegate.rename(transformer);
-        return renamed == delegate ? this : new DomainIdWriter(renamed, identity, rendering);
+    BeanPropertyWriter rename(NameTransformer transformer) {
+        BeanPropertyWriter renamed = delegate.rename(transformer)
+        return renamed.is(delegate) ? this : new DomainIdWriter(renamed, identity, rendering)
     }
 
     @Override
-    public void assignSerializer(ValueSerializer<Object> serializer) {
-        super.assignSerializer(serializer);
-        delegate.assignSerializer(serializer);
+    void assignSerializer(ValueSerializer<Object> serializer) {
+        super.assignSerializer(serializer)
+        delegate.assignSerializer(serializer)
     }
 
     @Override
-    public void assignNullSerializer(ValueSerializer<Object> serializer) {
-        super.assignNullSerializer(serializer);
-        delegate.assignNullSerializer(serializer);
+    void assignNullSerializer(ValueSerializer<Object> serializer) {
+        super.assignNullSerializer(serializer)
+        delegate.assignNullSerializer(serializer)
     }
 
     @Override
-    public void assignTypeSerializer(TypeSerializer typeSerializer) {
-        super.assignTypeSerializer(typeSerializer);
-        delegate.assignTypeSerializer(typeSerializer);
+    void assignTypeSerializer(TypeSerializer typeSerializer) {
+        super.assignTypeSerializer(typeSerializer)
+        delegate.assignTypeSerializer(typeSerializer)
     }
 
     @Override
-    public void serializeAsProperty(Object bean, JsonGenerator generator, SerializationContext context) throws Exception {
-        Object rendered = rendering.of(context, bean).propertyValue(bean, identity);
+    void serializeAsProperty(Object bean, JsonGenerator generator, SerializationContext context) throws Exception {
+        Object rendered = rendering.of(context, bean).propertyValue(bean, identity)
         if (rendered == null) {
-            return;
+            return
         }
         if (Objects.equals(rendered, get(bean))) {
-            delegate.serializeAsProperty(bean, generator, context);
-            return;
+            delegate.serializeAsProperty(bean, generator, context)
+            return
         }
-        ValueSerializer<Object> serializer = serializer(rendered, context);
+        ValueSerializer<Object> serializer = serializer(rendered, context)
         if (!suppressed(rendered, serializer, context)) {
-            generator.writeName(_name);
-            write(rendered, serializer, generator, context);
+            generator.writeName(_name)
+            write(rendered, serializer, generator, context)
         }
     }
 
     @Override
-    public void serializeAsElement(Object bean, JsonGenerator generator, SerializationContext context) throws Exception {
-        Object rendered = rendering.of(context, bean).propertyValue(bean, identity);
+    void serializeAsElement(Object bean, JsonGenerator generator, SerializationContext context) throws Exception {
+        Object rendered = rendering.of(context, bean).propertyValue(bean, identity)
         if (rendered == null) {
-            serializeAsOmittedElement(bean, generator, context);
-            return;
+            serializeAsOmittedElement(bean, generator, context)
+            return
         }
         if (Objects.equals(rendered, get(bean))) {
-            delegate.serializeAsElement(bean, generator, context);
-            return;
+            delegate.serializeAsElement(bean, generator, context)
+            return
         }
-        ValueSerializer<Object> serializer = serializer(rendered, context);
+        ValueSerializer<Object> serializer = serializer(rendered, context)
         if (suppressed(rendered, serializer, context)) {
-            serializeAsOmittedElement(bean, generator, context);
+            serializeAsOmittedElement(bean, generator, context)
         }
         else {
-            write(rendered, serializer, generator, context);
+            write(rendered, serializer, generator, context)
         }
     }
 
     /** The serializer of the property, for a value of its type, and otherwise the one Jackson finds for the value. */
     private ValueSerializer<Object> serializer(Object value, SerializationContext context) {
         if (_serializer != null && ClassUtils.resolvePrimitiveIfNecessary(_declaredType.getRawClass()).isInstance(value)) {
-            return _serializer;
+            return _serializer
         }
-        PropertySerializerMap serializers = _dynamicSerializers;
-        ValueSerializer<Object> serializer = serializers.serializerFor(value.getClass());
-        return serializer != null ? serializer : _findAndAddDynamic(serializers, value.getClass(), context);
+        PropertySerializerMap serializers = _dynamicSerializers
+        ValueSerializer<Object> serializer = serializers.serializerFor(value.getClass())
+        return serializer != null ? serializer : _findAndAddDynamic(serializers, value.getClass(), context)
     }
 
     /** Whether the inclusion of the property, such as {@code @JsonInclude(NON_EMPTY)}, leaves the value out. */
     private boolean suppressed(Object value, ValueSerializer<Object> serializer, SerializationContext context) {
         if (_suppressableValue == null) {
-            return false;
+            return false
         }
-        return MARKER_FOR_EMPTY == _suppressableValue ? serializer.isEmpty(context, value) : _suppressableValue.equals(value);
+        return MARKER_FOR_EMPTY.is(_suppressableValue) ? serializer.isEmpty(context, value) : _suppressableValue.equals(value)
     }
 
     private void write(Object value, ValueSerializer<Object> serializer, JsonGenerator generator, SerializationContext context) {
         if (_typeSerializer == null) {
-            serializer.serialize(value, generator, context);
+            serializer.serialize(value, generator, context)
         }
         else {
-            serializer.serializeWithType(value, generator, context, _typeSerializer);
+            serializer.serializeWithType(value, generator, context, _typeSerializer)
         }
     }
 }

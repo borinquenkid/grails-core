@@ -14,33 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import groovy.transform.CompileStatic
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import tools.jackson.databind.BeanDescription;
-import tools.jackson.databind.JacksonModule;
-import tools.jackson.databind.SerializationConfig;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.introspect.BeanPropertyDefinition;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.module.SimpleModule;
-import tools.jackson.databind.ser.BeanPropertyWriter;
-import tools.jackson.databind.ser.BeanSerializerBuilder;
-import tools.jackson.databind.ser.ValueSerializerModifier;
+import java.util.concurrent.ConcurrentHashMap
 
-import org.springframework.beans.BeanUtils;
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import tools.jackson.databind.BeanDescription
+import tools.jackson.databind.JacksonModule
+import tools.jackson.databind.SerializationConfig
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.introspect.BeanPropertyDefinition
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
+import tools.jackson.databind.ser.BeanPropertyWriter
+import tools.jackson.databind.ser.BeanSerializerBuilder
+import tools.jackson.databind.ser.ValueSerializerModifier
 
-import org.grails.core.lifecycle.ShutdownOperations;
+import org.springframework.beans.BeanUtils
+
+import org.grails.core.lifecycle.ShutdownOperations
 
 /**
  * A per-write {@code includes}/{@code excludes} projection, as the {@code render} and {@code respond}
@@ -53,40 +48,41 @@ import org.grails.core.lifecycle.ShutdownOperations;
  *
  * @since 9.0
  */
-public final class JsonProjection {
+@CompileStatic
+final class JsonProjection {
 
     /** Writer attribute holding the projection of one write. */
-    public static final String ATTRIBUTE = JsonProjection.class.getName();
+    public static final String ATTRIBUTE = JsonProjection.getName()
 
-    private static final Logger LOG = LoggerFactory.getLogger(JsonProjection.class);
+    private static final Logger LOG = LoggerFactory.getLogger(JsonProjection)
 
     /** The types an unapplied projection has been reported for. */
-    private static final Set<Class<?>> REPORTED_TYPES = ConcurrentHashMap.newKeySet();
+    private static final Set<Class<?>> REPORTED_TYPES = ConcurrentHashMap.newKeySet()
 
     /** The classes of the iterables whose elements a projection has been reported not to apply to. */
-    private static final Set<Class<?>> REPORTED_ITERABLES = ConcurrentHashMap.newKeySet();
+    private static final Set<Class<?>> REPORTED_ITERABLES = ConcurrentHashMap.newKeySet()
 
     static {
         ShutdownOperations.addOperation(() -> {
-            REPORTED_TYPES.clear();
-            REPORTED_ITERABLES.clear();
-        }, true);
+            REPORTED_TYPES.clear()
+            REPORTED_ITERABLES.clear()
+        }, true)
     }
 
-    private final List<String> includes;
-    private final List<String> excludes;
-    private final Set<Class<?>> types;
-    private final Set<Class<?>> applied = ConcurrentHashMap.newKeySet();
-    private final Class<?> unwalkedIterable;
+    private final List<String> includes
+    private final List<String> excludes
+    private final Set<Class<?>> types
+    private final Set<Class<?>> applied = ConcurrentHashMap.newKeySet()
+    private final Class<?> unwalkedIterable
 
     private JsonProjection(List<String> includes, List<String> excludes, Set<Class<?>> types,
             Class<?> unwalkedIterable) {
-        this.includes = includes;
-        this.excludes = excludes;
+        this.includes = includes
+        this.excludes = excludes
         // Widened while writing, when a proxy is written as the narrower type it stands for
-        this.types = ConcurrentHashMap.newKeySet();
-        this.types.addAll(types);
-        this.unwalkedIterable = unwalkedIterable;
+        this.types = ConcurrentHashMap.newKeySet()
+        this.types.addAll(types)
+        this.unwalkedIterable = unwalkedIterable
     }
 
     /**
@@ -97,63 +93,63 @@ public final class JsonProjection {
      * @return the projection, or null if there are no includes and the excludes name no property
      * @throws IllegalArgumentException if the value, or an element of it, has no properties to project
      */
-    public static JsonProjection of(Object value, List<String> includes, List<String> excludes) {
-        boolean including = includes != null;
-        boolean excluding = excludes != null && !excludes.isEmpty();
+    static JsonProjection of(Object value, List<String> includes, List<String> excludes) {
+        boolean including = includes != null
+        boolean excluding = excludes != null && !excludes.isEmpty()
         if (!including && !excluding) {
-            return null;
+            return null
         }
-        Set<Class<?>> types = new LinkedHashSet<>();
-        Class<?> unwalkedIterable = null;
+        Set<Class<?>> types = new LinkedHashSet<>()
+        Class<?> unwalkedIterable = null
         if (value instanceof Collection<?> elements) {
-            elements.forEach(element -> addType(element, types));
+            elements.forEach(element -> addType(element, types))
         }
         else if (value instanceof Object[] elements) {
             for (Object element : elements) {
-                addType(element, types);
+                addType(element, types)
             }
         }
         else if (value instanceof Iterable<?>) {
             // It may only be iterable once, so walking it here would leave Jackson nothing to write
-            unwalkedIterable = value.getClass();
+            unwalkedIterable = value.getClass()
         }
         else {
-            addType(value, types);
+            addType(value, types)
         }
-        return new JsonProjection(including ? includes : null, excluding ? excludes : null, types, unwalkedIterable);
+        return new JsonProjection(including ? includes : null, excluding ? excludes : null, types, unwalkedIterable)
     }
 
     /**
      * @return a module that applies the projection of a write to the beans Jackson writes property
      * by property. Domain objects apply it in the Grails domain serializer.
      */
-    public static JacksonModule module() {
-        return new ProjectionModule();
+    static JacksonModule module() {
+        return new ProjectionModule()
     }
 
     /**
      * @param mapper a mapper projections are to be written with
      * @return the mapper itself if it applies projections, otherwise a copy that does
      */
-    public static JsonMapper supporting(JsonMapper mapper) {
+    static JsonMapper supporting(JsonMapper mapper) {
         for (JacksonModule registered : mapper.registeredModules()) {
             if (ProjectionModule.NAME.equals(registered.getModuleName())) {
-                return mapper;
+                return mapper
             }
         }
-        return mapper.rebuild().addModule(module()).build();
+        return mapper.rebuild().addModule(module()).build()
     }
 
     private static void addType(Object value, Set<Class<?>> types) {
         if (value == null) {
-            return;
+            return
         }
-        Class<?> type = value.getClass();
+        Class<?> type = value.getClass()
         if (value instanceof Map || value instanceof Collection || type.isArray() || BeanUtils.isSimpleValueType(type)) {
-            throw new IllegalArgumentException("JSON includes/excludes apply to the properties of domain objects " +
-                    "and beans, not to a value of type [" + type.getName() + "].");
+            throw new IllegalArgumentException('JSON includes/excludes apply to the properties of domain objects ' +
+                    'and beans, not to a value of type [' + type.getName() + '].')
         }
-        types.add(type);
+        types.add(type)
     }
 
     /**
@@ -163,11 +159,11 @@ public final class JsonProjection {
     Class<?> appliesTo(Class<?>... candidates) {
         for (Class<?> candidate : candidates) {
             if (types.contains(candidate)) {
-                applied.add(candidate);
-                return candidate;
+                applied.add(candidate)
+                return candidate
             }
         }
-        return null;
+        return null
     }
 
     /**
@@ -178,9 +174,9 @@ public final class JsonProjection {
     void narrowed(Class<?> proxyType, Class<?> unwrappedType) {
         if (types.contains(proxyType)) {
             if (unwrappedType != null) {
-                types.add(unwrappedType);
+                types.add(unwrappedType)
             }
-            applied.add(proxyType);
+            applied.add(proxyType)
         }
     }
 
@@ -193,7 +189,7 @@ public final class JsonProjection {
      */
     static boolean projects(SerializationContext context, Object bean, String property, String written) {
         return !(context.getAttribute(ATTRIBUTE) instanceof JsonProjection projection) ||
-                projection.appliesTo(bean.getClass()) == null || projection.includes(property, written);
+                projection.appliesTo(bean.getClass()) == null || projection.includes(property, written)
     }
 
     /**
@@ -201,53 +197,56 @@ public final class JsonProjection {
      * @return whether the projection keeps the property
      */
     boolean includes(String... names) {
-        boolean listed = includes == null;
+        boolean listed = includes == null
         for (String name : names) {
             if (excludes != null && excludes.contains(name)) {
-                return false;
+                return false
             }
-            listed |= includes != null && includes.contains(name);
+            listed |= includes != null && includes.contains(name)
         }
-        return listed;
+        return listed
     }
 
     private static final class ProjectionModule extends SimpleModule {
 
-        private static final String NAME = "grails-json-projection";
+        private static final String NAME = 'grails-json-projection'
 
         private ProjectionModule() {
-            super(NAME);
+            super(NAME)
         }
 
         @Override
-        public void setupModule(SetupContext context) {
-            super.setupModule(context);
+        void setupModule(SetupContext context) {
+            super.setupModule(context)
             context.addSerializerModifier(new ValueSerializerModifier() {
                 @Override
-                public List<BeanPropertyWriter> changeProperties(SerializationConfig config,
+                List<BeanPropertyWriter> changeProperties(SerializationConfig config,
                         BeanDescription.Supplier beanDescription, List<BeanPropertyWriter> properties) {
                     // A projection names bean properties, as the legacy converter's did
-                    Map<String, String> beanNames = new HashMap<>();
+                    Map<String, String> beanNames = new HashMap<>()
                     for (BeanPropertyDefinition definition : beanDescription.get().findProperties()) {
-                        beanNames.put(definition.getName(), definition.getInternalName());
+                        beanNames.put(definition.getName(), definition.getInternalName())
                     }
-                    List<BeanPropertyWriter> projected = new ArrayList<>(properties.size());
+                    List<BeanPropertyWriter> projected = new ArrayList<>(properties.size())
                     for (BeanPropertyWriter property : properties) {
-                        String beanName = beanNames.getOrDefault(property.getName(), property.getName());
+                        String beanName = beanNames.getOrDefault(property.getName(), property.getName())
                         projected.add(GatedPropertyWriter.gated(property,
-                                (bean, context, writer) -> projects(context, bean, beanName, writer.getName()), true));
+                                (Object bean, SerializationContext ctx, BeanPropertyWriter writer) -> projects(ctx, bean, beanName, writer.getName()), true))
                     }
-                    return projected;
+                    return projected
                 }
 
                 @Override
-                public BeanSerializerBuilder updateBuilder(SerializationConfig config,
+                BeanSerializerBuilder updateBuilder(SerializationConfig config,
                         BeanDescription.Supplier beanDescription, BeanSerializerBuilder builder) {
                     // the entries of a @JsonAnyGetter, as the property it is, which Jackson writes with a writer of its own
-                    return GatedPropertyWriter.gateAnyGetter(builder, beanDescription.get(), beanName ->
-                            (bean, context, writer) -> projects(context, bean, beanName, writer.getName()), true);
+                    return GatedPropertyWriter.gateAnyGetter(builder, beanDescription.get(), (String beanName) -> {
+                        GatedPropertyWriter.Gate gate = (Object bean, SerializationContext ctx, BeanPropertyWriter writer) ->
+                                projects(ctx, bean, beanName, writer.getName())
+                        return gate
+                    }, true)
                 }
-            });
+            })
         }
     }
 
@@ -258,17 +257,17 @@ public final class JsonProjection {
      * the application shuts down, as the other notices of the converters are, rather than by every
      * response.
      */
-    public void reportUnapplied() {
-        Set<Class<?>> unapplied = new LinkedHashSet<>(types);
-        unapplied.removeAll(applied);
-        unapplied.removeIf(type -> !REPORTED_TYPES.add(type));
+    void reportUnapplied() {
+        Set<Class<?>> unapplied = new LinkedHashSet<>(types)
+        unapplied.removeAll(applied)
+        unapplied.removeIf(type -> !REPORTED_TYPES.add(type))
         if (!unapplied.isEmpty()) {
-            LOG.warn("JSON includes/excludes were not applied to {}: a serializer of their own writes them. " +
-                    "Apply the projection in that serializer, or write a DTO.", unapplied);
+            LOG.warn('JSON includes/excludes were not applied to {}: a serializer of their own writes them. ' +
+                    'Apply the projection in that serializer, or write a DTO.', unapplied)
         }
         if (unwalkedIterable != null && REPORTED_ITERABLES.add(unwalkedIterable)) {
-            LOG.warn("JSON includes/excludes were not applied to the elements of a {}, which is not a Collection. " +
-                    "Write a Collection or an array to project its elements.", unwalkedIterable.getName());
+            LOG.warn('JSON includes/excludes were not applied to the elements of a {}, which is not a Collection. ' +
+                    'Write a Collection or an array to project its elements.', unwalkedIterable.getName())
         }
     }
 }

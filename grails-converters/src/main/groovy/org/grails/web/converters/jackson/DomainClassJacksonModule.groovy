@@ -96,7 +96,7 @@ public class DomainClassJacksonModule extends JacksonModule {
      * module's. The JSON converter renders each instance with its own includes and excludes this way. A module whose
      * writes do this is created with {@code renderingsPerWrite}.
      */
-    public static final String RENDERINGS = DomainClassRendering.class.getName() + ".renderings";
+    public static final String RENDERINGS = DomainClassRendering.getName() + ".renderings";
 
     /**
      * A writer attribute for a writer that is told of each proxy the module writes as the instance it proxies, before it
@@ -105,14 +105,14 @@ public class DomainClassJacksonModule extends JacksonModule {
      *
      * @since 9.0
      */
-    public static final String STAND_INS = DomainClassRendering.class.getName() + ".standIns";
+    public static final String STAND_INS = DomainClassRendering.getName() + ".standIns";
 
     /**
      * A writer attribute for a writer that writes the associated instances of the domain class instances it writes in
      * full, rather than as references of their ids, as {@code grails.converters.json.default.deep} does for every write.
      * Its value is {@link Boolean#TRUE}.
      */
-    public static final String DEEP = DomainClassRendering.class.getName() + ".deep";
+    public static final String DEEP = DomainClassRendering.getName() + ".deep";
 
     @Override
     public String getModuleName() {

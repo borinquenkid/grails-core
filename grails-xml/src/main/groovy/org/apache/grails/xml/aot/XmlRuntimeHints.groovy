@@ -16,18 +16,18 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.apache.grails.xml.aot;
+package org.apache.grails.xml.aot
 
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import org.springframework.aot.hint.ExecutableMode;
-import org.springframework.aot.hint.RuntimeHints;
-import org.springframework.aot.hint.RuntimeHintsRegistrar;
-import org.springframework.aot.hint.TypeReference;
+import org.springframework.aot.hint.ExecutableMode
+import org.springframework.aot.hint.RuntimeHints
+import org.springframework.aot.hint.RuntimeHintsRegistrar
+import org.springframework.aot.hint.TypeReference
 
-import grails.converters.XML;
-import org.grails.web.converters.configuration.XmlConvertersConfigurationInitializer;
-import org.grails.web.databinding.bindingsource.XmlDataBindingSourceCreator;
+import grails.converters.XML
+import org.grails.web.converters.configuration.XmlConvertersConfigurationInitializer
+import org.grails.web.databinding.bindingsource.XmlDataBindingSourceCreator
 
 /**
  * Registers the XML converter that {@code encodeAsXML} creates by name, and the initializer of its configurations.
@@ -41,16 +41,17 @@ import org.grails.web.databinding.bindingsource.XmlDataBindingSourceCreator;
  *
  * @since 9.0
  */
-@SuppressWarnings("removal")
-public class XmlRuntimeHints implements RuntimeHintsRegistrar {
+@SuppressWarnings('removal')
+@CompileStatic
+class XmlRuntimeHints implements RuntimeHintsRegistrar {
 
     @Override
-    public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
-        hints.reflection().registerType(XML.class,
-                type -> type.withConstructor(List.of(TypeReference.of(Object.class)), ExecutableMode.INVOKE));
-        hints.reflection().registerType(XmlConvertersConfigurationInitializer.class,
-                type -> type.withConstructor(List.of(), ExecutableMode.INVOKE));
-        hints.reflection().registerType(XmlDataBindingSourceCreator.class,
-                type -> type.withConstructor(List.of(), ExecutableMode.INVOKE));
+    void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+        hints.reflection().registerType(XML,
+                type -> type.withConstructor(List.of(TypeReference.of(Object)), ExecutableMode.INVOKE))
+        hints.reflection().registerType(XmlConvertersConfigurationInitializer,
+                type -> type.withConstructor(List.of(), ExecutableMode.INVOKE))
+        hints.reflection().registerType(XmlDataBindingSourceCreator,
+                type -> type.withConstructor(List.of(), ExecutableMode.INVOKE))
     }
 }

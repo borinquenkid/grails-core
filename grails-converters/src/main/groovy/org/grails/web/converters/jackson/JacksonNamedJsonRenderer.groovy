@@ -16,36 +16,35 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.List;
+import groovy.transform.CompileStatic
 
-import grails.converters.json.NamedJsonConfigurationRegistry;
-import grails.web.render.NamedJsonRenderer;
+import grails.converters.json.NamedJsonConfigurationRegistry
+import grails.web.render.NamedJsonRenderer
 
 /**
  * Jackson implementation shared by {@code render} and {@code respond}.
  *
  * @since 9.0
  */
-public final class JacksonNamedJsonRenderer implements NamedJsonRenderer {
+@CompileStatic
+final class JacksonNamedJsonRenderer implements NamedJsonRenderer {
 
-    private final NamedJsonConfigurationRegistry registry;
+    private final NamedJsonConfigurationRegistry registry
 
-    public JacksonNamedJsonRenderer(NamedJsonConfigurationRegistry registry) {
-        this.registry = registry;
+    JacksonNamedJsonRenderer(NamedJsonConfigurationRegistry registry) {
+        this.registry = registry
     }
 
     @Override
-    public boolean contains(String name) {
-        return registry.contains(name);
+    boolean contains(String name) {
+        return registry.contains(name)
     }
 
     @Override
-    public void render(String name, Object value, Writer writer,
+    void render(String name, Object value, Writer writer,
             List<String> includes, List<String> excludes) throws IOException {
-        registry.writeValue(name, writer, value, includes, excludes);
+        registry.writeValue(name, writer, value, includes, excludes)
     }
 }

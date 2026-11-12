@@ -16,18 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.errors;
+package org.grails.web.errors
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import groovy.transform.CompileStatic
 
-import org.springframework.context.MessageSource;
-import org.springframework.context.NoSuchMessageException;
-import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
+import org.springframework.context.MessageSource
+import org.springframework.context.NoSuchMessageException
+import org.springframework.context.i18n.LocaleContextHolder
+import org.springframework.validation.FieldError
+import org.springframework.validation.ObjectError
 
 /**
  * Builds the JSON-friendly entry for one validation error.
@@ -38,7 +35,8 @@ import org.springframework.validation.ObjectError;
  *
  * @since 9.0
  */
-public final class ValidationErrorEntries {
+@CompileStatic
+final class ValidationErrorEntries {
 
     private ValidationErrorEntries() {
     }
@@ -48,8 +46,8 @@ public final class ValidationErrorEntries {
      * @param includeRejectedValue whether to include the submitted value, which may be sensitive
      * @return a stable, ordered entry describing the error
      */
-    public static Map<String, Object> toEntry(ObjectError error, boolean includeRejectedValue) {
-        return toEntry(error, includeRejectedValue, null);
+    static Map<String, Object> toEntry(ObjectError error, boolean includeRejectedValue) {
+        return toEntry(error, includeRejectedValue, null)
     }
 
     /**
@@ -59,33 +57,33 @@ public final class ValidationErrorEntries {
      * default message is used verbatim, which still contains its {@code {0}} argument placeholders
      * @return a stable, ordered entry describing the error
      */
-    public static Map<String, Object> toEntry(ObjectError error, boolean includeRejectedValue,
+    static Map<String, Object> toEntry(ObjectError error, boolean includeRejectedValue,
             MessageSource messageSource) {
-        Map<String, Object> entry = new LinkedHashMap<>();
-        entry.put("object", error.getObjectName());
+        Map<String, Object> entry = new LinkedHashMap<>()
+        entry.put('object', error.getObjectName())
         if (error instanceof FieldError fieldError) {
-            entry.put("field", fieldError.getField());
+            entry.put('field', fieldError.getField())
             if (includeRejectedValue) {
-                entry.put("rejectedValue", fieldError.getRejectedValue());
+                entry.put('rejectedValue', fieldError.getRejectedValue())
             }
         }
-        String[] codes = error.getCodes();
-        entry.put("codes", codes == null ? List.of() : Arrays.asList(codes));
-        entry.put("message", resolveMessage(error, messageSource));
-        return entry;
+        String[] codes = error.getCodes()
+        entry.put('codes', codes == null ? List.of() : Arrays.asList(codes))
+        entry.put('message', resolveMessage(error, messageSource))
+        return entry
     }
 
     private static String resolveMessage(ObjectError error, MessageSource messageSource) {
         if (messageSource == null) {
-            return error.getDefaultMessage();
+            return error.getDefaultMessage()
         }
         try {
             // Resolves the error's codes, and substitutes the arguments into whichever message
             // wins -- including the default message, which is a template until this runs.
-            return messageSource.getMessage(error, LocaleContextHolder.getLocale());
+            return messageSource.getMessage(error, LocaleContextHolder.getLocale())
         }
         catch (NoSuchMessageException ignored) {
-            return error.getDefaultMessage();
+            return error.getDefaultMessage()
         }
     }
 }

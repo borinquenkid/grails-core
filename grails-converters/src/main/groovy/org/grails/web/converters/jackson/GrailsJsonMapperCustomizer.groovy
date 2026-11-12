@@ -14,81 +14,80 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import groovy.transform.CompileStatic
 
-import groovy.lang.GString;
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 
-import tools.jackson.databind.JacksonModule;
-import tools.jackson.databind.ObjectWriter;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.module.SimpleModule;
-import tools.jackson.databind.ser.std.ToStringSerializer;
+import tools.jackson.databind.JacksonModule
+import tools.jackson.databind.ObjectWriter
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
+import tools.jackson.databind.ser.std.ToStringSerializer
 
-import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
-import org.springframework.validation.Errors;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer
+import org.springframework.validation.Errors
 
-import grails.core.GrailsApplication;
-import grails.core.support.proxy.DefaultProxyHandler;
-import grails.core.support.proxy.ProxyHandler;
-import org.grails.web.converters.Converter.CircularReferenceBehaviour;
-import org.grails.web.converters.configuration.ConvertersConfigurationInitializer;
+import grails.core.GrailsApplication
+import grails.core.support.proxy.DefaultProxyHandler
+import grails.core.support.proxy.ProxyHandler
+import org.grails.web.converters.Converter.CircularReferenceBehaviour
+import org.grails.web.converters.configuration.ConvertersConfigurationInitializer
 
 /**
  * Adds Grails-specific serializers to Spring Boot's configured JSON mapper.
  *
  * @since 9.0
  */
-public final class GrailsJsonMapperCustomizer implements JsonMapperBuilderCustomizer {
+@CompileStatic
+final class GrailsJsonMapperCustomizer implements JsonMapperBuilderCustomizer {
 
-    private final ConcurrentMap<JsonMapper, JsonMapper> grailsMappers = new ConcurrentHashMap<>();
-    private final GrailsApplication grailsApplication;
-    private final ProxyHandler proxyHandler;
+    private final ConcurrentMap<JsonMapper, JsonMapper> grailsMappers = new ConcurrentHashMap<>()
+    private final GrailsApplication grailsApplication
+    private final ProxyHandler proxyHandler
 
-    public GrailsJsonMapperCustomizer() {
-        this(null, new DefaultProxyHandler());
+    GrailsJsonMapperCustomizer() {
+        this(null, new DefaultProxyHandler())
     }
 
-    public GrailsJsonMapperCustomizer(GrailsApplication grailsApplication) {
-        this(grailsApplication, new DefaultProxyHandler());
+    GrailsJsonMapperCustomizer(GrailsApplication grailsApplication) {
+        this(grailsApplication, new DefaultProxyHandler())
     }
 
-    public GrailsJsonMapperCustomizer(GrailsApplication grailsApplication, ProxyHandler proxyHandler) {
-        this.grailsApplication = grailsApplication;
-        this.proxyHandler = proxyHandler;
+    GrailsJsonMapperCustomizer(GrailsApplication grailsApplication, ProxyHandler proxyHandler) {
+        this.grailsApplication = grailsApplication
+        this.proxyHandler = proxyHandler
     }
 
     private CircularReferenceBehaviour circularReferenceBehaviour() {
         return this.grailsApplication == null ? CircularReferenceBehaviour.DEFAULT :
-                ConvertersConfigurationInitializer.jsonCircularReferenceBehaviour(this.grailsApplication.getConfig());
+                ConvertersConfigurationInitializer.jsonCircularReferenceBehaviour(this.grailsApplication.getConfig())
     }
 
     @Override
-    public void customize(JsonMapper.Builder builder) {
-        SimpleModule module = new SimpleModule("grails-json");
-        module.addSerializer(GString.class, ToStringSerializer.instance);
-        builder.addModule(module);
+    void customize(JsonMapper.Builder builder) {
+        SimpleModule module = new SimpleModule('grails-json')
+        module.addSerializer(GString, ToStringSerializer.instance)
+        builder.addModule(module)
     }
 
     /**
      * Derives the mapper used by Grails responses without changing Spring MVC's mapper: the application's mapper, with
      * the rendering of domain classes, validation errors, projections and circular references of Grails responses.
      */
-    public JsonMapper forGrails(JsonMapper mapper) {
+    JsonMapper forGrails(JsonMapper mapper) {
         return grailsMappers.computeIfAbsent(mapper, source -> withGrailsModules(source,
                 // The module the application's own mapper may have too, with this rendering: a response also honours the
                 // circular reference behaviour of the JSON converter, which a plain Spring MVC response does not
                 new DomainClassJacksonModule(() -> ConvertersConfigurationInitializer.jsonDomainClassRendering(
                         this.grailsApplication, this.proxyHandler)),
                 // Do not change Errors returned from plain Spring MVC controllers.
-                new SimpleModule("grails-domain-json").addSerializer(Errors.class, new SpringErrorsJsonSerializer(
+                new SimpleModule('grails-domain-json').addSerializer(Errors, new SpringErrorsJsonSerializer(
                         () -> this.grailsApplication == null ? null : this.grailsApplication.getMainContext())),
                 JsonProjection.module(),
-                new CircularReferenceModule(this::circularReferenceBehaviour)).build());
+                new CircularReferenceModule(this::circularReferenceBehaviour)).build())
     }
 
     /**
@@ -100,8 +99,8 @@ public final class GrailsJsonMapperCustomizer implements JsonMapperBuilderCustom
      * @param writer a writer of the Grails mapper, for one write
      * @return the writer to write with
      */
-    public static ObjectWriter forOneWrite(ObjectWriter writer) {
-        return Cycles.sharingInstances(writer);
+    static ObjectWriter forOneWrite(ObjectWriter writer) {
+        return Cycles.sharingInstances(writer)
     }
 
     /**
@@ -114,17 +113,17 @@ public final class GrailsJsonMapperCustomizer implements JsonMapperBuilderCustom
      * @param grailsModules the Grails modules
      * @return a builder of the copy
      */
-    public static JsonMapper.Builder withGrailsModules(JsonMapper mapper, JacksonModule... grailsModules) {
-        JsonMapper.Builder builder = mapper.rebuild();
-        List<JacksonModule> modules = new ArrayList<>();
-        builder.withModules(modules::add);
-        builder.removeAllModules();
-        builder.addModules(grailsModules);
+    static JsonMapper.Builder withGrailsModules(JsonMapper mapper, JacksonModule... grailsModules) {
+        JsonMapper.Builder builder = mapper.rebuild()
+        List<JacksonModule> modules = new ArrayList<>()
+        builder.withModules(modules::add)
+        builder.removeAllModules()
+        builder.addModules(grailsModules)
         for (JacksonModule module : modules) {
             if (!(module instanceof DomainClassJacksonModule)) {
-                builder.addModule(module);
+                builder.addModule(module)
             }
         }
-        return builder;
+        return builder
     }
 }

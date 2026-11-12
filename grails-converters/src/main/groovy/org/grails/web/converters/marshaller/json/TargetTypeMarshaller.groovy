@@ -16,13 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.marshaller.json;
+package org.grails.web.converters.marshaller.json
 
-import grails.converters.JSON;
-import org.grails.web.converters.exceptions.ConverterException;
-import org.grails.web.converters.jackson.DomainClassRenderer;
-import org.grails.web.converters.jackson.DomainClassRendering;
-import org.grails.web.converters.marshaller.ObjectMarshaller;
+import groovy.transform.CompileStatic
+
+import grails.converters.JSON
+import org.grails.web.converters.exceptions.ConverterException
+import org.grails.web.converters.jackson.DomainClassRenderer
+import org.grails.web.converters.jackson.DomainClassRendering
+import org.grails.web.converters.marshaller.ObjectMarshaller
 
 /**
  * Marshals the instances of a type, and of its subclasses, with another marshaller, as a closure registered for the type
@@ -31,31 +33,32 @@ import org.grails.web.converters.marshaller.ObjectMarshaller;
  *
  * @since 9.0
  */
-public class TargetTypeMarshaller implements ObjectMarshaller<JSON>, DomainClassRenderer {
+@CompileStatic
+class TargetTypeMarshaller implements ObjectMarshaller<JSON>, DomainClassRenderer {
 
-    private final Class<?> targetType;
+    private final Class<?> targetType
 
-    private final ObjectMarshaller<JSON> marshaller;
+    private final ObjectMarshaller<JSON> marshaller
 
     /**
      * @param targetType the type whose instances are marshalled
      * @param marshaller the marshaller that marshals them
      */
-    public TargetTypeMarshaller(Class<?> targetType, ObjectMarshaller<JSON> marshaller) {
-        this.targetType = targetType;
-        this.marshaller = marshaller;
+    TargetTypeMarshaller(Class<?> targetType, ObjectMarshaller<JSON> marshaller) {
+        this.targetType = targetType
+        this.marshaller = marshaller
     }
 
     /**
      * @return the marshaller that marshals the instances
      */
-    public ObjectMarshaller<JSON> getMarshaller() {
-        return marshaller;
+    ObjectMarshaller<JSON> getMarshaller() {
+        return marshaller
     }
 
     @Override
-    public boolean supports(Object object) {
-        return targetType.isAssignableFrom(object.getClass());
+    boolean supports(Object object) {
+        return targetType.isAssignableFrom(object.getClass())
     }
 
     /**
@@ -63,16 +66,16 @@ public class TargetTypeMarshaller implements ObjectMarshaller<JSON>, DomainClass
      * converter reports the failure of a registered closure.
      */
     @Override
-    public void marshalObject(Object object, JSON converter) throws ConverterException {
+    void marshalObject(Object object, JSON converter) throws ConverterException {
         try {
-            marshaller.marshalObject(object, converter);
+            marshaller.marshalObject(object, converter)
         }
         catch (ConverterException e) {
-            throw e;
+            throw e
         }
         catch (Exception e) {
             // also a checked exception, which a Groovy marshaller may throw without declaring it
-            throw new ConverterException(e);
+            throw new ConverterException(e)
         }
     }
 
@@ -80,7 +83,7 @@ public class TargetTypeMarshaller implements ObjectMarshaller<JSON>, DomainClass
      * @return how the marshaller renders the instances of a domain class, or {@code null} where it renders none
      */
     @Override
-    public DomainClassRendering getRendering(JSON json, Class<?> type) {
-        return marshaller instanceof DomainClassRenderer renderer ? renderer.getRendering(json, type) : null;
+    DomainClassRendering getRendering(JSON json, Class<?> type) {
+        return marshaller instanceof DomainClassRenderer renderer ? renderer.getRendering(json, type) : null
     }
 }

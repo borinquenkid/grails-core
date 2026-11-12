@@ -16,52 +16,50 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.converters.json;
+package grails.converters.json
 
-import java.io.FilterWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import groovy.transform.CompileStatic
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.StreamWriteFeature;
-import tools.jackson.databind.ObjectWriter;
-import tools.jackson.databind.json.JsonMapper;
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+import java.util.function.Consumer
+import java.util.function.Supplier
 
-import org.grails.web.converters.jackson.JsonProjection;
+import tools.jackson.core.JacksonException
+import tools.jackson.core.StreamWriteFeature
+import tools.jackson.databind.ObjectWriter
+import tools.jackson.databind.json.JsonMapper
+
+import org.grails.web.converters.jackson.JsonProjection
 
 /**
  * Registry for request-safe named Jackson response configurations.
  *
  * @since 9.0
  */
-public final class NamedJsonConfigurationRegistry {
+@CompileStatic
+final class NamedJsonConfigurationRegistry {
 
     /**
      * The name of the configuration every registry has, which writes the associated instances of domain class instances
      * in full, as {@code JSON.use('deep')} rendered them. Registering the name again replaces it.
      */
-    public static final String DEEP = "deep";
+    public static final String DEEP = 'deep'
 
-    private final Supplier<JsonMapper> jsonMapper;
-    private volatile JsonMapper resolvedMapper;
-    private final ConcurrentMap<String, NamedJsonConfiguration> configurations = new ConcurrentHashMap<>();
+    private final Supplier<JsonMapper> jsonMapper
+    private volatile JsonMapper resolvedMapper
+    private final ConcurrentMap<String, NamedJsonConfiguration> configurations = new ConcurrentHashMap<>()
 
     /**
      * @param jsonMapper the mapper each configuration derives from
      * @throws NullPointerException if it is {@code null}
      */
-    public NamedJsonConfigurationRegistry(JsonMapper jsonMapper) {
-        this(supplierOf(Objects.requireNonNull(jsonMapper, "jsonMapper")));
+    NamedJsonConfigurationRegistry(JsonMapper jsonMapper) {
+        this(supplierOf(Objects.requireNonNull(jsonMapper, 'jsonMapper')))
     }
 
     private static Supplier<JsonMapper> supplierOf(JsonMapper jsonMapper) {
-        return () -> jsonMapper;
+        return () -> jsonMapper
     }
 
     /**
@@ -71,28 +69,28 @@ public final class NamedJsonConfigurationRegistry {
      * rather than from a separately configured one. The first successful resolution is cached;
      * a missing mapper is retried on the next write.
      */
-    public NamedJsonConfigurationRegistry(Supplier<JsonMapper> jsonMapper) {
-        this.jsonMapper = Objects.requireNonNull(jsonMapper, "jsonMapper");
-        register(DEEP, NamedJsonConfiguration::deep);
+    NamedJsonConfigurationRegistry(Supplier<JsonMapper> jsonMapper) {
+        this.jsonMapper = Objects.requireNonNull(jsonMapper, 'jsonMapper')
+        register(DEEP, NamedJsonConfiguration::deep)
     }
 
-    public void register(String name, Consumer<NamedJsonConfiguration> customizer) {
+    void register(String name, Consumer<NamedJsonConfiguration> customizer) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Named JSON configuration name must not be blank.");
+            throw new IllegalArgumentException('Named JSON configuration name must not be blank.')
         }
-        Objects.requireNonNull(customizer, "customizer");
-        NamedJsonConfiguration configuration = new NamedJsonConfiguration(name);
-        customizer.accept(configuration);
-        configuration.freeze();
-        configurations.put(name, configuration);
+        Objects.requireNonNull(customizer, 'customizer')
+        NamedJsonConfiguration configuration = new NamedJsonConfiguration(name)
+        customizer.accept(configuration)
+        configuration.freeze()
+        configurations.put(name, configuration)
     }
 
     /**
      * @param name a configuration's name, or {@code null} for the default one
      * @return whether it is registered; the default one always is
      */
-    public boolean contains(String name) {
-        return name == null || configurations.containsKey(name);
+    boolean contains(String name) {
+        return name == null || configurations.containsKey(name)
     }
 
     /**
@@ -101,30 +99,30 @@ public final class NamedJsonConfigurationRegistry {
      * @throws IllegalArgumentException if no configuration of the name is registered
      * @throws IllegalStateException if the application has no {@code JsonMapper} to derive the writer from
      */
-    public ObjectWriter writer(String name) {
-        NamedJsonConfiguration configuration = name == null ? null : configurations.get(name);
+    ObjectWriter writer(String name) {
+        NamedJsonConfiguration configuration = name == null ? null : configurations.get(name)
         if (name != null && configuration == null) {
-            throw new IllegalArgumentException("Named JSON configuration [" + name + "] is not registered.");
+            throw new IllegalArgumentException('Named JSON configuration [' + name + '] is not registered.')
         }
-        JsonMapper mapper = resolveMapper();
+        JsonMapper mapper = resolveMapper()
         if (mapper == null) {
-            throw new IllegalStateException("Named JSON configuration [" + name +
+            throw new IllegalStateException('Named JSON configuration [' + name +
                     "] cannot be used: no JsonMapper is available. Spring Boot's Jackson " +
-                    "auto-configuration normally provides one.");
+                    'auto-configuration normally provides one.')
         }
-        return configuration == null ? mapper.writer() : configuration.writer(mapper);
+        return configuration == null ? mapper.writer() : configuration.writer(mapper)
     }
 
     private JsonMapper resolveMapper() {
-        JsonMapper mapper = resolvedMapper;
+        JsonMapper mapper = resolvedMapper
         if (mapper == null) {
-            mapper = jsonMapper.get();
+            mapper = jsonMapper.get()
             if (mapper != null) {
-                mapper = JsonProjection.supporting(mapper);
-                resolvedMapper = mapper;
+                mapper = JsonProjection.supporting(mapper)
+                resolvedMapper = mapper
             }
         }
-        return mapper;
+        return mapper
     }
 
     /**
@@ -134,8 +132,8 @@ public final class NamedJsonConfigurationRegistry {
      * @throws JacksonException if the value cannot be written, such as by a serializer that fails
      * @throws IllegalArgumentException if no configuration of the name is registered
      */
-    public String writeValueAsString(String name, Object value) {
-        return writer(name).writeValueAsString(value);
+    String writeValueAsString(String name, Object value) {
+        return writer(name).writeValueAsString(value)
     }
 
     /**
@@ -150,8 +148,8 @@ public final class NamedJsonConfigurationRegistry {
      * @throws JacksonException if the value cannot be written otherwise, such as by a serializer that fails
      * @throws IllegalArgumentException if no configuration of the name is registered
      */
-    public void writeValue(String name, Writer output, Object value) throws IOException {
-        write(writer(name), output, value);
+    void writeValue(String name, Writer output, Object value) throws IOException {
+        write(writer(name), output, value)
     }
 
     /**
@@ -172,112 +170,112 @@ public final class NamedJsonConfigurationRegistry {
      * @throws IllegalArgumentException if no configuration of the name is registered, or if a projection is requested
      *         for a value it cannot apply to
      */
-    public void writeValue(String name, Writer output, Object value,
+    void writeValue(String name, Writer output, Object value,
             List<String> includes, List<String> excludes) throws IOException {
-        ObjectWriter writer = writer(name);
-        JsonProjection projection = JsonProjection.of(value, includes, excludes);
+        ObjectWriter writer = writer(name)
+        JsonProjection projection = JsonProjection.of(value, includes, excludes)
         if (projection == null) {
-            write(writer, output, value);
-            return;
+            write(writer, output, value)
+            return
         }
-        write(writer.withAttribute(JsonProjection.ATTRIBUTE, projection), output, value);
-        projection.reportUnapplied();
+        write(writer.withAttribute(JsonProjection.ATTRIBUTE, projection), output, value)
+        projection.reportUnapplied()
     }
 
     private static void write(ObjectWriter writer, Writer output, Object value) throws IOException {
-        FailureRecordingWriter recording = new FailureRecordingWriter(output);
+        FailureRecordingWriter recording = new FailureRecordingWriter(output)
         try {
             writer.without(StreamWriteFeature.AUTO_CLOSE_TARGET)
                     .without(StreamWriteFeature.FLUSH_PASSED_TO_STREAM)
-                    .writeValue(recording, value);
+                    .writeValue(recording, value)
         }
         catch (JacksonException e) {
             // Jackson reports a failure of the writer as the unchecked cause of its own exception, as it reports an
             // I/O failure of the value being written, which keeps Jackson's exception and its path. The writer's failure
             // is thrown where it caused Jackson's, with Jackson's suppressed; one that Jackson only met closing the
             // generator after another failure is suppressed in that failure's exception, which is thrown
-            IOException failure = recording.failure;
+            IOException failure = recording.failure
             if (failure != null && causes(failure, e)) {
-                failure.addSuppressed(e);
-                throw failure;
+                failure.addSuppressed(e)
+                throw failure
             }
-            throw e;
+            throw e
         }
     }
 
     private static boolean causes(Throwable failure, Throwable exception) {
         for (Throwable cause = exception.getCause(); cause != null; cause = cause.getCause()) {
-            if (cause == failure) {
-                return true;
+            if (cause.is(failure)) {
+                return true
             }
         }
-        return false;
+        return false
     }
 
     /** A writer that remembers its first failure, which Jackson reports inside its own exception. */
     private static final class FailureRecordingWriter extends FilterWriter {
 
-        private IOException failure;
+        private IOException failure
 
         FailureRecordingWriter(Writer output) {
-            super(output);
+            super(output)
         }
 
         @Override
-        public void write(int c) throws IOException {
+        void write(int c) throws IOException {
             try {
-                super.write(c);
+                super.write(c)
             }
             catch (IOException e) {
-                throw record(e);
-            }
-        }
-
-        @Override
-        public void write(char[] buffer, int offset, int length) throws IOException {
-            try {
-                super.write(buffer, offset, length);
-            }
-            catch (IOException e) {
-                throw record(e);
+                throw record(e)
             }
         }
 
         @Override
-        public void write(String text, int offset, int length) throws IOException {
+        void write(char[] buffer, int offset, int length) throws IOException {
             try {
-                super.write(text, offset, length);
+                super.write(buffer, offset, length)
             }
             catch (IOException e) {
-                throw record(e);
+                throw record(e)
             }
         }
 
         @Override
-        public void flush() throws IOException {
+        void write(String text, int offset, int length) throws IOException {
             try {
-                super.flush();
+                super.write(text, offset, length)
             }
             catch (IOException e) {
-                throw record(e);
+                throw record(e)
             }
         }
 
         @Override
-        public void close() throws IOException {
+        void flush() throws IOException {
             try {
-                super.close();
+                super.flush()
             }
             catch (IOException e) {
-                throw record(e);
+                throw record(e)
+            }
+        }
+
+        @Override
+        void close() throws IOException {
+            try {
+                super.close()
+            }
+            catch (IOException e) {
+                throw record(e)
             }
         }
 
         private IOException record(IOException e) {
             if (failure == null) {
-                failure = e;
+                failure = e
             }
-            return e;
+            return e
         }
     }
 }

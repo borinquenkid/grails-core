@@ -16,17 +16,19 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.util.function.BiConsumer;
+import groovy.transform.CompileStatic
 
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.BeanProperty;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.jsontype.TypeSerializer;
-import tools.jackson.databind.ser.impl.PropertySerializerMap;
-import tools.jackson.databind.util.NameTransformer;
+import java.util.function.BiConsumer
+
+import tools.jackson.core.JsonGenerator
+import tools.jackson.databind.BeanProperty
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.ValueSerializer
+import tools.jackson.databind.jsontype.TypeSerializer
+import tools.jackson.databind.ser.impl.PropertySerializerMap
+import tools.jackson.databind.util.NameTransformer
 
 /**
  * Writes a proxy of a domain class instance as the instance it proxies, in its own serializer, so that a proxy narrowed
@@ -36,43 +38,44 @@ import tools.jackson.databind.util.NameTransformer;
  *
  * @since 9.0
  */
+@CompileStatic
 final class DomainProxySerializer extends ValueSerializer<Object> {
 
-    private final DomainRendering rendering;
+    private final DomainRendering rendering
 
-    private final BeanProperty property;
+    private final BeanProperty property
 
     /** The names of the properties of the instance, when it is written into the object that encloses it. */
-    private final NameTransformer unwrapper;
+    private final NameTransformer unwrapper
 
     /** The serializers of the classes of the instances proxied, found once each, as Jackson's property writers keep them. */
-    private volatile PropertySerializerMap serializers = PropertySerializerMap.emptyForProperties();
+    private volatile PropertySerializerMap serializers = PropertySerializerMap.emptyForProperties()
 
     DomainProxySerializer(DomainRendering rendering) {
-        this(rendering, null, null);
+        this(rendering, null, null)
     }
 
     private DomainProxySerializer(DomainRendering rendering, BeanProperty property, NameTransformer unwrapper) {
-        this.rendering = rendering;
-        this.property = property;
-        this.unwrapper = unwrapper;
+        this.rendering = rendering
+        this.property = property
+        this.unwrapper = unwrapper
     }
 
     /** The instance is written with the property the proxy is written for, so that what it is annotated with applies. */
     @Override
-    public ValueSerializer<?> createContextual(SerializationContext context, BeanProperty property) {
-        return property == this.property ? this : new DomainProxySerializer(rendering, property, unwrapper);
+    ValueSerializer<?> createContextual(SerializationContext context, BeanProperty property) {
+        return property.is(this.property) ? this : new DomainProxySerializer(rendering, property, unwrapper)
     }
 
     /** The instance is written into the object that encloses it, as the serializer of the instance unwraps it. */
     @Override
-    public ValueSerializer<Object> unwrappingSerializer(NameTransformer unwrapper) {
-        return new DomainProxySerializer(rendering, property, unwrapper);
+    ValueSerializer<Object> unwrappingSerializer(NameTransformer unwrapper) {
+        return new DomainProxySerializer(rendering, property, unwrapper)
     }
 
     @Override
-    public boolean isUnwrappingSerializer() {
-        return unwrapper != null;
+    boolean isUnwrappingSerializer() {
+        return unwrapper != null
     }
 
     /**
@@ -80,71 +83,71 @@ final class DomainProxySerializer extends ValueSerializer<Object> {
      * it proxies, so that a property that leaves out empty values leaves it out.
      */
     @Override
-    public boolean isEmpty(SerializationContext context, Object value) {
-        Object unwrapped = rendering.of(context, value).unwrap(value);
+    boolean isEmpty(SerializationContext context, Object value) {
+        Object unwrapped = rendering.of(context, value).unwrap(value)
         if (unwrapped == null) {
-            return true;
+            return true
         }
-        return unwrapped != value && context.findValueSerializer(unwrapped.getClass()).isEmpty(context, unwrapped);
+        return !unwrapped.is(value) && context.findValueSerializer(unwrapped.getClass()).isEmpty(context, unwrapped)
     }
 
     @Override
-    public void serialize(Object value, JsonGenerator generator, SerializationContext context) {
-        Object unwrapped = unwrapped(value, context);
+    void serialize(Object value, JsonGenerator generator, SerializationContext context) {
+        Object unwrapped = unwrapped(value, context)
         if (unwrapped == null) {
-            writeNull(generator);
-            return;
+            writeNull(generator)
+            return
         }
-        serializer(unwrapped, generator, context).serialize(unwrapped, generator, context);
+        serializer(unwrapped, generator, context).serialize(unwrapped, generator, context)
     }
 
     @Override
-    public void serializeWithType(Object value, JsonGenerator generator, SerializationContext context,
+    void serializeWithType(Object value, JsonGenerator generator, SerializationContext context,
             TypeSerializer typeSerializer) {
-        Object unwrapped = unwrapped(value, context);
+        Object unwrapped = unwrapped(value, context)
         if (unwrapped == null) {
-            writeNull(generator);
-            return;
+            writeNull(generator)
+            return
         }
-        serializer(unwrapped, generator, context).serializeWithType(unwrapped, generator, context, typeSerializer);
+        serializer(unwrapped, generator, context).serializeWithType(unwrapped, generator, context, typeSerializer)
     }
 
     private void writeNull(JsonGenerator generator) {
         if (unwrapper == null) {
-            generator.writeNull();
+            generator.writeNull()
         }
     }
 
     private ValueSerializer<Object> serializer(Object instance, JsonGenerator generator, SerializationContext context) {
-        Class<?> type = instance.getClass();
-        PropertySerializerMap found = serializers;
-        ValueSerializer<Object> serializer = found.serializerFor(type);
+        Class<?> type = instance.getClass()
+        PropertySerializerMap found = serializers
+        ValueSerializer<Object> serializer = found.serializerFor(type)
         if (serializer == null) {
-            serializer = context.findPrimaryPropertySerializer(type, property);
+            serializer = context.findPrimaryPropertySerializer(type, property)
             if (unwrapper != null) {
-                serializer = serializer.unwrappingSerializer(unwrapper);
+                serializer = serializer.unwrappingSerializer(unwrapper)
             }
-            serializers = found.newWith(type, serializer);
+            serializers = found.newWith(type, serializer)
         }
         if (unwrapper != null && !serializer.isUnwrappingSerializer()) {
             // a serializer that cannot unwrap the instance writes it under the name of the property, as Jackson does
-            generator.writeName(property.getName());
+            generator.writeName(property.getName())
         }
-        return serializer;
+        return serializer
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     private Object unwrapped(Object value, SerializationContext context) {
-        Object unwrapped = rendering.of(context, value).unwrap(value);
-        if (unwrapped == value) {
-            throw new IllegalStateException("The proxy handler could not unwrap the proxy [" + value.getClass().getName() + "]");
+        Object unwrapped = rendering.of(context, value).unwrap(value)
+        if (unwrapped.is(value)) {
+            throw new IllegalStateException('The proxy handler could not unwrap the proxy [' + value.getClass().getName() + ']')
         }
         if (context.getAttribute(JsonProjection.ATTRIBUTE) instanceof JsonProjection projection) {
-            projection.narrowed(value.getClass(), unwrapped == null ? null : unwrapped.getClass());
+            projection.narrowed(value.getClass(), unwrapped == null ? null : unwrapped.getClass())
         }
         if (unwrapped != null && context.getAttribute(DomainClassJacksonModule.STAND_INS) instanceof BiConsumer<?, ?> standIns) {
-            ((BiConsumer<Object, Object>) standIns).accept(value, unwrapped);
+            ((BiConsumer<Object, Object>) standIns).accept(value, unwrapped)
         }
-        return unwrapped;
+        return unwrapped
     }
 }

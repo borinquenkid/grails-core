@@ -16,20 +16,22 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import groovy.transform.CompileStatic
 
-import tools.jackson.core.Version;
-import tools.jackson.databind.BeanDescription;
-import tools.jackson.databind.JacksonModule;
-import tools.jackson.databind.SerializationConfig;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.ser.ValueSerializerModifier;
+import java.util.function.Predicate
+import java.util.function.Supplier
 
-import org.grails.web.converters.Converter.CircularReferenceBehaviour;
+import tools.jackson.core.Version
+import tools.jackson.databind.BeanDescription
+import tools.jackson.databind.JacksonModule
+import tools.jackson.databind.SerializationConfig
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.ValueSerializer
+import tools.jackson.databind.ser.ValueSerializerModifier
+
+import org.grails.web.converters.Converter.CircularReferenceBehaviour
 
 /**
  * Applies the JSON converter's circular reference behaviour to the beans a mapper writes property by property, as
@@ -41,52 +43,53 @@ import org.grails.web.converters.Converter.CircularReferenceBehaviour;
  *
  * @since 9.0
  */
+@CompileStatic
 final class CircularReferenceModule extends JacksonModule {
 
-    private final Supplier<CircularReferenceBehaviour> behaviour;
+    private final Supplier<CircularReferenceBehaviour> behaviour
 
-    private final CycleTracking.OnCycle onCycle;
+    private final CycleTracking.OnCycle onCycle
 
-    private final Predicate<SerializationContext> paths;
+    private final Predicate<SerializationContext> paths
 
     CircularReferenceModule(Supplier<CircularReferenceBehaviour> behaviour) {
-        this.behaviour = behaviour;
-        this.onCycle = (value, enclosing, generator, context) -> Cycles.write(value, enclosing, generator, behaviour(context));
-        this.paths = context -> behaviour(context) == CircularReferenceBehaviour.PATH;
+        this.behaviour = behaviour
+        this.onCycle = (value, enclosing, generator, context) -> Cycles.write(value, enclosing, generator, resolveBehaviour(context))
+        this.paths = context -> resolveBehaviour(context) == CircularReferenceBehaviour.PATH
     }
 
     /**
      * The behaviour of a write, read once for it, as what decides it, such as the configuration, does not change while it
      * writes.
      */
-    private CircularReferenceBehaviour behaviour(SerializationContext context) {
+    private CircularReferenceBehaviour resolveBehaviour(SerializationContext context) {
         if (context.getAttribute(behaviour) instanceof CircularReferenceBehaviour read) {
-            return read;
+            return read
         }
-        CircularReferenceBehaviour read = behaviour.get();
-        context.setAttribute(behaviour, read);
-        return read;
+        CircularReferenceBehaviour read = behaviour.get()
+        context.setAttribute(behaviour, read)
+        return read
     }
 
     @Override
-    public String getModuleName() {
-        return "grails-circular-references";
+    String getModuleName() {
+        return 'grails-circular-references'
     }
 
     @Override
-    public Version version() {
-        return Version.unknownVersion();
+    Version version() {
+        return Version.unknownVersion()
     }
 
     @Override
-    public void setupModule(SetupContext context) {
+    void setupModule(SetupContext context) {
         context.addSerializerModifier(new ValueSerializerModifier() {
             @Override
-            public ValueSerializer<?> modifySerializer(SerializationConfig config, BeanDescription.Supplier beanDescription,
+            ValueSerializer<?> modifySerializer(SerializationConfig config, BeanDescription.Supplier beanDescription,
                     ValueSerializer<?> serializer) {
-                ValueSerializer<?> tracked = CycleTracking.around(serializer, onCycle, paths);
-                return tracked != null ? tracked : serializer;
+                ValueSerializer<?> tracked = CycleTracking.around(serializer, onCycle, paths)
+                return tracked != null ? tracked : serializer
             }
-        });
+        })
     }
 }

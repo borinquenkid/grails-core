@@ -16,24 +16,16 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import groovy.transform.CompileStatic
 
 /**
  * Decisions that the writers of a domain class instance share.
  *
  * @since 9.0
  */
+@CompileStatic
 final class DomainWrites {
 
     private DomainWrites() {
@@ -42,23 +34,23 @@ final class DomainWrites {
     /**
      * A copy of an association's collection, which loads it and keeps its order.
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ 'unchecked', 'rawtypes' })
     static Object copied(Object value) {
         if (value instanceof SortedMap map) {
-            return new TreeMap(map);
+            return new TreeMap(map)
         }
         if (value instanceof SortedSet set) {
-            return new TreeSet(set);
+            return new TreeSet(set)
         }
         if (value instanceof Set set) {
-            return new LinkedHashSet(set);
+            return new LinkedHashSet(set)
         }
         if (value instanceof Map map) {
-            return new LinkedHashMap(map);
+            return new LinkedHashMap(map)
         }
         if (value instanceof Collection collection) {
-            return new ArrayList(collection);
+            return new ArrayList(collection)
         }
-        return value;
+        return value
     }
 }

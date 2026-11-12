@@ -16,38 +16,36 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiPredicate;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import groovy.transform.CompileStatic
 
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.core.Version;
-import tools.jackson.databind.BeanDescription;
-import tools.jackson.databind.JacksonModule;
-import tools.jackson.databind.JavaType;
-import tools.jackson.databind.SerializationConfig;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.introspect.BeanPropertyDefinition;
-import tools.jackson.databind.module.SimpleSerializers;
-import tools.jackson.databind.ser.BeanPropertyWriter;
-import tools.jackson.databind.ser.BeanSerializerBuilder;
-import tools.jackson.databind.ser.ValueSerializerModifier;
-import tools.jackson.databind.ser.jackson.JsonValueSerializer;
-import tools.jackson.databind.ser.jdk.EnumSerializer;
-import tools.jackson.databind.ser.std.StdScalarSerializer;
+import java.util.function.BiPredicate
+import java.util.function.Function
+import java.util.function.Supplier
 
-import org.springframework.context.MessageSource;
-import org.springframework.validation.Errors;
+import tools.jackson.core.JsonGenerator
+import tools.jackson.core.Version
+import tools.jackson.databind.BeanDescription
+import tools.jackson.databind.JacksonModule
+import tools.jackson.databind.JavaType
+import tools.jackson.databind.SerializationConfig
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.ValueSerializer
+import tools.jackson.databind.introspect.BeanPropertyDefinition
+import tools.jackson.databind.module.SimpleSerializers
+import tools.jackson.databind.ser.BeanPropertyWriter
+import tools.jackson.databind.ser.BeanSerializerBuilder
+import tools.jackson.databind.ser.ValueSerializerModifier
+import tools.jackson.databind.ser.jackson.JsonValueSerializer
+import tools.jackson.databind.ser.jdk.EnumSerializer
+import tools.jackson.databind.ser.std.StdScalarSerializer
 
-import grails.persistence.PersistenceMethod;
-import grails.web.controllers.ControllerMethod;
+import org.springframework.context.MessageSource
+import org.springframework.validation.Errors
+
+import grails.persistence.PersistenceMethod
+import grails.web.controllers.ControllerMethod
 
 /**
  * The rules {@code grails.converters.JSON} adds to the mapper it writes with: an enum is written by its name, so that it
@@ -57,16 +55,17 @@ import grails.web.controllers.ControllerMethod;
  *
  * @since 9.0
  */
-public final class ConverterJsonModule extends JacksonModule {
+@CompileStatic
+final class ConverterJsonModule extends JacksonModule {
 
-    private final Supplier<MessageSource> messageSource;
+    private final Supplier<MessageSource> messageSource
 
     /**
      * @param messageSource supplies the message source that resolves the messages of validation errors, or
      *        {@code null}, as is the message source it supplies, for their default messages
      */
-    public ConverterJsonModule(Supplier<MessageSource> messageSource) {
-        this.messageSource = messageSource != null ? messageSource : () -> null;
+    ConverterJsonModule(Supplier<MessageSource> messageSource) {
+        this.messageSource = messageSource != null ? messageSource : () -> null
     }
 
     /**
@@ -74,79 +73,79 @@ public final class ConverterJsonModule extends JacksonModule {
      * {@code Function<Object, BiPredicate<String, String>>} that gives, for a bean, whether a property is written by the
      * name the class gives it and the name it is written with, or {@code null} for all of them.
      */
-    public static final String PROPERTY_FILTERS = ConverterJsonModule.class.getName() + ".propertyFilters";
+    public static final String PROPERTY_FILTERS = ConverterJsonModule.getName() + '.propertyFilters'
 
     @Override
-    public String getModuleName() {
-        return "grails-converter-json";
+    String getModuleName() {
+        return 'grails-converter-json'
     }
 
     @Override
-    public Version version() {
-        return Version.unknownVersion();
+    Version version() {
+        return Version.unknownVersion()
     }
 
     @Override
-    public void setupModule(SetupContext context) {
+    void setupModule(SetupContext context) {
         // Validation errors are written without the values that were rejected, which can be passwords or tokens
-        SimpleSerializers serializers = new SimpleSerializers();
-        serializers.addSerializer(Errors.class, new SpringErrorsJsonSerializer(messageSource));
-        context.addSerializers(serializers);
+        SimpleSerializers serializers = new SimpleSerializers()
+        serializers.addSerializer(Errors, new SpringErrorsJsonSerializer(messageSource))
+        context.addSerializers(serializers)
         context.addSerializerModifier(new ValueSerializerModifier() {
             @Override
-            public List<BeanPropertyWriter> changeProperties(SerializationConfig config, BeanDescription.Supplier beanDescription,
+            List<BeanPropertyWriter> changeProperties(SerializationConfig config, BeanDescription.Supplier beanDescription,
                     List<BeanPropertyWriter> properties) {
-                Map<String, String> internalNames = new HashMap<>();
+                Map<String, String> internalNames = new HashMap<>()
                 for (BeanPropertyDefinition definition : beanDescription.get().findProperties()) {
-                    internalNames.put(definition.getName(), definition.getInternalName());
+                    internalNames.put(definition.getName(), definition.getInternalName())
                 }
-                List<BeanPropertyWriter> written = new ArrayList<>(properties.size());
+                List<BeanPropertyWriter> written = new ArrayList<>(properties.size())
                 for (BeanPropertyWriter writer : properties) {
-                    if (writer.getAnnotation(PersistenceMethod.class) == null &&
-                            writer.getAnnotation(ControllerMethod.class) == null) {
+                    if (writer.getAnnotation(PersistenceMethod) == null &&
+                            writer.getAnnotation(ControllerMethod) == null) {
                         // Not checked: a domain class instance the converter writes may have a class name or a version it
                         // does not write, which the rendering of each write decides
                         written.add(GatedPropertyWriter.gated(writer,
-                                included(internalNames.getOrDefault(writer.getName(), writer.getName())), false));
+                                included(internalNames.getOrDefault(writer.getName(), writer.getName())), false))
                     }
                 }
-                return written;
+                return written
             }
 
             @Override
-            public BeanSerializerBuilder updateBuilder(SerializationConfig config, BeanDescription.Supplier beanDescription,
+            BeanSerializerBuilder updateBuilder(SerializationConfig config, BeanDescription.Supplier beanDescription,
                     BeanSerializerBuilder builder) {
                 // the entries of a @JsonAnyGetter, as the property it is, which Jackson writes with a writer of its own
-                return GatedPropertyWriter.gateAnyGetter(builder, beanDescription.get(), ConverterJsonModule::included, false);
+                return GatedPropertyWriter.gateAnyGetter(builder, beanDescription.get(), ConverterJsonModule::included, false)
             }
 
             @Override
-            public ValueSerializer<?> modifySerializer(SerializationConfig config, BeanDescription.Supplier beanDescription,
+            ValueSerializer<?> modifySerializer(SerializationConfig config, BeanDescription.Supplier beanDescription,
                     ValueSerializer<?> serializer) {
-                return byName(beanDescription.get().getBeanClass(), serializer);
+                return byName(beanDescription.get().getBeanClass(), serializer)
             }
 
             @Override
-            public ValueSerializer<?> modifyEnumSerializer(SerializationConfig config, JavaType valueType,
+            ValueSerializer<?> modifyEnumSerializer(SerializationConfig config, JavaType valueType,
                     BeanDescription.Supplier beanDescription, ValueSerializer<?> serializer) {
-                return byName(valueType.getRawClass(), serializer);
+                return byName(valueType.getRawClass(), serializer)
             }
-        });
+        })
     }
 
     /**
      * The converter's includes and excludes for the class of the bean being written, which name a property by the name
      * the class gives it or by the name it is written with.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     private static GatedPropertyWriter.Gate included(String property) {
         return (bean, context, writer) -> {
             if (context.getAttribute(PROPERTY_FILTERS) instanceof Function<?, ?> filters) {
-                BiPredicate<String, String> filter = ((Function<Object, BiPredicate<String, String>>) filters).apply(bean);
-                return filter == null || filter.test(property, writer.getName());
+                BiPredicate<String, String> filter = ((Function<Object, BiPredicate<String, String>>) filters).apply(bean)
+                return filter == null || filter.test(property, writer.getName())
             }
-            return true;
-        };
+            return true
+        }
     }
 
     /**
@@ -154,39 +153,39 @@ public final class ConverterJsonModule extends JacksonModule {
      * that writes the name. An enum with a serializer of its own, such as {@code Month}, keeps it.
      */
     private static ValueSerializer<?> byName(Class<?> type, ValueSerializer<?> serializer) {
-        if (!Enum.class.isAssignableFrom(type)) {
-            return serializer;
+        if (!Enum.isAssignableFrom(type)) {
+            return serializer
         }
-        ValueSerializer<?> innermost = serializer;
+        ValueSerializer<?> innermost = serializer
         while (innermost.getDelegatee() != null && innermost.getDelegatee() != innermost) {
-            innermost = innermost.getDelegatee();
+            innermost = innermost.getDelegatee()
         }
         return innermost instanceof EnumSerializer || innermost instanceof JsonValueSerializer ?
-                replaceInnermost(serializer, new EnumNameSerializer()) : serializer;
+                replaceInnermost(serializer, new EnumNameSerializer()) : serializer
     }
 
     /**
      * Replaces the serializer that does the writing, inside the serializers another module wrapped it with.
      */
     private static ValueSerializer<?> replaceInnermost(ValueSerializer<?> serializer, ValueSerializer<?> replacement) {
-        ValueSerializer<?> delegatee = serializer.getDelegatee();
+        ValueSerializer<?> delegatee = serializer.getDelegatee()
         if (delegatee == null || delegatee == serializer) {
-            return replacement;
+            return replacement
         }
-        return serializer.replaceDelegatee(replaceInnermost(delegatee, replacement));
+        return serializer.replaceDelegatee(replaceInnermost(delegatee, replacement))
     }
 
     /** A scalar, as Jackson's own enum serializer is, so that it is also written with a type id. */
     private static final class EnumNameSerializer extends StdScalarSerializer<Enum<?>> {
 
-        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @SuppressWarnings({ 'unchecked', 'rawtypes' })
         private EnumNameSerializer() {
-            super((Class) Enum.class);
+            super((Class) Enum)
         }
 
         @Override
-        public void serialize(Enum<?> value, JsonGenerator generator, SerializationContext context) {
-            generator.writeString(value.name());
+        void serialize(Enum<?> value, JsonGenerator generator, SerializationContext context) {
+            generator.writeString(value.name())
         }
     }
 }

@@ -16,13 +16,15 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package org.grails.web.converters.jackson;
+package org.grails.web.converters.jackson
 
-import java.util.function.Function;
-import java.util.function.Supplier;
+import groovy.transform.CompileStatic
 
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
+import java.util.function.Function
+import java.util.function.Supplier
+
+import tools.jackson.core.JsonGenerator
+import tools.jackson.databind.SerializationContext
 
 /**
  * Finds the {@link DomainClassRendering} of a write: the one the writer supplied for the instance, such as the JSON
@@ -34,17 +36,18 @@ import tools.jackson.databind.SerializationContext;
  *
  * @since 9.0
  */
+@CompileStatic
 final class DomainRendering implements Supplier<DomainClassRendering> {
 
-    private final Supplier<DomainClassRendering> source;
+    private final Supplier<DomainClassRendering> source
 
-    private final boolean renderingsPerWrite;
+    private final boolean renderingsPerWrite
 
-    private volatile DomainClassRendering kept;
+    private volatile DomainClassRendering kept
 
     DomainRendering(Supplier<DomainClassRendering> source, boolean renderingsPerWrite) {
-        this.source = source;
-        this.renderingsPerWrite = renderingsPerWrite;
+        this.source = source
+        this.renderingsPerWrite = renderingsPerWrite
     }
 
     /**
@@ -52,19 +55,19 @@ final class DomainRendering implements Supplier<DomainClassRendering> {
      *         does not
      */
     boolean renderingsPerWrite() {
-        return renderingsPerWrite;
+        return renderingsPerWrite
     }
 
     @Override
-    public DomainClassRendering get() {
-        DomainClassRendering current = kept;
+    DomainClassRendering get() {
+        DomainClassRendering current = kept
         if (current == null) {
-            current = source.get();
+            current = source.get()
             if (current.hasApplication()) {
-                kept = current;
+                kept = current
             }
         }
-        return current;
+        return current
     }
 
     /**
@@ -72,15 +75,15 @@ final class DomainRendering implements Supplier<DomainClassRendering> {
      * @param instance a domain class instance being written
      * @return the rendering to write the instance with: the one the writer supplied for it, if it did
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings('unchecked')
     DomainClassRendering of(SerializationContext context, Object instance) {
         if (context.getAttribute(DomainClassJacksonModule.RENDERINGS) instanceof Function<?, ?> renderings) {
-            DomainClassRendering supplied = ((Function<Object, DomainClassRendering>) renderings).apply(instance);
+            DomainClassRendering supplied = ((Function<Object, DomainClassRendering>) renderings).apply(instance)
             if (supplied != null) {
-                return supplied;
+                return supplied
             }
         }
-        return get();
+        return get()
     }
 
     /**
@@ -89,7 +92,7 @@ final class DomainRendering implements Supplier<DomainClassRendering> {
      * @return the rendering to write the property with
      */
     DomainClassRendering ofOwner(SerializationContext context, JsonGenerator generator) {
-        Object owner = generator.streamWriteContext().currentValue();
-        return owner != null ? of(context, owner) : get();
+        Object owner = generator.streamWriteContext().currentValue()
+        return owner != null ? of(context, owner) : get()
     }
 }

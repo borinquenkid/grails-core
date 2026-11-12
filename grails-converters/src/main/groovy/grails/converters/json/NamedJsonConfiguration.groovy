@@ -16,35 +16,35 @@
  *  specific language governing permissions and limitations
  *  under the License.
  */
-package grails.converters.json;
+package grails.converters.json
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import groovy.transform.CompileStatic
 
-import tools.jackson.core.Version;
-import tools.jackson.databind.ObjectWriter;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.core.Version
+import tools.jackson.databind.ObjectWriter
+import tools.jackson.databind.ValueSerializer
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
 
-import org.grails.web.converters.jackson.DomainClassJacksonModule;
+import org.grails.web.converters.jackson.DomainClassJacksonModule
 
 /**
  * Defines serializers, a view, and writer attributes for one named Jackson response configuration.
  *
  * @since 9.0
  */
-public final class NamedJsonConfiguration {
+@CompileStatic
+final class NamedJsonConfiguration {
 
-    private final SimpleModule module;
-    private final Map<Object, Object> attributes = new LinkedHashMap<>();
-    private Class<?> serializationView;
-    private volatile ObjectWriter writer;
-    private boolean registered;
+    private final SimpleModule module
+    private final Map<Object, Object> attributes = new LinkedHashMap<>()
+    private Class<?> serializationView
+    private volatile ObjectWriter writer
+    private boolean registered
 
     NamedJsonConfiguration(String name) {
         // Its own registration id: a module named as the configuration would replace a module of the same name
-        this.module = new SimpleModule("grails-json-" + name, Version.unknownVersion(), new Object());
+        this.module = new SimpleModule('grails-json-' + name, Version.unknownVersion(), new Object())
     }
 
     /**
@@ -55,10 +55,10 @@ public final class NamedJsonConfiguration {
      * @param <T> the type
      * @return this configuration
      */
-    public <T> NamedJsonConfiguration serializer(Class<T> type, ValueSerializer<? super T> serializer) {
-        assertMutable();
-        module.addSerializer(type, serializer);
-        return this;
+    <T> NamedJsonConfiguration serializer(Class<T> type, ValueSerializer<? super T> serializer) {
+        assertMutable()
+        module.addSerializer(type, serializer)
+        return this
     }
 
     /**
@@ -68,10 +68,10 @@ public final class NamedJsonConfiguration {
      * @param view the view
      * @return this configuration
      */
-    public NamedJsonConfiguration view(Class<?> view) {
-        assertMutable();
-        this.serializationView = view;
-        return this;
+    NamedJsonConfiguration view(Class<?> view) {
+        assertMutable()
+        this.serializationView = view
+        return this
     }
 
     /**
@@ -80,8 +80,8 @@ public final class NamedJsonConfiguration {
      *
      * @return this configuration
      */
-    public NamedJsonConfiguration deep() {
-        return attribute(DomainClassJacksonModule.DEEP, Boolean.TRUE);
+    NamedJsonConfiguration deep() {
+        return attribute(DomainClassJacksonModule.DEEP, Boolean.TRUE)
     }
 
     /**
@@ -94,36 +94,36 @@ public final class NamedJsonConfiguration {
      *         writes can supply: the mapper of a named configuration decides whether it writes the class name and the
      *         version of a domain class before any write supplies a rendering
      */
-    public NamedJsonConfiguration attribute(Object name, Object value) {
-        assertMutable();
+    NamedJsonConfiguration attribute(Object name, Object value) {
+        assertMutable()
         if (DomainClassJacksonModule.RENDERINGS.equals(name)) {
-            throw new IllegalArgumentException("[" + DomainClassJacksonModule.RENDERINGS + "] is the attribute of the " +
+            throw new IllegalArgumentException('[' + DomainClassJacksonModule.RENDERINGS + '] is the attribute of the ' +
                     "JSON converter's writes; a named JSON configuration renders domain class instances with the " +
-                    "grails.converters.json.domain settings, and a serializer or a projection of its own.");
+                    'grails.converters.json.domain settings, and a serializer or a projection of its own.')
         }
-        attributes.put(name, value);
-        return this;
+        attributes.put(name, value)
+        return this
     }
 
     void freeze() {
-        registered = true;
+        registered = true
     }
 
     private void assertMutable() {
         if (registered) {
-            throw new IllegalStateException("Named JSON configurations cannot be changed after registration; register a replacement.");
+            throw new IllegalStateException('Named JSON configurations cannot be changed after registration; register a replacement.')
         }
     }
 
     ObjectWriter createWriter(JsonMapper mapper) {
-        JsonMapper configuredMapper = mapper.rebuild().addModule(module).build();
+        JsonMapper configuredMapper = mapper.rebuild().addModule(module).build()
         ObjectWriter writer = serializationView == null ? configuredMapper.writer() :
-                configuredMapper.writerWithView(serializationView);
+                configuredMapper.writerWithView(serializationView)
         // added to the attributes the mapper gives every write, which they leave in place
         for (Map.Entry<Object, Object> attribute : attributes.entrySet()) {
-            writer = writer.withAttribute(attribute.getKey(), attribute.getValue());
+            writer = writer.withAttribute(attribute.getKey(), attribute.getValue())
         }
-        return writer;
+        return writer
     }
 
     /**
@@ -132,16 +132,16 @@ public final class NamedJsonConfiguration {
      * so the derived writer is cached rather than rebuilt for every response.
      */
     ObjectWriter writer(JsonMapper mapper) {
-        ObjectWriter current = this.writer;
+        ObjectWriter current = this.writer
         if (current == null) {
             synchronized (this) {
-                current = this.writer;
+                current = this.writer
                 if (current == null) {
-                    current = createWriter(mapper);
-                    this.writer = current;
+                    current = createWriter(mapper)
+                    this.writer = current
                 }
             }
         }
-        return current;
+        return current
     }
 }
