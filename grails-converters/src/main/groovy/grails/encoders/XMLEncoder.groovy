@@ -19,22 +19,39 @@
 
 package grails.encoders
 
-import groovy.transform.CompileStatic
+import java.lang.reflect.Constructor
 
-import grails.converters.XML
+import groovy.transform.CompileStatic
+import org.springframework.beans.BeanUtils
+import org.springframework.util.ClassUtils
+
 import org.grails.encoder.impl.BasicXMLEncoder
 
+/**
+ * Escapes text and primitive values for inclusion in XML documents. Any other object is rendered by the XML converter of
+ * the {@code grails-xml} module when the application includes it, and is otherwise escaped as its string.
+ */
 @CompileStatic
 class XMLEncoder extends BasicXMLEncoder {
 
+    private static final String XML_CONVERTER = 'grails.converters.XML'
+
+    private static final Constructor<?> CONVERTER = converter()
+
     @Override
     protected Object encodeAsXmlObject(Object o) {
-        if (o instanceof XML) {
-            return o
+        if (CONVERTER == null) {
+            return doCharReplacementEncoding(o)
         }
-        else {
-            return new XML(o)
-        }
+        return CONVERTER.getDeclaringClass().isInstance(o) ? o : BeanUtils.instantiateClass(CONVERTER, o)
     }
 
+    private static Constructor<?> converter() {
+        // found by name, since grails-xml depends on this module; grails-xml registers both for an ahead-of-time image
+        ClassLoader classLoader = XMLEncoder.getClassLoader()
+        if (!ClassUtils.isPresent(XML_CONVERTER, classLoader)) {
+            return null
+        }
+        return ClassUtils.getConstructorIfAvailable(ClassUtils.resolveClassName(XML_CONVERTER, classLoader), Object)
+    }
 }
