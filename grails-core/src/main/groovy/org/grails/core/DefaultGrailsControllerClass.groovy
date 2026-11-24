@@ -32,9 +32,9 @@ import org.springframework.util.ReflectionUtils;
 import grails.config.Settings;
 import grails.core.GrailsApplication;
 import grails.core.GrailsControllerClass;
-import grails.util.Environment;
 import grails.web.Action;
 import grails.web.UrlConverter;
+import org.grails.core.exceptions.GrailsConfigurationException;
 
 /**
  * Evaluates the conventions contained within controllers to perform auto-configuration.
@@ -58,7 +58,7 @@ class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass impleme
     public static final String SCOPE_SINGLETON = 'singleton';
     private static final MethodType METHOD_HANDLE_INVOKER_TYPE = MethodType.methodType(Object, Object);
     private String scope;
-    private Map<String, ActionInvoker> actions = new HashMap<>();
+    private Map<String, MethodHandle> actions = new HashMap<>();
     private String defaultActionName;
     private String namespace;
     protected Map<String, String> actionUriToViewName = new HashMap<>();
@@ -110,27 +110,14 @@ class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass impleme
         return this.defaultActionName;
     }
 
-    private void methodStrategy(Map<String, ActionInvoker> methodNames) {
+    private void methodStrategy(Map<String, MethodHandle> methodNames) {
 
         Class superClass = getClazz();
         MethodHandles.Lookup lookup = MethodHandles.lookup();
         while (superClass != Object && superClass != GroovyObject) {
             for (Method method : superClass.getMethods()) {
                 if (Modifier.isPublic(method.getModifiers()) && method.getAnnotation(Action) != null) {
-                    String methodName = method.getName();
-                    if (Environment.isDevelopmentMode()) {
-                        methodNames.put(methodName, new ReflectionInvoker(method));
-                    }
-                    else {
-                        MethodHandle mh;
-                        try {
-                            mh = lookup.findVirtual(superClass, methodName, MethodType.methodType(method.getReturnType()));
-                            methodNames.put(methodName, new MethodHandleInvoker(mh));
-                        } catch (NoSuchMethodException | IllegalAccessException e) {
-                            methodNames.put(methodName, new ReflectionInvoker(method));
-                        }
-                    }
-
+                    methodNames.put(method.getName(), actionHandle(lookup, method));
                 }
             }
             superClass = superClass.getSuperclass();
@@ -139,6 +126,30 @@ class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass impleme
         if (!isActionMethod(defaultActionName) && methodNames.size() == 1 && !isReadableProperty('scaffold')) {
             defaultActionName = methodNames.keySet().iterator().next();
         }
+    }
+
+    /**
+     * A handle to the action, made from the method that reflection reports, so that it also reaches an action a class
+     * reloading agent has added to a class that is already loaded, and an action of a class that is not public.
+     */
+    private static MethodHandle actionHandle(MethodHandles.Lookup lookup, Method method) {
+        ReflectionUtils.makeAccessible(method);
+        MethodHandle handle;
+        try {
+            handle = lookup.unreflect(method);
+        }
+        catch (IllegalAccessException e) {
+            throw new GrailsConfigurationException('Cannot invoke controller action [' + method + ']', e);
+        }
+        if (Modifier.isStatic(method.getModifiers())) {
+            // invoked with the controller, which a static action ignores, as Method.invoke does
+            handle = MethodHandles.dropArguments(handle, 0, Object);
+        }
+        // Groovy compiles every call to the signature-polymorphic MethodHandle.invoke/invokeExact with the descriptor
+        // (Object[])Object, so the action handle, whose type is (ControllerType)ReturnType, is adapted once here to
+        // exactly that shape: erase both types to Object, then spread the single-element Object[] that Groovy passes
+        // onto the receiver argument. invokeExact() on the result is then a direct invocation on every dispatch.
+        return handle.asType(METHOD_HANDLE_INVOKER_TYPE).asSpreader(Object[], 1);
     }
 
     @Override
@@ -188,9 +199,9 @@ class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass impleme
     @Override
     Object invoke(Object controller, String action) throws Throwable {
         if (action == null) action = this.defaultActionName;
-        ActionInvoker handle = actions.get(action);
+        MethodHandle handle = actions.get(action);
         if (handle == null) throw new IllegalArgumentException('Invalid action name: ' + action);
-        return handle.invoke(controller);
+        return handle.invokeExact(controller);
     }
 
     String actionUriToViewName(String actionUri) {
@@ -198,41 +209,4 @@ class DefaultGrailsControllerClass extends AbstractInjectableGrailsClass impleme
 
         return actionName != null ? actionName : actionUri;
     }
-
-    private interface ActionInvoker {
-        Object invoke(Object controller) throws Throwable;
-    }
-
-    private class ReflectionInvoker implements ActionInvoker {
-        private final Method method;
-
-        public ReflectionInvoker(Method method) {
-            this.method = method;
-            ReflectionUtils.makeAccessible(method);
-        }
-
-        @Override
-        Object invoke(Object controller) throws Throwable {
-            return method.invoke(controller);
-        }
-    }
-
-    private class MethodHandleInvoker implements ActionInvoker {
-        private final MethodHandle handle;
-
-        public MethodHandleInvoker(MethodHandle handle) {
-            // Groovy compiles every call to the signature-polymorphic MethodHandle.invoke/invokeExact with the
-            // descriptor (Object[])Object, so the action handle, whose type is (ControllerType)ReturnType, is
-            // adapted once here to exactly that shape: erase both types to Object, then spread the single-element
-            // Object[] that Groovy passes onto the receiver argument. invoke() below is then an exact, direct
-            // invocation on every dispatch instead of the allocating and boxing invokeWithArguments() path.
-            this.handle = handle.asType(METHOD_HANDLE_INVOKER_TYPE).asSpreader(Object[], 1);
-        }
-
-        @Override
-        Object invoke(Object controller) throws Throwable {
-            return handle.invokeExact(controller);
-        }
-    }
-
 }
