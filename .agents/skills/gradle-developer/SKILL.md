@@ -36,8 +36,7 @@ Related skills (do not substitute this one):
 | CodeNarc / Checkstyle / PMD / SpotBugs reports | `violation-fixer` |
 | Failing tests / aggregate reports | `test-fixer` |
 | Merging an external plugin repo into the monorepo | `mono-repo-integration` |
-| App-facing Grails 8 upgrade guidance | `grails-8-upgrade` |
-| App-facing Grails 9 upgrade guidance | `grails-9-upgrade` |
+| App-facing Grails upgrade guidance | `grails-upgrade` |
 
 ---
 
@@ -137,7 +136,7 @@ Presence-based flags (property **present**, value optional) match `skipFunctiona
 
 ## Gradle Version Sync (Hard Rule)
 
-Current line: **Gradle 9.9.0** (`distributionUrl` + `gradleToolingApiVersion=9.9.0`). Upstream may already ship a newer 9.9.x patch - this repo rides close to latest **only after** a deliberate multi-location bump PR. Do not "helpfully" jump one wrapper ahead of the rest.
+Current line: **Gradle 9.9.2** (`distributionUrl` + `gradleToolingApiVersion=9.9.2`). Upstream may already ship a newer 9.9.x patch - this repo rides close to latest **only after** a deliberate multi-location bump PR. Do not "helpfully" jump one wrapper ahead of the rest.
 
 **Two Groovy stacks:** Gradle itself embeds **Groovy 4** for build logic. Application/runtime code on 8.0.x is **Groovy 5**. That is why `dependencies.gradle` keeps separate maps:
 
@@ -367,6 +366,7 @@ A module the parent manages through an imported BOM belongs to the property the 
 3. Use the unversioned coordinate in module `dependencies {}`.
 4. Run `./gradlew :that-module:validateDependencyVersions` (and affected consumers).
 5. Security overrides: comment with CVE and previous Boot version (see existing httpcore5/jackson/logback pins).
+6. Hibernate ORM 7 has no pin: `grails-hibernate7-bom` reads the version `spring-boot-dependencies` manages and strictly re-declares `hibernateOrmModules` at it. To move ahead of a Spring Boot that lags behind, set `hibernate7VersionOverride` in `dependencies.gradle`; the BOM then strictly re-declares at it every `org.hibernate.orm` module `spring-boot-dependencies` manages in its own POM (`PomVersions.managedArtifactIds`), not only `hibernateOrmModules`, so `enforcedPlatform` consumers move the whole family as a Maven consumer setting `hibernate.version` does. `validateHibernateVersion` fails while it is not newer than Spring Boot's version, so a Boot bump that catches up forces its removal. It also fails when `hibernate-models.version` differs from the version the managed Hibernate ORM release depends on. Configuring the project reads only `spring-boot-dependencies`' own entry for `hibernate-core` (`PomVersions.managedVersion`), never the BOMs it imports, so a task that resolves none of them does not fail when one is missing from the cache; both checks resolve in the task's inputs, and `check` and the BOM's POM generation run it.
 
 ### Exclusions
 
@@ -665,16 +665,16 @@ Develocity: `https://develocity.apache.org` - build scans publish when authentic
 
 Use official docs for API signatures and deprecations (pin URLs to the version you are bumping toward):
 
-- [Gradle 9.9 release notes](https://docs.gradle.org/9.9.0/release-notes.html)
-- [Upgrading major version 9](https://docs.gradle.org/9.9.0/userguide/upgrading_major_version_9.html)
-- [Upgrading within Gradle 9.x](https://docs.gradle.org/9.9.0/userguide/upgrading_version_9.html)
-- [Java Library plugin](https://docs.gradle.org/9.9.0/userguide/java_library_plugin.html)
-- [Java Platform / BOM](https://docs.gradle.org/9.9.0/userguide/java_platform_plugin.html)
-- [Platforms](https://docs.gradle.org/9.9.0/userguide/platforms.html)
-- [Sharing build logic via included builds](https://docs.gradle.org/9.9.0/userguide/sharing_build_logic_between_subprojects.html)
-- [Task configuration avoidance](https://docs.gradle.org/9.9.0/userguide/task_configuration_avoidance.html)
-- [Configuration cache](https://docs.gradle.org/9.9.0/userguide/configuration_cache.html) and its [requirements](https://docs.gradle.org/9.9.0/userguide/configuration_cache_requirements.html)
-- [Version catalogs](https://docs.gradle.org/9.9.0/userguide/version_catalogs.html) (docs like them - **this repo does not**)
+- [Gradle 9.9 release notes](https://docs.gradle.org/9.9.2/release-notes.html)
+- [Upgrading major version 9](https://docs.gradle.org/9.9.2/userguide/upgrading_major_version_9.html)
+- [Upgrading within Gradle 9.x](https://docs.gradle.org/9.9.2/userguide/upgrading_version_9.html)
+- [Java Library plugin](https://docs.gradle.org/9.9.2/userguide/java_library_plugin.html)
+- [Java Platform / BOM](https://docs.gradle.org/9.9.2/userguide/java_platform_plugin.html)
+- [Platforms](https://docs.gradle.org/9.9.2/userguide/platforms.html)
+- [Sharing build logic via included builds](https://docs.gradle.org/9.9.2/userguide/sharing_build_logic_between_subprojects.html)
+- [Task configuration avoidance](https://docs.gradle.org/9.9.2/userguide/task_configuration_avoidance.html)
+- [Configuration cache](https://docs.gradle.org/9.9.2/userguide/configuration_cache.html) and its [requirements](https://docs.gradle.org/9.9.2/userguide/configuration_cache_requirements.html)
+- [Version catalogs](https://docs.gradle.org/9.9.2/userguide/version_catalogs.html) (docs like them - **this repo does not**)
 
 ### Docs say X - we do Y
 
