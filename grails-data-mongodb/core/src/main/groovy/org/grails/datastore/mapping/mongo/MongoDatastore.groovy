@@ -69,6 +69,7 @@ import org.grails.datastore.gorm.GormEnhancer
 import org.grails.datastore.gorm.GormInstanceApi
 import org.grails.datastore.gorm.GormValidationApi
 import org.grails.datastore.gorm.events.AutoTimestampEventListener
+import org.grails.datastore.gorm.events.AutoTimestampingDatastore
 import org.grails.datastore.gorm.events.ConfigurableApplicationEventPublisher
 import org.grails.datastore.gorm.events.DefaultApplicationEventPublisher
 import org.grails.datastore.gorm.events.DomainEventListener
@@ -131,7 +132,7 @@ import org.grails.datastore.mapping.validation.ValidatorRegistry
  * @since 1.0
  */
 @CompileStatic
-class MongoDatastore extends AbstractDatastore implements MappingContext.Listener, Closeable, StatelessDatastore, MultipleConnectionSourceCapableDatastore, MultiTenantCapableDatastore<MongoClient, MongoConnectionSourceSettings>, TransactionCapableDatastore, SmartLifecycle {
+class MongoDatastore extends AbstractDatastore implements MappingContext.Listener, Closeable, StatelessDatastore, MultipleConnectionSourceCapableDatastore, MultiTenantCapableDatastore<MongoClient, MongoConnectionSourceSettings>, TransactionCapableDatastore, SmartLifecycle, AutoTimestampingDatastore {
 
     public static final String SETTING_DATABASE_NAME = MongoSettings.SETTING_DATABASE_NAME
     public static final String SETTING_CONNECTION_STRING = MongoSettings.SETTING_CONNECTION_STRING
@@ -2113,6 +2114,8 @@ class MongoDatastore extends AbstractDatastore implements MappingContext.Listene
             } else {
                 summary.failures++
                 LOG.error('Failed to create index for entity [{}] {}: {}',
+                        entity.getName(), descriptor, e.getMessage())
+                LOG.debug('Stack trace of the failure to create index for entity [{}] {}: {}',
                         entity.getName(), descriptor, e.getMessage(), e)
             }
         } catch (MongoServerException e) {
@@ -2125,6 +2128,8 @@ class MongoDatastore extends AbstractDatastore implements MappingContext.Listene
             }
             summary.failures++
             LOG.error('Failed to create index for entity [{}] {}: {}',
+                    entity.getName(), descriptor, e.getMessage())
+            LOG.debug('Stack trace of the failure to create index for entity [{}] {}: {}',
                     entity.getName(), descriptor, e.getMessage(), e)
         }
     }
@@ -2154,7 +2159,9 @@ class MongoDatastore extends AbstractDatastore implements MappingContext.Listene
             // The reason the listing failed, which is what an operator can act on - often a missing
             // listIndexes privilege - with the conflict that made it matter attached.
             LOG.error('Failed to create index for entity [{}] {} and could not inspect existing indexes: {}',
-                entity.getName(), descriptor, existingIndexes.listingFailure.getMessage(), original)
+                entity.getName(), descriptor, existingIndexes.listingFailure.getMessage())
+            LOG.debug('Stack trace of the index conflict for entity [{}] {}: {}',
+                entity.getName(), descriptor, original.getMessage(), original)
             return Reconciliation.FAILED
         }
         Document existing = findIndexByKeyPattern(indexes, keys)
@@ -2166,6 +2173,8 @@ class MongoDatastore extends AbstractDatastore implements MappingContext.Listene
         }
         if (existing == null) {
             LOG.error('Failed to create index for entity [{}] {}: {}',
+                entity.getName(), descriptor, original.getMessage())
+            LOG.debug('Stack trace of the failure to create index for entity [{}] {}: {}',
                 entity.getName(), descriptor, original.getMessage(), original)
             return Reconciliation.FAILED
         }
@@ -2215,6 +2224,8 @@ class MongoDatastore extends AbstractDatastore implements MappingContext.Listene
                 }
                 if (!dropped) {
                     LOG.error('Failed to recreate index [{}] on entity [{}] {}: {}',
+                        existingName, entity.getName(), descriptor, recreateError.getMessage())
+                    LOG.debug('Stack trace of the failure to recreate index [{}] on entity [{}] {}: {}',
                         existingName, entity.getName(), descriptor, recreateError.getMessage(), recreateError)
                     return Reconciliation.FAILED
                 }
@@ -2222,6 +2233,8 @@ class MongoDatastore extends AbstractDatastore implements MappingContext.Listene
                 existingIndexes.refresh()
                 LOG.error('Dropped index [{}] on entity [{}] to recreate it {}, but it could not be built again: {}. ' +
                         'The collection has no index on these keys until the cause is fixed and the index built.',
+                    existingName, entity.getName(), descriptor, recreateError.getMessage())
+                LOG.debug('Stack trace of the failure to rebuild index [{}] on entity [{}] {}: {}',
                     existingName, entity.getName(), descriptor, recreateError.getMessage(), recreateError)
                 return Reconciliation.FAILED
             }
@@ -2240,6 +2253,8 @@ class MongoDatastore extends AbstractDatastore implements MappingContext.Listene
                     'Declare indexAttributes:[recreateOnConflict:true] to drop and recreate it. Original error: {}',
                 entity.getName(), descriptor, existingName, original.getMessage())
         }
+        LOG.debug('Stack trace of the index conflict for entity [{}] {}: {}',
+            entity.getName(), descriptor, original.getMessage(), original)
         return Reconciliation.FAILED
     }
 
@@ -3094,6 +3109,7 @@ class MongoDatastore extends AbstractDatastore implements MappingContext.Listene
 
     }
 
+    @Override
     AutoTimestampEventListener getAutoTimestampEventListener() {
         return this.autoTimestampEventListener
     }
