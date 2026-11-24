@@ -18,11 +18,15 @@
  */
 package org.apache.grails.web.mapping.aot
 
+import java.util.function.Consumer
+
 import groovy.transform.CompileStatic
 import org.jspecify.annotations.Nullable
+import org.springframework.aot.hint.ExecutableMode
 import org.springframework.aot.hint.MemberCategory
 import org.springframework.aot.hint.RuntimeHints
 import org.springframework.aot.hint.RuntimeHintsRegistrar
+import org.springframework.aot.hint.TypeHint
 
 /**
  * Registers the URL mapping API a request is dispatched through.
@@ -50,6 +54,19 @@ class UrlMappingRuntimeHints implements RuntimeHintsRegistrar {
         'grails.web.mapping.UrlMappingData'
     ] as String[]
 
+    /**
+     * What a URL mappings closure is delegated to while the mappings are evaluated. Every mapping in it is
+     * a call the closure resolves dynamically against the builder, which reads the builder's own fields as
+     * well as calling its methods.
+     */
+    private static final String MAPPINGS_BUILDER = 'org.grails.web.mapping.DefaultUrlMappingEvaluator$UrlMappingBuilder'
+
+    /**
+     * Whose method an error response is written as the return value of, which is looked up reflectively to tell Spring
+     * MVC the type of the value when {@code grails.exceptionresolver.problemDetails} writes one.
+     */
+    private static final String ACTION_RETURN_VALUES = 'org.grails.web.mapping.mvc.ActionReturnValues'
+
     @Override
     void registerHints(RuntimeHints hints, @Nullable ClassLoader classLoader) {
         for (String type in DISPATCHED_TYPES) {
@@ -58,6 +75,12 @@ class UrlMappingRuntimeHints implements RuntimeHintsRegistrar {
                     MemberCategory.INVOKE_PUBLIC_METHODS,
                     MemberCategory.INVOKE_DECLARED_CONSTRUCTORS)
         }
+        hints.reflection().registerTypeIfPresent(classLoader, MAPPINGS_BUILDER,
+                MemberCategory.INVOKE_DECLARED_METHODS,
+                MemberCategory.INVOKE_PUBLIC_METHODS,
+                MemberCategory.ACCESS_DECLARED_FIELDS)
+        hints.reflection().registerTypeIfPresent(classLoader, ACTION_RETURN_VALUES,
+                { TypeHint.Builder type -> type.withMethod('returnedErrorResponse', [], ExecutableMode.INVOKE) } as Consumer<TypeHint.Builder>)
     }
 
 }
