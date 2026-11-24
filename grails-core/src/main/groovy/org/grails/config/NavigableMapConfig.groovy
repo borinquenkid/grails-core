@@ -325,6 +325,14 @@ abstract class NavigableMapConfig implements Config {
         systemEnvironment = new SystemEnvironmentIndex(System.getenv())
     }
 
+    /**
+     * Indexes the given environment as the JVM of the given operating system would hold it, so that a test can
+     * exercise the names Windows matches regardless of case on any machine.
+     */
+    void refreshSystemEnvironment(Map<String, String> environment, boolean windows) {
+        systemEnvironment = new SystemEnvironmentIndex(environment, windows)
+    }
+
     @Override
     def <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
         Object value = systemEnvironment.get(key)
@@ -504,6 +512,7 @@ abstract class NavigableMapConfig implements Config {
 
         Object value = null
         boolean first = true
+        boolean storedKeyRead = false
         int length = key.length()
         int start = 0
         while (start < length) {
@@ -513,18 +522,77 @@ abstract class NavigableMapConfig implements Config {
             }
             if (end > start) {
                 String segment = key.substring(start, end)
-                if (first) {
-                    value = configMap.get(segment)
-                    first = false
-                } else if (value instanceof Map) {
-                    value = ((Map<?, ?>) value).get(segment)
+                Object parent = first ? configMap : value
+                first = false
+                if (parent instanceof Map<?, ?> map && map.containsKey(segment)) {
+                    value = map.get(segment)
                 } else {
-                    break
+                    value = elementOf(parent, segment)
+                    if (value != null && !storedKeyRead) {
+                        // a full key stored as written, such as one put as server.ports[1], wins over the element
+                        Object stored = configMap.get(key)
+                        if (stored != null) {
+                            return stored
+                        }
+                        storedKeyRead = true
+                    }
+                }
+                if (value == null) {
+                    return null
                 }
             }
             start = end + 1
         }
         return value
+    }
+
+    private static Object childOf(Object value, String segment) {
+        if (value instanceof Map<?, ?> map && map.containsKey(segment)) {
+            return map.get(segment)
+        }
+        return elementOf(value, segment)
+    }
+
+    /**
+     * The element of a list a segment of a key names: the element at a whole-number segment, as Spring Boot reads
+     * {@code server.ports.0}, or, for a segment with an index after a name, {@code ports[0]}, the element of the list
+     * under {@code ports} in a map that holds no key of that name itself. A whole number with a leading zero, such as
+     * {@code 01}, is not an index, as in Spring Boot. Anything else below a value that is not a map, such as a child
+     * of a scalar, does not exist. A key stored as written is read before the element it names.
+     */
+    private static Object elementOf(Object value, String segment) {
+        if (value instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) value
+            int bracket = segment.indexOf('[')
+            if (bracket > 0 && segment.endsWith(']')) {
+                Object child = map.get(segment.substring(0, bracket))
+                for (String index : segment.substring(bracket + 1, segment.length() - 1).split('\\]\\[', -1)) {
+                    child = childOf(child, index)
+                    if (child == null) {
+                        return null
+                    }
+                }
+                return child
+            }
+            return null
+        }
+        if (value instanceof List<?> list) {
+            int index = listIndex(segment)
+            return index >= 0 && index < list.size() ? list.get(index) : null
+        }
+        return null
+    }
+
+    private static int listIndex(String segment) {
+        if (segment.isEmpty() || segment.length() > 9 || (segment.length() > 1 && segment.charAt(0) == '0')) {
+            return -1
+        }
+        for (int i = 0; i < segment.length(); i++) {
+            if (!Character.isDigit(segment.charAt(i))) {
+                return -1
+            }
+        }
+        return Integer.parseInt(segment)
     }
 
     /**
@@ -557,8 +625,33 @@ abstract class NavigableMapConfig implements Config {
         private final Set<String> canonicalNames
         private final int[] canonicalHashes
 
+        /**
+         * How the JVM compares variable names on Windows: each character upper-cased, and nothing else. That keeps names
+         * that {@link String#CASE_INSENSITIVE_ORDER} would merge apart, such as {@code CONFIG_ID} and {@code CONFIG_İD}
+         * (U+0130), because it also lower-cases and so reads the dotted capital I as an {@code i}.
+         */
+        private static final Comparator<String> WINDOWS_NAME_ORDER = (first, second) -> {
+            int length = Math.min(first.length(), second.length())
+            for (int i = 0; i < length; i++) {
+                char a = first.charAt(i)
+                char b = second.charAt(i)
+                if (a != b) {
+                    a = Character.toUpperCase(a)
+                    b = Character.toUpperCase(b)
+                    if (a != b) {
+                        return (int) a - (int) b
+                    }
+                }
+            }
+            return first.length() - second.length()
+        }
+
         SystemEnvironmentIndex(Map<String, String> environment) {
-            this.variables = IS_WINDOWS ? new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER) : HashMap.<String, String>newHashMap(environment.size())
+            this(environment, IS_WINDOWS)
+        }
+
+        SystemEnvironmentIndex(Map<String, String> environment, boolean windows) {
+            this.variables = windows ? new TreeMap<String, String>(WINDOWS_NAME_ORDER) : HashMap.<String, String>newHashMap(environment.size())
             this.variables.putAll(environment)
             this.canonicalNames = HashSet.<String>newHashSet(variables.size())
             for (String name : variables.keySet()) {
