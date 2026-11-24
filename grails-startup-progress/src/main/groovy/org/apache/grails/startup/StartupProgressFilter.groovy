@@ -32,8 +32,9 @@ import groovy.transform.PackageScope
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.ConfigurableApplicationContext
-import org.springframework.core.Ordered
 import org.springframework.web.context.ConfigurableWebApplicationContext
+
+import org.grails.web.config.http.GrailsFilters
 
 /**
  * Answers for the startup progress from inside the application, once the embedded web server has the port,
@@ -79,7 +80,7 @@ final class StartupProgressFilter implements Filter {
         registration.setName('grailsStartupProgressFilter')
         registration.addUrlPatterns('/*')
         registration.setDispatcherTypes(DispatcherType.REQUEST)
-        registration.setOrder(Ordered.HIGHEST_PRECEDENCE)
+        registration.setOrder(GrailsFilters.STARTUP_PROGRESS_FILTER.getOrder())
         return registration
     }
 

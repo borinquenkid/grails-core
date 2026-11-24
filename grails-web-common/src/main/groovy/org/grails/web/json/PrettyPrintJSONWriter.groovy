@@ -26,8 +26,8 @@ import groovy.transform.CompileStatic;
  *
  * @author Siegfried Puchbauer
  * @since 1.1
- * @deprecated use {@link JSONWriter#JSONWriter(Writer, JsonMapperSupport, boolean)}, which indents with the mapper's
- *     default pretty printer; {@code grails.converters.json.legacy} uses it to indent JSON as Grails 8 did
+ * @deprecated use {@link JSONWriter#JSONWriter(Writer, boolean)}, which indents with Jackson's default pretty printer;
+ *     {@code grails.converters.json.legacy} uses this class to indent JSON as Grails 8 did
  */
 // TODO(groovyism-cleanup): semicolons + double-quoted strings kept to preserve rename-similarity against the original .java (see matrei's review on #16576). Removed by the stacked groovyism-cleanup PR.
 @SuppressWarnings(['UnnecessarySemicolon', 'UnnecessaryGString', 'UnnecessaryPublicModifier'])

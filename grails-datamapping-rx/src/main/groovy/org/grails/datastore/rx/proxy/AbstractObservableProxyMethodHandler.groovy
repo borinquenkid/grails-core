@@ -24,8 +24,8 @@ import java.lang.reflect.Modifier
 import groovy.transform.CompileStatic
 import groovy.transform.stc.POJO
 import org.springframework.util.ReflectionUtils
-import rx.Observable
-import rx.Subscriber
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Observer
 
 import org.grails.datastore.mapping.proxy.EntityProxyMethodHandler
 import org.grails.datastore.rx.RxDatastoreClient
@@ -63,7 +63,8 @@ abstract class AbstractObservableProxyMethodHandler extends EntityProxyMethodHan
     protected Object invokeEntityProxyMethods(Object self, String methodName, Object[] args) {
         if (methodName.equals('subscribe')) {
             Observable observable = resolveObservable()
-            return observable.subscribe((Subscriber) args[0])
+            observable.subscribe((Observer) args[0])
+            return null
         }
         else if (methodName.equals('toObservable')) {
             return resolveObservable()
