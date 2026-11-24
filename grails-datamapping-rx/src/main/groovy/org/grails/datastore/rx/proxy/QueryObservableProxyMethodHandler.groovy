@@ -22,8 +22,8 @@ import groovy.transform.CompileStatic
 import groovy.transform.stc.POJO
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import rx.Observable
-import rx.functions.Func1
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.functions.Function
 
 import org.grails.datastore.mapping.query.Query
 import org.grails.datastore.rx.RxDatastoreClient
@@ -58,9 +58,9 @@ class QueryObservableProxyMethodHandler extends AbstractObservableProxyMethodHan
         query.projections().id()
         Observable queryResult = ((RxQuery) query).singleResult()
 
-        return queryResult.map(new Func1() {
+        return queryResult.map(new Function<Object, Object>() {
             @Override
-            Object call(Object o) {
+            Object apply(Object o) {
                 QueryObservableProxyMethodHandler.this.@target = o
                 return o
             }
@@ -77,7 +77,7 @@ class QueryObservableProxyMethodHandler extends AbstractObservableProxyMethodHan
             if (LOG.isWarnEnabled()) {
                 LOG.warn('Entity of type [{}] lazy loaded using a blocking operation. Consider using ObservableProxy.subscribe(..) instead', type.getName())
             }
-            this.@target = observable.toBlocking().first()
+            this.@target = observable.blockingFirst()
         }
         else {
             throw new BlockingOperationException('Cannot initialize proxy for class [' + type + '] using a blocking operation. Use ObservableProxy.subscribe(..) instead.')
