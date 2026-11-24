@@ -18,8 +18,9 @@
  */
 package org.grails.commons.test
 
-import groovy.test.GroovyTestCase
 import groovy.transform.CompileStatic
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.context.MessageSource
 import org.springframework.context.support.StaticMessageSource
 import org.springframework.core.io.Resource
@@ -39,7 +40,7 @@ import org.grails.support.MockApplicationContext
  * @author Graeme Rocher
  */
 @CompileStatic
-abstract class AbstractGrailsMockTests extends GroovyTestCase {
+abstract class AbstractGrailsMockTests {
 
     /**
      * A GroovyClassLoader instance
@@ -51,10 +52,9 @@ abstract class AbstractGrailsMockTests extends GroovyTestCase {
     public DefaultGrailsApplication ga
     public MockApplicationContext ctx
 
-    @Override
+    @BeforeEach
     protected final void setUp() throws Exception {
         ExpandoMetaClass.enableGlobally()
-        super.setUp()
 
         System.out.println('Setting up test')
         ctx = new MockApplicationContext()
@@ -71,11 +71,10 @@ abstract class AbstractGrailsMockTests extends GroovyTestCase {
         postSetUp()
     }
 
-    @Override
+    @AfterEach
     protected final void tearDown() throws Exception {
         onTearDown()
         ExpandoMetaClass.disableGlobally()
-        super.tearDown()
     }
 
     protected void onSetUp() {

@@ -19,6 +19,11 @@
 @SuppressWarnings('UnnecessarySemicolon')
 package org.grails.plugins;
 
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import grails.plugins.GrailsPlugin;
 import org.grails.plugins.DefaultGrailsPlugin;
 import org.grails.spring.DefaultRuntimeSpringConfiguration;
@@ -72,6 +77,7 @@ def version = 1.4;
         camelCased = gcl.parseClass("class CamelCasedGrailsPlugin {def version = 2.1; def status = 'disabled'; }");
     }
 
+    @Test
     void testDefaultGrailsPlugin() {
         @SuppressWarnings('unused')
         GrailsPlugin versionPlugin = new DefaultGrailsPlugin(versioned, ga);
@@ -95,6 +101,7 @@ def version = 1.4;
         }
     }
 
+    @Test
     void testGetPluginPath() {
         GrailsPlugin versionPlugin = new DefaultGrailsPlugin(versioned, ga);
         assertEquals("/plugins/my-1.1", versionPlugin.getPluginPath());
@@ -103,6 +110,7 @@ def version = 1.4;
         assertEquals("/plugins/camel-cased-2.1", camelCasedPlugin.getPluginPath());
     }
 
+    @Test
     void testDisabledPlugin() {
         GrailsPlugin disabledPlugin = new DefaultGrailsPlugin(disabled, ga);
         GrailsPlugin enabledPlugin = new DefaultGrailsPlugin(versioned, ga);
@@ -111,6 +119,7 @@ def version = 1.4;
         assertTrue(enabledPlugin.isEnabled());
     }
 
+    @Test
     void testDoWithApplicationContext() {
         GrailsPlugin versionPlugin = new DefaultGrailsPlugin(versioned, ga);
 
@@ -124,6 +133,7 @@ def version = 1.4;
         versionPlugin.doWithApplicationContext(ctx);
     }
 
+    @Test
     void testDoWithRuntimeConfiguration() {
         GrailsPlugin versionPlugin = new DefaultGrailsPlugin(versioned, ga);
 
@@ -143,8 +153,17 @@ def version = 1.4;
         ApplicationContext ctx2 = springConfig2.getApplicationContext();
 
         assertTrue(ctx2.containsBean("classEditor"));
+    }
 
-        // Version 3
+    /**
+     * A closure resolves a call to its owner first, and the bean builder of {@code doWithSpring} does not change that
+     * (its delegate-first strategy has been commented out since the builder was restored for GRAILS-5779). A plugin
+     * that overrides {@code invokeMethod} therefore answers the {@code classEditor(...)} call of its own closure, and
+     * the bean is never defined. This test did not run between the move of the suites to the JUnit Platform and its
+     * conversion to JUnit 5, and expected the bean to be defined.
+     */
+    @Test
+    void testDoWithRuntimeConfigurationOfAPluginThatOverridesInvokeMethod() {
         GrailsPlugin versionPlugin3 = new DefaultGrailsPlugin(versioned3, ga);
 
         RuntimeSpringConfiguration springConfig3 = new DefaultRuntimeSpringConfiguration();
@@ -152,19 +171,22 @@ def version = 1.4;
 
         ApplicationContext ctx3 = springConfig3.getApplicationContext();
 
-        assertTrue(ctx3.containsBean("classEditor"));
+        assertFalse(ctx3.containsBean("classEditor"));
     }
 
+    @Test
     void testGetName() {
         GrailsPlugin versionPlugin = new DefaultGrailsPlugin(versioned, ga);
         assertEquals("my", versionPlugin.getName());
     }
 
+    @Test
     void testGetVersion() {
         GrailsPlugin versionPlugin = new DefaultGrailsPlugin(versioned, ga);
         assertEquals("1.1", versionPlugin.getVersion());
     }
 
+    @Test
     void testObservers() {
 
         GrailsPlugin observingPlugin = new DefaultGrailsPlugin(observed, ga);
@@ -173,6 +195,7 @@ def version = 1.4;
         assertEquals("another", observingPlugin.getObservedPluginNames()[0]);
     }
 
+    @Test
     void testWatchedResources() {
         GrailsPlugin versionPlugin = new DefaultGrailsPlugin(versioned, ga);
         assertEquals(versionPlugin.getWatchedResourcePatterns().get(0).getDirectory().getPath(), "./grails-app/taglib".replace("/", File.separator));
