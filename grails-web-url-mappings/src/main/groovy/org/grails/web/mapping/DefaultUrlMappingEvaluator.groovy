@@ -656,6 +656,43 @@ class DefaultUrlMappingEvaluator implements UrlMappingEvaluator, ClassLoaderAwar
         }
 
         /**
+         * Matches the QUERY method of RFC 10008
+         *
+         * @param arguments The arguments
+         * @param uri The URI
+         * @return the UrlMapping
+         * @since 9.0
+         */
+        UrlMapping query(Map<String, Object> arguments, String uri, Closure<?> callable) {
+            arguments.put(HTTP_METHOD, HttpMethod.QUERY)
+            return (UrlMapping) _invoke(uri, [arguments, callable] as Object[], this)
+        }
+
+        /**
+         * Matches the QUERY method of RFC 10008
+         *
+         * @param arguments The arguments
+         * @param uri The URI
+         * @return the UrlMapping
+         * @since 9.0
+         */
+        UrlMapping query(Map<String, Object> arguments, String uri) {
+            return query(arguments, uri, null)
+        }
+
+        /**
+         * Matches the QUERY method of RFC 10008
+         *
+         * @param regexUrlMapping The mapping
+         * @return the UrlMapping
+         * @since 9.0
+         */
+        UrlMapping query(RegexUrlMapping regexUrlMapping) {
+            regexUrlMapping.@httpMethod = HttpMethod.QUERY.toString()
+            return regexUrlMapping
+        }
+
+        /**
          * Define Url mapping collections that are nested directly below the parent resource (without the id)
          *
          * @param callable The callable
