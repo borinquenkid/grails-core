@@ -18,6 +18,9 @@
  */
 package org.grails.web.errors
 
+import java.util.function.Supplier
+
+import jakarta.servlet.DispatcherType
 import jakarta.servlet.ServletContext
 import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest
@@ -93,6 +96,7 @@ class GrailsExceptionResolver extends SimpleMappingExceptionResolver implements 
                                          Object handler, Exception ex) {
         // don't reuse cached controller attribute
         request.removeAttribute(GrailsApplicationAttributes.GRAILS_CONTROLLER_CLASS_AVAILABLE)
+        DispatcherType dispatchedAs = request.getDispatcherType()
 
         ex = findWrappedException(ex)
 
@@ -113,11 +117,57 @@ class GrailsExceptionResolver extends SimpleMappingExceptionResolver implements 
         }
 
         UrlMappingsHolder urlMappings = lookupUrlMappings()
-        if (urlMappings != null) {
-            mv = resolveViewOrForward(ex, urlMappings, request, response, mv)
-        }
+        Exception resolved = ex
+        ModelAndView view = mv
+        Supplier<ModelAndView> errorHandler = { ->
+            urlMappings == null ? view : resolveViewOrForward(resolved, urlMappings, request, response, view)
+        } as Supplier<ModelAndView>
 
-        return mv
+        return answerServerError(request, reportedFailure(ex), dispatchedAs, errorHandler)
+    }
+
+    /**
+     * Every exception this resolves is a server error, which resolving it hides from the observation of the request.
+     * It is recorded around the error handler, so that what fails while the handler answers it does not take its place.
+     * A failure inside an include is not recorded: its error page is rendered inside the page that included it, which
+     * goes on to answer the request.
+     *
+     * @param dispatchedAs how the request was dispatched before an error handler was forwarded to
+     */
+    private static ModelAndView answerServerError(HttpServletRequest request, Throwable ex, DispatcherType dispatchedAs,
+            Supplier<ModelAndView> errorHandler) {
+        if (dispatchedAs == DispatcherType.INCLUDE) {
+            return errorHandler.get()
+        }
+        return ServerErrorObservation.recordServerError(request, ex, errorHandler)
+    }
+
+    /**
+     * A forward to an error handler copies its model to the request, which leaves a wrapper in
+     * {@link WebUtils#ERROR_EXCEPTION_ATTRIBUTE}. The attribute keeps the exception itself for whatever reads it once the
+     * chain has returned, which includes the filter that observes the request.
+     */
+    private static void keepFailureOnRequest(HttpServletRequest request, Exception ex) {
+        request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, reportedFailure(ex))
+    }
+
+    /**
+     * What the action threw, as the observation of the request reports it. {@code DispatcherServlet} wraps an
+     * {@link Error}, such as a failed {@code assert}, in a {@link ServletException}, which
+     * {@link org.springframework.web.filter.ServerHttpObservationFilter} takes off an exception that reaches it, and
+     * {@link #findWrappedException(Exception)} leaves a Groovy wrapper around an {@code Error}, since it resolves
+     * exceptions only.
+     */
+    private static Throwable reportedFailure(Exception resolved) {
+        Throwable failure = resolved
+        if (failure instanceof ServletException && failure.getCause() != null) {
+            failure = failure.getCause()
+        }
+        while ((failure instanceof InvokerInvocationException || failure instanceof GrailsMVCException) &&
+                failure.getCause() != null) {
+            failure = failure.getCause()
+        }
+        return failure
     }
 
     String getRequestLogMessage(Throwable e, HttpServletRequest request) {
@@ -245,10 +295,16 @@ class GrailsExceptionResolver extends SimpleMappingExceptionResolver implements 
                     }
                     request.setAttribute(ERROR_HANDLER_FORWARD_IN_PROGRESS_ATTRIBUTE, Boolean.TRUE)
                     try {
-                        forwardRequest(info, request, response, mv, uri)
+                        if (WebUtils.isInclude(request)) {
+                            includeRequest(info, request, response, mv, uri)
+                        }
+                        else {
+                            forwardRequest(info, request, response, mv, uri)
+                        }
                     }
                     finally {
                         request.removeAttribute(ERROR_HANDLER_FORWARD_IN_PROGRESS_ATTRIBUTE)
+                        keepFailureOnRequest(request, ex)
                     }
                     // return an empty ModelAndView since the error handler has been processed
                     return new ModelAndView()
@@ -289,6 +345,23 @@ class GrailsExceptionResolver extends SimpleMappingExceptionResolver implements 
                 request, response, info, mv.getModel(), true)
         LOG.debug('Matched URI [{}] to URL mapping [{}], forwarding to [{}] with response [{}]',
                 uri, info, forwardUrl, response.getClass())
+    }
+
+    /**
+     * Answers an exception inside an include with its error handler, included where the failing action would have
+     * written, as Spring MVC includes a view rather than forwarding to it there. A forward ends the response it is
+     * given, which inside an include belongs to the page that included the action, so Tomcat answered that page with
+     * nothing.
+     *
+     * @since 8.0.1
+     */
+    protected void includeRequest(UrlMappingInfo info, HttpServletRequest request, HttpServletResponse response,
+            ModelAndView mv, String uri) throws ServletException, IOException {
+        info.configure(GrailsWebRequest.lookup(request))
+        String includeUrl = UrlMappingUtils.includeRequestForUrlMappingInfo(
+                request, response, info, mv.getModel(), true)
+        LOG.debug('Matched URI [{}] to URL mapping [{}], including [{}] with response [{}]',
+                uri, info, includeUrl, response.getClass())
     }
 
     protected String determineUri(HttpServletRequest request) {
