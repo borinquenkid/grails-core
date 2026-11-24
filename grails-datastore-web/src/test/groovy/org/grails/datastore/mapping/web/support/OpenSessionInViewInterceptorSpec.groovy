@@ -20,47 +20,59 @@ package org.grails.datastore.mapping.web.support
 
 import jakarta.persistence.FlushModeType
 
-import org.springframework.transaction.support.TransactionSynchronizationManager
-import org.springframework.ui.ModelMap
-import org.springframework.web.context.request.WebRequest
-import spock.lang.Specification
-
 import org.grails.datastore.mapping.core.Datastore
+import org.grails.datastore.mapping.core.DatastoreUtils
 import org.grails.datastore.mapping.core.Session
 import org.grails.datastore.mapping.transactions.SessionHolder
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
+import org.springframework.transaction.support.TransactionSynchronizationUtils
+import org.springframework.web.context.request.ServletWebRequest
+import spock.lang.Specification
 
+/**
+ * The session of a request is opened by the first interceptor call that finds none bound, used by an include within
+ * that request, and closed when the request completes or when it goes asynchronous.
+ */
 class OpenSessionInViewInterceptorSpec extends Specification {
 
-    Datastore datastore = Mock(Datastore)
-    Session session = Mock(Session) {
-        getDatastore() >> datastore
-        isConnected() >> true
-    }
-    WebRequest request = Stub(WebRequest)
+    Datastore datastore = Mock()
+    Session session = Mock()
     OpenSessionInViewInterceptor interceptor = new OpenSessionInViewInterceptor(datastore: datastore)
+    ServletWebRequest request = new ServletWebRequest(new MockHttpServletRequest('GET', '/books'))
+
+    void setup() {
+        datastore.connect() >> session
+        session.datastore >> datastore
+        session.flushMode >> FlushModeType.AUTO
+        session.hasTransaction() >> true
+    }
 
     void cleanup() {
-        if (TransactionSynchronizationManager.hasResource(datastore)) {
-            TransactionSynchronizationManager.unbindResource(datastore)
+        if (TransactionSynchronizationManager.synchronizationActive) {
+            TransactionSynchronizationManager.clearSynchronization()
+        }
+        TransactionSynchronizationManager.resourceMap.keySet().toList().each { key ->
+            TransactionSynchronizationManager.unbindResource(key)
         }
     }
 
-    void 'a session is opened, bound, flushed and closed around the request'() {
+    private Session boundSession() {
+        ((SessionHolder) TransactionSynchronizationManager.getResource(datastore))?.session
+    }
+
+    void 'a request without a session opens one, flushes it after the action and closes it when it completes'() {
         when:
         interceptor.preHandle(request)
 
         then:
-        interceptor.datastore.is(datastore)
-        1 * datastore.connect() >> session
-        1 * session.setFlushMode(FlushModeType.AUTO)
-        ((SessionHolder) TransactionSynchronizationManager.getResource(datastore)).session.is(session)
+        boundSession().is(session)
 
         when:
-        interceptor.postHandle(request, new ModelMap())
+        interceptor.postHandle(request, null)
 
         then:
-        1 * session.getFlushMode() >> FlushModeType.AUTO
-        1 * session.hasTransaction() >> true
         1 * session.flush()
 
         when:
@@ -68,49 +80,91 @@ class OpenSessionInViewInterceptorSpec extends Specification {
 
         then:
         1 * session.disconnect()
-        !TransactionSynchronizationManager.hasResource(datastore)
+        boundSession() == null
     }
 
-    void 'a session without a transaction or with manual flushing is not flushed'() {
-        given:
-        datastore.connect() >> session
+    void 'an include uses the session of the request and leaves it bound and open'() {
+        given: 'the request has opened its session'
         interceptor.preHandle(request)
 
-        when:
-        interceptor.postHandle(request, new ModelMap())
-
-        then:
-        1 * session.getFlushMode() >> FlushModeType.AUTO
-        1 * session.hasTransaction() >> false
-        0 * session.flush()
-
-        when:
-        interceptor.postHandle(request, new ModelMap())
-
-        then:
-        1 * session.getFlushMode() >> FlushModeType.COMMIT
-        0 * session.hasTransaction()
-        0 * session.flush()
-    }
-
-    void 'an already bound session is reused and nothing happens without one'() {
-        given:
-        TransactionSynchronizationManager.bindResource(datastore, new SessionHolder(session))
-
-        when:
+        when: 'an include within it starts and completes'
         interceptor.preHandle(request)
-
-        then:
-        0 * datastore.connect()
-        0 * session.setFlushMode(_)
-
-        when:
-        TransactionSynchronizationManager.unbindResource(datastore)
-        interceptor.postHandle(request, new ModelMap())
+        interceptor.postHandle(request, null)
         interceptor.afterCompletion(request, null)
 
         then:
-        0 * session._
+        0 * session.disconnect()
+        boundSession().is(session)
+
+        when: 'the request completes'
+        interceptor.afterCompletion(request, null)
+
+        then:
+        1 * session.disconnect()
+        boundSession() == null
     }
 
+    void 'a request that goes asynchronous flushes and closes its session and leaves the thread without one'() {
+        given:
+        interceptor.preHandle(request)
+
+        when:
+        interceptor.afterConcurrentHandlingStarted(request)
+
+        then:
+        1 * session.flush()
+        1 * session.disconnect()
+        boundSession() == null
+    }
+
+    void 'the session is closed and unbound when its flush fails as the request goes asynchronous'() {
+        given:
+        interceptor.preHandle(request)
+
+        when:
+        interceptor.afterConcurrentHandlingStarted(request)
+
+        then:
+        1 * session.flush() >> { throw new IllegalStateException('flush failed') }
+        thrown(IllegalStateException)
+        1 * session.disconnect()
+        boundSession() == null
+    }
+
+    void 'a session that was bound before the request stays bound and open when the request goes asynchronous'() {
+        given: 'a session bound by the caller'
+        DatastoreUtils.bindSession(session)
+
+        when:
+        interceptor.preHandle(request)
+        interceptor.afterConcurrentHandlingStarted(request)
+
+        then:
+        0 * session.flush()
+        0 * session.disconnect()
+        boundSession().is(session)
+    }
+
+    void 'a session that transaction synchronization binds as it is opened is left for the transaction to close'() {
+        given: 'synchronization is active, so opening the session binds it and registers its cleanup'
+        TransactionSynchronizationManager.initSynchronization()
+
+        when:
+        interceptor.preHandle(request)
+        interceptor.postHandle(request, null)
+        interceptor.afterCompletion(request, null)
+
+        then:
+        0 * session.disconnect()
+        boundSession().is(session)
+
+        when: 'the transaction completes'
+        List<TransactionSynchronization> synchronizations = TransactionSynchronizationManager.synchronizations
+        TransactionSynchronizationUtils.triggerBeforeCompletion()
+        TransactionSynchronizationUtils.invokeAfterCompletion(synchronizations, TransactionSynchronization.STATUS_COMMITTED)
+
+        then:
+        1 * session.disconnect()
+        boundSession() == null
+    }
 }
